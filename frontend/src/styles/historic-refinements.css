@@ -1,0 +1,760 @@
+/* =====================================================
+   CHRONOS - Refinamientos Premium V2
+   Diseño único e histórico (no genérico)
+   ===================================================== */
+
+/* ===== Importar fuentes históricas ===== */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Marcellus&display=swap');
+
+:root {
+  --font-display: 'Cinzel', Georgia, serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-elegant: 'Marcellus', Georgia, serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+  
+  /* Texturas y patrones */
+  --paper-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.85' numOctaves='3' seed='5'/%3E%3CfeColorMatrix values='0 0 0 0 0.78 0 0 0 0 0.66 0 0 0 0 0.37 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ===== Override tipografías ===== */
+body {
+  font-family: var(--font-body);
+}
+
+.feed-head h1,
+.post h2,
+.story-title-link,
+.profile-main h2,
+.sidebox h3,
+.real-feed-head h3,
+.empty-feed-state h3,
+.brand strong {
+  font-family: var(--font-display) !important;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.post h2,
+.story-title-link {
+  font-family: var(--font-serif) !important;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0;
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.kicker,
+.composer-label,
+.nav-title {
+  font-family: var(--font-elegant) !important;
+  letter-spacing: 0.25em !important;
+  text-transform: uppercase;
+}
+
+/* ===== Body con textura pergamino ===== */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: var(--paper-texture);
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.topbar, .shell {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== Logo CHRONOS con ornamento ===== */
+.brand-mark {
+  position: relative;
+  background: 
+    radial-gradient(circle at 40% 30%, rgba(232, 215, 168, 0.35), transparent 60%),
+    linear-gradient(145deg, #1a1d23 0%, #0d0f12 100%) !important;
+  border: 2px solid var(--gold-primary) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+
+.brand-mark::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid rgba(198, 167, 94, 0.3);
+}
+
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(198, 167, 94, 0.4) 90deg,
+    transparent 180deg,
+    rgba(198, 167, 94, 0.4) 270deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 1px;
+  opacity: 0.6;
+}
+
+.brand strong {
+  font-size: 24px !important;
+  letter-spacing: 0.25em !important;
+  font-weight: 600 !important;
+  background: linear-gradient(180deg, var(--gold-accent) 0%, var(--gold-primary) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ===== Feed Head con ornamento ===== */
+.feed-head h1 {
+  font-size: 48px !important;
+  font-style: italic;
+  font-family: var(--font-serif) !important;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  position: relative;
+  display: inline-block;
+}
+
+.feed-head h1::after {
+  content: "";
+  display: block;
+  width: 120px;
+  height: 12px;
+  margin-top: 8px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='12' viewBox='0 0 120 12' fill='none' stroke='%23C6A75E' stroke-width='1'%3E%3Cline x1='0' y1='6' x2='40' y2='6'/%3E%3Ccircle cx='45' cy='6' r='2' fill='%23C6A75E'/%3E%3Cpath d='M50 6 Q55 1 60 6 Q65 11 70 6'/%3E%3Ccircle cx='75' cy='6' r='2' fill='%23C6A75E'/%3E%3Cline x1='80' y1='6' x2='120' y2='6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+}
+
+.kicker {
+  font-size: 11px !important;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kicker::before,
+.kicker::after {
+  content: "";
+  width: 24px;
+  height: 1px;
+  background: var(--gold-primary);
+  display: inline-block;
+}
+
+/* ===== Cards con bordes ornamentales ===== */
+.profile-card,
+.composer,
+.post,
+.sidebox,
+.panel {
+  position: relative;
+  border-radius: 4px !important;
+  background: 
+    linear-gradient(145deg, rgba(22, 26, 32, 0.95), rgba(16, 19, 24, 0.92)) !important;
+}
+
+/* Esquinas ornamentales en cards principales */
+.post::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 20% 15%, rgba(198, 167, 94, 0.06), transparent 25%),
+    radial-gradient(circle at 80% 80%, rgba(86, 119, 180, 0.04), transparent 25%),
+    var(--paper-texture);
+  background-size: cover, cover, 200px;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Esquinas decorativas */
+.post::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid transparent;
+  border-image: linear-gradient(
+    135deg,
+    var(--gold-primary) 0%,
+    transparent 15%,
+    transparent 85%,
+    var(--gold-primary) 100%
+  ) 1;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ornamento de esquina personalizado en posts */
+.post {
+  padding: 28px 30px 22px !important;
+}
+
+.post-corner-tl,
+.post-corner-tr,
+.post-corner-bl,
+.post-corner-br {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  pointer-events: none;
+  opacity: 0.8;
+  z-index: 2;
+}
+
+.post-corner-tl { top: 8px; left: 8px; }
+.post-corner-tr { top: 8px; right: 8px; transform: scaleX(-1); }
+.post-corner-bl { bottom: 8px; left: 8px; transform: scaleY(-1); }
+.post-corner-br { bottom: 8px; right: 8px; transform: scale(-1, -1); }
+
+/* ===== Título del Post con drop cap ===== */
+.post h2 {
+  font-size: 30px !important;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.25;
+  margin: 14px 0 16px !important;
+  color: var(--gold-accent);
+  position: relative;
+  padding-bottom: 14px;
+}
+
+.post h2::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold-primary), transparent);
+}
+
+/* Texto del relato más legible */
+.post p {
+  font-family: var(--font-serif);
+  font-size: 17px !important;
+  line-height: 1.7 !important;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* Primera letra del relato más grande */
+.post > p::first-letter {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--gold-light);
+  font-family: var(--font-display);
+  float: left;
+  line-height: 0.9;
+  margin-right: 6px;
+  margin-top: 4px;
+}
+
+/* ===== Imagen del post con marco ornamental ===== */
+.post-img {
+  margin: 22px -4px !important;
+  border-radius: 6px !important;
+  border: 1px solid var(--border-gold) !important;
+  height: 460px !important;
+  position: relative;
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(198, 167, 94, 0.15) !important;
+}
+
+.post-img::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border: 1px solid rgba(198, 167, 94, 0.2);
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.post-img img {
+  filter: saturate(1.05) contrast(1.05) brightness(0.92) !important;
+}
+
+/* ===== Avatares con marco ornamental ===== */
+.post-user-img,
+.mini-avatar,
+.person-img {
+  position: relative;
+  border: 2px solid var(--gold-primary) !important;
+  box-shadow: 
+    0 0 0 1px rgba(13, 15, 18, 0.9),
+    0 0 0 3px rgba(198, 167, 94, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.profile-main .avatar {
+  border: 4px solid var(--gold-primary) !important;
+  box-shadow: 
+    0 0 0 8px rgba(13, 15, 18, 0.95),
+    0 0 0 9px rgba(198, 167, 94, 0.4),
+    0 0 0 18px transparent,
+    0 12px 32px rgba(0, 0, 0, 0.6) !important;
+  position: relative;
+}
+
+.profile-main {
+  position: relative;
+}
+
+/* Marco ornamental alrededor del avatar de perfil */
+.profile-main::before {
+  content: "";
+  position: absolute;
+  top: -62px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 1px solid rgba(198, 167, 94, 0.25);
+  pointer-events: none;
+}
+
+/* ===== Top user avatar ===== */
+.top-user img {
+  border: 2px solid var(--gold-primary) !important;
+  box-shadow: 
+    0 0 0 3px rgba(198, 167, 94, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ===== Botones más únicos ===== */
+.create-side,
+.composer-cta,
+.head-btn {
+  font-family: var(--font-elegant) !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 13px !important;
+  font-weight: 500;
+}
+
+.create-side {
+  background: 
+    linear-gradient(135deg, #E8D7A8 0%, #C6A75E 50%, #A88B4A 100%) !important;
+  color: #1a1d23 !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.create-side::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.create-side:hover::before {
+  left: 100%;
+}
+
+.head-btn {
+  background: 
+    linear-gradient(180deg, rgba(198, 167, 94, 0.15), rgba(198, 167, 94, 0.05)) !important;
+  border: 1px solid var(--border-gold) !important;
+  position: relative;
+}
+
+.head-btn::before,
+.head-btn::after {
+  content: "✦";
+  color: var(--gold-primary);
+  font-size: 8px;
+  opacity: 0.5;
+  margin: 0 4px;
+}
+
+/* ===== Topnav active state ===== */
+.topnav a {
+  font-family: var(--font-elegant);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 12px !important;
+  font-weight: 500;
+}
+
+.topnav a.active {
+  color: var(--gold-accent);
+}
+
+.topnav a.active::after {
+  background: linear-gradient(90deg, transparent, var(--gold-primary) 50%, transparent) !important;
+  height: 2px !important;
+}
+
+/* ===== Sidebox refinados ===== */
+.sidebox h3 {
+  font-family: var(--font-display) !important;
+  font-size: 18px !important;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-gold);
+  position: relative;
+}
+
+.sidebox h3::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 40px;
+  height: 1px;
+  background: var(--gold-primary);
+}
+
+/* Tendencias con números romanos */
+.trend {
+  position: relative;
+  padding-left: 28px !important;
+}
+
+/* ===== Nav title con ornamento ===== */
+.nav-title {
+  font-family: var(--font-elegant) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.3em !important;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--gold-primary) !important;
+}
+
+.nav-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold-primary), transparent);
+  opacity: 0.4;
+}
+
+/* ===== Stats con tipografía elegante ===== */
+.stats strong {
+  font-family: var(--font-display) !important;
+  font-size: 26px !important;
+  font-weight: 500;
+  background: linear-gradient(180deg, var(--gold-accent), var(--gold-primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.stats span {
+  font-family: var(--font-elegant);
+  font-size: 10px !important;
+  letter-spacing: 0.15em;
+}
+
+/* ===== Profile card portada decorada ===== */
+.cover {
+  background: 
+    linear-gradient(135deg, rgba(198, 167, 94, 0.35), rgba(86, 119, 180, 0.25)) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 30% 50%, rgba(198, 167, 94, 0.3), transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(86, 119, 180, 0.2), transparent 50%);
+}
+
+.cover::after {
+  content: "✦  ✦  ✦";
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--gold-primary);
+  font-size: 10px;
+  letter-spacing: 0.8em;
+  opacity: 0.7;
+}
+
+/* ===== Profile name ===== */
+.profile-main h2 {
+  font-family: var(--font-display) !important;
+  font-size: 22px !important;
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+}
+
+/* ===== Composer renovado ===== */
+.composer-entry {
+  border-style: dashed !important;
+  background: rgba(198, 167, 94, 0.02) !important;
+}
+
+.composer-entry:hover {
+  border-style: solid !important;
+  border-color: var(--gold-primary) !important;
+  background: rgba(198, 167, 94, 0.06) !important;
+}
+
+.composer-copy strong {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 18px !important;
+  color: var(--gold-accent) !important;
+}
+
+/* ===== Route chip elegante ===== */
+.route-chip-link {
+  background: linear-gradient(135deg, rgba(198, 167, 94, 0.15), rgba(198, 167, 94, 0.05)) !important;
+  border: 1px solid var(--border-gold) !important;
+  font-family: var(--font-elegant) !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 10px !important;
+  padding: 4px 10px !important;
+  border-radius: 4px !important;
+}
+
+/* ===== Post head info ===== */
+.post-head strong {
+  font-family: var(--font-serif);
+  font-size: 18px !important;
+  font-weight: 600;
+}
+
+.post-head small {
+  font-family: var(--font-body);
+  font-size: 12px !important;
+  letter-spacing: 0.04em;
+}
+
+/* ===== Post actions iconográficas ===== */
+.post-actions,
+.story-actions {
+  border-top: 1px solid var(--border-subtle) !important;
+  padding-top: 18px !important;
+  font-family: var(--font-elegant);
+  letter-spacing: 0.08em;
+  font-size: 12px !important;
+  text-transform: uppercase;
+}
+
+.post-actions button,
+.post-actions a,
+.story-actions button,
+.story-actions a {
+  font-size: 12px !important;
+  letter-spacing: 0.06em !important;
+}
+
+/* ===== Feed tabs ornamentadas ===== */
+.feed-tabs-v136 a {
+  font-family: var(--font-elegant) !important;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-size: 12px !important;
+  font-weight: 500;
+}
+
+/* ===== Empty state mejorado ===== */
+.empty-feed-state h3 {
+  font-family: var(--font-serif) !important;
+  font-style: italic;
+  font-size: 28px !important;
+}
+
+/* ===== Person row ===== */
+.person-row strong {
+  font-family: var(--font-serif);
+  font-size: 16px !important;
+  font-weight: 600;
+}
+
+.person-row small {
+  font-family: var(--font-body);
+  font-size: 12px !important;
+}
+
+/* ===== Follow button ===== */
+.follow,
+.follow-form button {
+  font-family: var(--font-elegant) !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 11px !important;
+  padding: 8px 16px !important;
+}
+
+/* ===== Topic row con # decorado ===== */
+.topic-row strong {
+  font-family: var(--font-serif);
+  font-size: 17px !important;
+  font-weight: 600;
+}
+
+/* ===== Imagen placeholder cuando falla ===== */
+.post-img img {
+  background: linear-gradient(135deg, rgba(198, 167, 94, 0.1), rgba(86, 119, 180, 0.1));
+}
+
+/* ===== Scrollbar refinado ===== */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(13, 15, 18, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--gold-primary), var(--gold-dark));
+  border-radius: 2px;
+  border: 2px solid rgba(13, 15, 18, 0.5);
+}
+
+/* ===== Animación entrada elegante ===== */
+@keyframes elegantFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.post {
+  animation: elegantFadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ===== Selection color ===== */
+::selection {
+  background: rgba(198, 167, 94, 0.4);
+  color: var(--gold-accent);
+}
+
+/* ===== Inputs y form refinados ===== */
+input, select, textarea {
+  font-family: var(--font-body);
+  transition: all 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--gold-primary) !important;
+  box-shadow: 0 0 0 3px rgba(198, 167, 94, 0.1) !important;
+}
+
+/* ===== Badge "Beta visual" ===== */
+.badge {
+  font-family: var(--font-elegant) !important;
+  letter-spacing: 0.15em;
+  font-size: 10px !important;
+  border-radius: 2px !important;
+  position: relative;
+}
+
+.badge::before,
+.badge::after {
+  content: "◆";
+  font-size: 6px;
+  margin: 0 4px;
+  opacity: 0.7;
+}
+
+/* ===== Tooltip de iconos custom ===== */
+.icon-svg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== Línea ornamental para feed ===== */
+.feed-divider {
+  display: flex;
+  align-items: center;
+  margin: 32px 0;
+  gap: 16px;
+}
+
+.feed-divider::before,
+.feed-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+}
+
+.feed-divider-symbol {
+  color: var(--gold-primary);
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+/* ===== Sello / signature en post ===== */
+.post-seal {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px dashed var(--gold-primary);
+  display: grid;
+  place-items: center;
+  color: var(--gold-primary);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ===== Mejoras móviles ===== */
+@media (max-width: 1024px) {
+  .feed-head h1 {
+    font-size: 36px !important;
+  }
+  
+  .post h2 {
+    font-size: 24px !important;
+  }
+  
+  .post-img {
+    height: 280px !important;
+  }
+}

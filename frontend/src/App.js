@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Feed from './pages/Feed';
 import './App.css';
+import './styles/historic-refinements.css';
 import 'remixicon/fonts/remixicon.css';
 
 // Componente para proteger rutas

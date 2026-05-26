@@ -1,18 +1,27 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import api from '../services/api';
+import { getAvatarUrl } from '../utils/imageHelpers';
+import {
+  IconStar, IconHashtag, IconPyramid, IconColumn, IconBookOpen,
+  IconCompass, IconCastle, IconCrown, IconShield
+} from './Icons';
 
 const EPOCAS_ICONOS = {
-  'Egipto antiguo': 'ri-pyramid-line',
-  'Roma imperial': 'ri-ancient-pavilion-line',
-  'Leyendas': 'ri-book-open-line',
-  'Exploraciones': 'ri-compass-3-line',
-  'Medievo': 'ri-castle-line',
-  'Civilizaciones': 'ri-building-4-line',
-  'Edad Antigua': 'ri-ancient-gate-line',
-  'Edad Media': 'ri-shield-line',
-  'Renacimiento': 'ri-palette-line',
-  'Edad Moderna': 'ri-ship-line',
-  'Edad Contemporánea': 'ri-time-line'
+  'Egipto antiguo': IconPyramid,
+  'Roma imperial': IconColumn,
+  'Grecia clásica': IconColumn,
+  'Leyendas': IconBookOpen,
+  'Exploraciones': IconCompass,
+  'Medievo': IconCastle,
+  'Civilizaciones': IconColumn,
+  'Edad Antigua': IconColumn,
+  'Edad Media': IconShield,
+  'Renacimiento': IconCrown,
+  'Edad Moderna': IconCompass,
+  'Edad Contemporánea': IconBookOpen,
+  'Personajes históricos': IconCrown,
+  'América precolombina': IconPyramid,
+  'Asia antigua': IconBookOpen
 };
 
 const Rightbar = () => {
@@ -49,37 +58,38 @@ const Rightbar = () => {
     }
   };
 
-  const getAvatarSrc = (usuario) => {
-    return usuario?.avatar?.startsWith('/uploads')
-      ? `${process.env.REACT_APP_BACKEND_URL}${usuario.avatar}`
-      : `https://api.dicebear.com/7.x/initials/svg?seed=${usuario?.nombre || 'U'}&backgroundColor=C6A75E`;
-  };
-
   return (
     <aside className="rightbar" data-testid="rightbar">
       <section className="sidebox" data-testid="epocas-populares">
-        <h3><i className="ri-sparkling-2-fill"></i> Épocas populares</h3>
+        <h3><IconColumn width={20} height={20} /> Épocas Populares</h3>
         {rutasPopulares.length > 0 ? (
-          rutasPopulares.map((ruta) => (
-            <a key={ruta.categoria} className="trend" href={`/rutas?categoria=${encodeURIComponent(ruta.categoria)}`} data-testid={`ruta-${ruta.categoria}`}>
-              <i className={EPOCAS_ICONOS[ruta.categoria] || 'ri-book-line'}></i>
-              <span>{ruta.categoria}</span>
-              <strong>{ruta.total >= 1000 ? `${(ruta.total / 1000).toFixed(1)}k` : ruta.total}</strong>
-            </a>
-          ))
+          rutasPopulares.map((ruta, idx) => {
+            const IconComponent = EPOCAS_ICONOS[ruta.categoria] || IconBookOpen;
+            return (
+              <a key={ruta.categoria} className="trend" href={`/rutas?categoria=${encodeURIComponent(ruta.categoria)}`} data-testid={`ruta-${ruta.categoria}`} style={{ paddingLeft: 0 }}>
+                <span style={{ display: 'inline-flex', width: 40, height: 40, borderRadius: '50%', background: 'rgba(198, 167, 94, 0.1)', border: '1px solid var(--border-gold)', alignItems: 'center', justifyContent: 'center', color: 'var(--gold-primary)', flexShrink: 0 }}>
+                  <IconComponent width={20} height={20} />
+                </span>
+                <span style={{ flex: 1, fontFamily: 'var(--font-serif)', fontSize: 15, fontWeight: 600 }}>{ruta.categoria}</span>
+                <strong style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-light)', fontSize: 14 }}>
+                  {ruta.total >= 1000 ? `${(ruta.total / 1000).toFixed(1)}k` : ruta.total}
+                </strong>
+              </a>
+            );
+          })
         ) : (
-          <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Aún no hay épocas populares</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', fontStyle: 'italic' }}>Aún no hay épocas populares</p>
         )}
         <a className="text-link" href="/explorar">Ver todas las épocas →</a>
       </section>
 
       <section className="sidebox" data-testid="usuarios-sugeridos">
-        <h3><i className="ri-user-star-line"></i> Usuarios sugeridos</h3>
+        <h3><IconStar width={20} height={20} /> Cronistas Sugeridos</h3>
         {usuariosSugeridos.length > 0 ? (
           usuariosSugeridos.map((usuario) => (
             <div key={usuario._id} className="person-row" data-testid={`usuario-${usuario._id}`}>
               <a className="who" href={`/perfil/${usuario._id}`}>
-                <img className="person-img" src={getAvatarSrc(usuario)} alt={usuario.nombre} />
+                <img className="person-img" src={getAvatarUrl(usuario)} alt={usuario.nombre} />
                 <span>
                   <strong>{usuario.nombre}</strong>
                   <small>@{usuario.usuario} · {usuario.tema_favorito || 'Historia'}</small>
@@ -96,23 +106,23 @@ const Rightbar = () => {
             </div>
           ))
         ) : (
-          <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>No hay usuarios sugeridos</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', fontStyle: 'italic' }}>No hay cronistas sugeridos</p>
         )}
-        <a className="text-link" href="/explorar">Ver más usuarios →</a>
+        <a className="text-link" href="/explorar">Ver más cronistas →</a>
       </section>
 
       <section className="sidebox" data-testid="temas-del-dia">
-        <h3><i className="ri-hashtag"></i> Temas del día</h3>
+        <h3><IconHashtag width={20} height={20} /> Temas del Día</h3>
         <a className="topic-row" href="/explorar" data-testid="tema-descubrimientos">
-          <strong># Descubrimientos</strong>
+          <strong style={{ color: 'var(--gold-light)' }}># Descubrimientos</strong>
           <small>1.2k publicaciones</small>
         </a>
         <a className="topic-row" href="/explorar" data-testid="tema-imperios">
-          <strong># Imperios</strong>
+          <strong style={{ color: 'var(--gold-light)' }}># Imperios</strong>
           <small>980 publicaciones</small>
         </a>
         <a className="topic-row" href="/explorar" data-testid="tema-personajes">
-          <strong># PersonajesHistóricos</strong>
+          <strong style={{ color: 'var(--gold-light)' }}># PersonajesHistóricos</strong>
           <small>756 publicaciones</small>
         </a>
         <a className="text-link" href="/explorar">Ver todos los temas →</a>

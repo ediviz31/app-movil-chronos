@@ -5,6 +5,8 @@ import Sidebar from '../components/Sidebar';
 import Rightbar from '../components/Rightbar';
 import Post from '../components/Post';
 import CreateRelatoModal from '../components/CreateRelatoModal';
+import { IconQuill, IconBookOpen, IconUsers } from '../components/Icons';
+import { getAvatarUrl } from '../utils/imageHelpers';
 import api from '../services/api';
 
 const Feed = () => {
@@ -46,9 +48,7 @@ const Feed = () => {
     setRelatos(relatos.filter(r => r._id !== relatoId));
   };
 
-  const avatarSrc = user?.avatar?.startsWith('/uploads')
-    ? `${process.env.REACT_APP_BACKEND_URL}${user.avatar}`
-    : `https://api.dicebear.com/7.x/initials/svg?seed=${user?.nombre || 'U'}&backgroundColor=C6A75E`;
+  const avatarSrc = getAvatarUrl(user);
 
   return (
     <>
@@ -59,7 +59,7 @@ const Feed = () => {
         <section className="feed" data-testid="feed-main">
           <div className="feed-head">
             <div>
-              <span className="kicker"><i className="ri-quill-pen-line"></i> Sala Chronos</span>
+              <span className="kicker">Sala Chronos</span>
               <h1>Línea del tiempo</h1>
               <p>Relatos, hallazgos y fragmentos del pasado compartidos por la comunidad.</p>
             </div>
@@ -69,7 +69,7 @@ const Feed = () => {
               data-testid="btn-crear-relato-head"
               style={{ border: '1px solid var(--gold-primary)', background: 'rgba(198, 167, 94, 0.1)', cursor: 'pointer' }}
             >
-              <i className="ri-quill-pen-line"></i> Crear relato
+              <IconQuill width={16} height={16} /> Crear relato
             </button>
           </div>
 
@@ -78,7 +78,7 @@ const Feed = () => {
               onClick={() => setModalOpen(true)}
               className="composer-entry"
               data-testid="composer-button"
-              style={{ width: '100%', border: '1px solid var(--border-subtle)', cursor: 'pointer', background: 'rgba(255,255,255,0.02)' }}
+              style={{ width: '100%', border: '1px dashed var(--border-subtle)', cursor: 'pointer', background: 'rgba(198, 167, 94, 0.02)' }}
             >
               <img className="mini-avatar" src={avatarSrc} alt="" />
               <span className="composer-copy">
@@ -87,7 +87,7 @@ const Feed = () => {
                 <small>Escribe un relato, agrega una imagen y compártelo en la línea del tiempo.</small>
               </span>
               <span className="composer-cta">
-                <i className="ri-quill-pen-line"></i> Crear relato
+                <IconQuill width={14} height={14} /> Crear relato
               </span>
             </button>
           </section>
@@ -99,7 +99,7 @@ const Feed = () => {
               className={vista === 'todos' ? 'active' : ''}
               data-testid="tab-todos"
             >
-              <i className="ri-global-line"></i> Todos los relatos
+              <IconBookOpen width={14} height={14} /> Todos los relatos
             </a>
             <a
               href="#siguiendo"
@@ -107,14 +107,16 @@ const Feed = () => {
               className={vista === 'siguiendo' ? 'active' : ''}
               data-testid="tab-siguiendo"
             >
-              <i className="ri-user-follow-line"></i> Legados que sigues
+              <IconUsers width={14} height={14} /> Legados que sigues
             </a>
           </nav>
 
           {loading ? (
             <div className="panel" style={{ padding: '60px 40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              <i className="ri-loader-4-line ri-spin" style={{ fontSize: '32px', color: 'var(--gold-primary)' }}></i>
-              <p style={{ marginTop: '16px' }}>Cargando relatos...</p>
+              <div style={{ display: 'inline-block', animation: 'spin 1.5s linear infinite' }}>
+                <IconQuill width={32} height={32} style={{ color: 'var(--gold-primary)' }} />
+              </div>
+              <p style={{ marginTop: '16px', fontFamily: 'var(--font-serif)', fontSize: 16, fontStyle: 'italic' }}>Recopilando relatos...</p>
             </div>
           ) : relatos.length > 0 ? (
             <>
@@ -129,9 +131,7 @@ const Feed = () => {
             </>
           ) : (
             <section className="empty-feed-state panel" data-testid="empty-state">
-              <span className="kicker">
-                <i className="ri-book-open-line"></i> {vista === 'siguiendo' ? 'Sin relatos' : 'Primer legado'}
-              </span>
+              <span className="kicker">{vista === 'siguiendo' ? 'Sin relatos' : 'Primer legado'}</span>
               <h3>{vista === 'siguiendo' ? 'Aún no hay relatos de los legados que sigues' : 'Aún no hay relatos publicados'}</h3>
               <p>
                 {vista === 'siguiendo'
@@ -144,7 +144,7 @@ const Feed = () => {
                 data-testid="btn-empty-crear"
                 style={{ display: 'inline-flex', margin: '12px auto 0', cursor: 'pointer' }}
               >
-                <i className="ri-quill-pen-line"></i> Crear primer relato
+                <IconQuill width={16} height={16} /> Crear primer relato
               </button>
             </section>
           )}

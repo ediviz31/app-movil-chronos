@@ -41,6 +41,8 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// Servir uploads desde /api/uploads para que pase por el routing del ingress
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Crear carpetas de uploads si no existen
@@ -256,7 +258,7 @@ app.post('/api/relatos', [auth, upload.single('imagen')], [
     }
 
     const { titulo, categoria, contenido } = req.body;
-    const imagen = req.file ? `/uploads/relatos/${req.file.filename}` : null;
+    const imagen = req.file ? `/api/uploads/relatos/${req.file.filename}` : null;
 
     const nuevoRelato = new Publicacion({
       usuario_id: req.userId,

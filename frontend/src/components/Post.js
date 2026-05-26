@@ -1,6 +1,28 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { getImageUrl, getAvatarUrl } from '../utils/imageHelpers';
+import {
+  IconEcho, IconChat, IconEye, IconBookmark, IconDelete, IconCompass
+} from './Icons';
+
+// Esquina ornamental SVG
+const CornerOrnament = ({ position }) => (
+  <svg
+    className={`post-corner-${position}`}
+    width="28"
+    height="28"
+    viewBox="0 0 28 28"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1"
+    style={{ color: 'var(--gold-primary)' }}
+  >
+    <path d="M2 2 L10 2 M2 2 L2 10" />
+    <path d="M2 14 Q2 8 8 6" strokeDasharray="1 2" opacity="0.6" />
+    <circle cx="2" cy="2" r="1.5" fill="currentColor" />
+  </svg>
+);
 
 const Post = ({ relato, currentUserId, onDelete }) => {
   const [dioEco, setDioEco] = useState(relato.usuario_dio_eco);
@@ -52,18 +74,17 @@ const Post = ({ relato, currentUserId, onDelete }) => {
   };
 
   const usuario = relato.usuario_id;
-  const avatarSrc = usuario?.avatar?.startsWith('/uploads')
-    ? `${process.env.REACT_APP_BACKEND_URL}${usuario.avatar}`
-    : `https://api.dicebear.com/7.x/initials/svg?seed=${usuario?.nombre || 'U'}&backgroundColor=C6A75E`;
-
-  const imagenSrc = relato.imagen?.startsWith('/uploads')
-    ? `${process.env.REACT_APP_BACKEND_URL}${relato.imagen}`
-    : relato.imagen;
-
+  const avatarSrc = getAvatarUrl(usuario);
+  const imagenSrc = getImageUrl(relato.imagen);
   const esMiRelato = currentUserId && usuario?._id === currentUserId;
 
   return (
     <article className="post real-post" data-testid={`post-${relato._id}`}>
+      <CornerOrnament position="tl" />
+      <CornerOrnament position="tr" />
+      <CornerOrnament position="bl" />
+      <CornerOrnament position="br" />
+
       <div className="post-head">
         <Link to={`/perfil/${usuario?._id}`} className="author-mini-link">
           <img className="post-user-img" src={avatarSrc} alt={usuario?.nombre} />
@@ -74,12 +95,12 @@ const Post = ({ relato, currentUserId, onDelete }) => {
               {usuario?.nombre}
             </Link>
             <Link to={`/rutas?categoria=${encodeURIComponent(relato.categoria)}`} className="route-chip-link">
-              <i className="ri-compass-3-line"></i>{relato.categoria}
+              <IconCompass width={12} height={12} />{relato.categoria}
             </Link>
           </strong>
           <small>@{usuario?.usuario} · {formatFecha(relato.creado_en)}</small>
         </div>
-        <div className="post-menu">⋯</div>
+        <div className="post-menu" style={{ cursor: 'pointer', userSelect: 'none' }}>⋯</div>
       </div>
 
       <h2>
@@ -92,7 +113,7 @@ const Post = ({ relato, currentUserId, onDelete }) => {
 
       {imagenSrc && (
         <Link to={`/relato/${relato._id}`} className="post-img" data-testid={`post-imagen-${relato._id}`}>
-          <img src={imagenSrc} alt="Imagen del relato" />
+          <img src={imagenSrc} alt="Imagen del relato" onError={(e) => { e.target.style.display = 'none'; }} />
         </Link>
       )}
 
@@ -103,15 +124,15 @@ const Post = ({ relato, currentUserId, onDelete }) => {
           data-testid={`btn-eco-${relato._id}`}
           style={{ background: 'none', border: 'none', cursor: 'pointer' }}
         >
-          <i className={dioEco ? 'ri-flashlight-fill' : 'ri-flashlight-line'}></i>
+          <IconEcho width={16} height={16} />
           {totalEcos} ecos
         </button>
         <Link to={`/relato/${relato._id}#comentarios`} data-testid={`btn-comentarios-${relato._id}`}>
-          <i className="ri-chat-3-line"></i>
+          <IconChat width={16} height={16} />
           {relato.total_comentarios} comentarios
         </Link>
         <Link to={`/relato/${relato._id}`} data-testid={`btn-ver-${relato._id}`}>
-          <i className="ri-eye-line"></i> Ver completo
+          <IconEye width={16} height={16} /> Ver completo
         </Link>
         <button
           onClick={handleArchivar}
@@ -119,7 +140,7 @@ const Post = ({ relato, currentUserId, onDelete }) => {
           data-testid={`btn-archivar-${relato._id}`}
           style={{ background: 'none', border: 'none', cursor: 'pointer' }}
         >
-          <i className={archivado ? 'ri-bookmark-fill' : 'ri-bookmark-line'}></i>
+          <IconBookmark width={16} height={16} fill={archivado ? 'currentColor' : 'none'} />
           {archivado ? 'Archivado' : 'Archivo'}
         </button>
         {esMiRelato && (
@@ -129,7 +150,7 @@ const Post = ({ relato, currentUserId, onDelete }) => {
             data-testid={`btn-eliminar-${relato._id}`}
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           >
-            <i className="ri-delete-bin-line"></i> Eliminar
+            <IconDelete width={16} height={16} /> Eliminar
           </button>
         )}
       </div>

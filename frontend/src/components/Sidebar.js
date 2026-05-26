@@ -2,6 +2,11 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { getAvatarUrl } from '../utils/imageHelpers';
+import {
+  IconScroll, IconCompass, IconColumn, IconImage, IconArchive,
+  IconUsers, IconEcho, IconBookmark, IconStar, IconLogout, IconQuill
+} from './Icons';
 
 const Sidebar = ({ onCreateRelato }) => {
   const { user, logout } = useAuth();
@@ -20,19 +25,17 @@ const Sidebar = ({ onCreateRelato }) => {
     if (user) fetchStats();
   }, [user, fetchStats]);
 
-  const avatarSrc = user?.avatar?.startsWith('/uploads')
-    ? `${process.env.REACT_APP_BACKEND_URL}${user.avatar}`
-    : `https://api.dicebear.com/7.x/initials/svg?seed=${user?.nombre || 'U'}&backgroundColor=C6A75E`;
+  const avatarSrc = getAvatarUrl(user);
 
   return (
     <aside className="sidebar" data-testid="sidebar">
       <section className="profile-card">
-        <div className="cover" style={{ background: 'linear-gradient(135deg, rgba(198, 167, 94, 0.4), rgba(86, 119, 180, 0.3))' }}></div>
+        <div className="cover"></div>
         <div className="profile-main">
           <img className="avatar" src={avatarSrc} alt="Avatar" data-testid="sidebar-avatar" />
           <h2 data-testid="sidebar-username">{user?.nombre || 'Explorador'}</h2>
           <p>@{user?.usuario || 'usuario'} · {user?.tema_favorito || 'Historia'}</p>
-          <span className="badge">Beta visual</span>
+          <span className="badge">Beta Visual</span>
         </div>
         <div className="stats stats-links-v137">
           <Link to="/perfil" data-testid="stat-relatos">
@@ -52,43 +55,43 @@ const Sidebar = ({ onCreateRelato }) => {
         <div className="nav-title">Navegación</div>
         <nav className="side-nav">
           <Link to="/" className="active" data-testid="side-linea-tiempo">
-            <i className="ri-sparkling-2-line"></i> Línea del tiempo
+            <IconScroll width={18} height={18} /> Línea del tiempo
           </Link>
           <Link to="/explorar" data-testid="side-explorar">
-            <i className="ri-compass-3-line"></i> Explorar
+            <IconCompass width={18} height={18} /> Explorar
           </Link>
           <Link to="/civilizaciones" data-testid="side-civilizaciones">
-            <i className="ri-building-4-line"></i> Civilizaciones
+            <IconColumn width={18} height={18} /> Civilizaciones
           </Link>
           <Link to="/imagenes" data-testid="side-imagenes">
-            <i className="ri-image-line"></i> Imágenes históricas
+            <IconImage width={18} height={18} /> Imágenes históricas
           </Link>
           <Link to="/archivo" data-testid="side-archivo">
-            <i className="ri-archive-line"></i> Archivo
+            <IconArchive width={18} height={18} /> Archivo
           </Link>
         </nav>
 
         <div className="nav-title">Comunidad</div>
         <nav className="side-nav">
           <Link to="/legados" data-testid="side-legados">
-            <i className="ri-team-line"></i> Comunidades
+            <IconUsers width={18} height={18} /> Comunidades
           </Link>
           <Link to="/notificaciones" data-testid="side-notificaciones">
-            <i className="ri-notification-line"></i> Ecos
+            <IconEcho width={18} height={18} /> Ecos
           </Link>
           <Link to="/guardados" data-testid="side-guardados">
-            <i className="ri-bookmark-line"></i> Guardados
+            <IconBookmark width={18} height={18} /> Guardados
           </Link>
           <Link to="/perfil" data-testid="side-mi-legado">
-            <i className="ri-user-star-line"></i> Mi legado
+            <IconStar width={18} height={18} /> Mi legado
           </Link>
           <button onClick={logout} style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }} data-testid="btn-logout">
-            <i className="ri-logout-circle-line"></i> Cerrar sesión
+            <IconLogout width={18} height={18} /> Cerrar sesión
           </button>
         </nav>
 
         <button onClick={onCreateRelato} className="create-side" data-testid="btn-crear-relato-side" style={{ width: 'calc(100% - 32px)', border: 'none', cursor: 'pointer' }}>
-          <i className="ri-quill-pen-line"></i> + Crear relato
+          <IconQuill width={16} height={16} /> Crear Relato
         </button>
       </section>
     </aside>
