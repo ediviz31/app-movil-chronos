@@ -2,32 +2,32 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
+// HTTP Status Constants
+const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  SERVER_ERROR: 500
+};
+
 const api = axios.create({
   baseURL: `${API_URL}/api`,
   headers: {
     'Content-Type': 'application/json'
-  }
-});
-
-// Interceptor para agregar token a todas las peticiones
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('chronos_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
   },
-  (error) => Promise.reject(error)
-);
+  withCredentials: true // Importante para enviar cookies
+});
 
 // Interceptor para manejar errores de autenticación
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('chronos_token');
-      localStorage.removeItem('chronos_user');
+    if (error.response?.status === HTTP_STATUS.UNAUTHORIZED) {
+      // No eliminamos nada de localStorage porque usamos cookies httpOnly
+      // El servidor ya limpió la cookie
       window.location.href = '/login';
     }
     return Promise.reject(error);
@@ -35,3 +35,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+export { HTTP_STATUS };

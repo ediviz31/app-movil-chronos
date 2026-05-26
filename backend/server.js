@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
@@ -21,8 +22,23 @@ const upload = require('./middleware/upload');
 const app = express();
 const PORT = process.env.PORT || 8001;
 
+// HTTP Status Constants
+const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  SERVER_ERROR: 500
+};
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGINS || '*',
+  credentials: true
+}));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -40,6 +56,20 @@ mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log('✅ Conectado a MongoDB - Chronos DB'))
   .catch(err => console.error('❌ Error conectando a MongoDB:', err));
 
+// Helpers para manejo de tokens
+const setAuthCookie = (res, token) => {
+  res.cookie('chronos_token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+  });
+};
+
+const clearAuthCookie = (res) => {
+  res.clearCookie('chronos_token');
+};
+
 // ============================================
 // RUTAS DE AUTENTICACIÓN
 // ============================================
@@ -54,7 +84,7 @@ app.post('/api/auth/registro', [
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ errors: errors.array() });
     }
 
     const { nombre, usuario, correo, password, bio, interes, tema_favorito } = req.body;
@@ -62,7 +92,7 @@ app.post('/api/auth/registro', [
     // Verificar si el usuario ya existe
     const existeUsuario = await User.findOne({ $or: [{ correo }, { usuario }] });
     if (existeUsuario) {
-      return res.status(400).json({ error: 'El usuario o correo ya existe' });
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'El usuario o correo ya existe' });
     }
 
     // Crear nuevo usuario
@@ -78,12 +108,12 @@ app.post('/api/auth/registro', [
 
     await nuevoUsuario.save();
 
-    // Generar token
+    // Generar token y establecer cookie
     const token = jwt.sign({ userId: nuevoUsuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    setAuthCookie(res, token);
 
-    res.status(201).json({
+    res.status(HTTP_STATUS.CREATED).json({
       mensaje: 'Usuario registrado exitosamente',
-      token,
       usuario: {
         id: nuevoUsuario._id,
         nombre: nuevoUsuario.nombre,
@@ -95,7 +125,7 @@ app.post('/api/auth/registro', [
     });
   } catch (error) {
     console.error('Error en registro:', error);
-    res.status(500).json({ error: 'Error al registrar usuario' });
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al registrar usuario' });
   }
 });
 
@@ -107,7 +137,7 @@ app.post('/api/auth/login', [
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ errors: errors.array() });
     }
 
     const { correo, password } = req.body;
@@ -115,21 +145,21 @@ app.post('/api/auth/login', [
     // Buscar usuario
     const usuario = await User.findOne({ correo: correo.toLowerCase() });
     if (!usuario) {
-      return res.status(401).json({ error: 'Credenciales inválidas' });
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: 'Credenciales inválidas' });
     }
 
     // Verificar contraseña
     const esValida = await usuario.comparePassword(password);
     if (!esValida) {
-      return res.status(401).json({ error: 'Credenciales inválidas' });
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: 'Credenciales inválidas' });
     }
 
-    // Generar token
+    // Generar token y establecer cookie
     const token = jwt.sign({ userId: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    setAuthCookie(res, token);
 
     res.json({
       mensaje: 'Login exitoso',
-      token,
       usuario: {
         id: usuario._id,
         nombre: usuario.nombre,
@@ -144,8 +174,14 @@ app.post('/api/auth/login', [
     });
   } catch (error) {
     console.error('Error en login:', error);
-    res.status(500).json({ error: 'Error al iniciar sesión' });
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al iniciar sesión' });
   }
+});
+
+// Logout
+app.post('/api/auth/logout', (req, res) => {
+  clearAuthCookie(res);
+  res.json({ mensaje: 'Sesión cerrada exitosamente' });
 });
 
 // Obtener usuario actual
@@ -154,7 +190,7 @@ app.get('/api/auth/me', auth, async (req, res) => {
     const usuario = await User.findById(req.userId).select('-password');
     res.json(usuario);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener usuario' });
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener usuario' });
   }
 });
 

@@ -143,7 +143,12 @@ function useToast() {
         listeners.splice(index, 1)
       }
     };
-  }, [state])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Se omiten 'index', 'listeners', 'setState' intencionalmente porque:
+    // - listeners es una variable del módulo que no cambia
+    // - setState es estable de useState
+    // - index solo se usa en el cleanup
+  }, [])
 
   return {
     ...state,
