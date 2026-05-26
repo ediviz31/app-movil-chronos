@@ -26,9 +26,12 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === HTTP_STATUS.UNAUTHORIZED) {
-      // No eliminamos nada de localStorage porque usamos cookies httpOnly
-      // El servidor ya limpió la cookie
-      window.location.href = '/login';
+      // Solo redirigir si NO estamos ya en una página pública (login/registro)
+      const publicPaths = ['/login', '/registro'];
+      const currentPath = window.location.pathname;
+      if (!publicPaths.includes(currentPath)) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

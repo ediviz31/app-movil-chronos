@@ -300,9 +300,7 @@ button, input, textarea {
 
 .cover {
   height: 140px;
-  background: 
-    linear-gradient(135deg, rgba(198, 167, 94, 0.3), rgba(47, 79, 135, 0.2)),
-    url('../img/cover.svg') center/cover no-repeat;
+  background: linear-gradient(135deg, rgba(198, 167, 94, 0.3), rgba(47, 79, 135, 0.2));
   border-bottom: 2px solid var(--border-gold);
 }
 
