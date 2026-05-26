@@ -1,0 +1,25 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'>
+  <defs>
+    <radialGradient id='g1' cx='50%' cy='16%' r='70%'>
+      <stop offset='0%' stop-color='#f6d77a'/>
+      <stop offset='40%' stop-color='#7e5b2f'/>
+      <stop offset='100%' stop-color='#10151d'/>
+    </radialGradient>
+    <linearGradient id='skin' x1='0' y1='0' x2='0' y2='1'>
+      <stop offset='0%' stop-color='#f0d2a6'/><stop offset='100%' stop-color='#8e6540'/>
+    </linearGradient>
+    <linearGradient id='robe' x1='0' y1='0' x2='1' y2='1'>
+      <stop offset='0%' stop-color='#566f3f'/><stop offset='100%' stop-color='#24331d'/>
+    </linearGradient>
+  </defs>
+  <rect width='320' height='320' rx='160' fill='url(#g1)'/>
+  <circle cx='160' cy='160' r='153' fill='none' stroke='#d3ac52' stroke-width='8'/>
+  <ellipse cx='160' cy='126' rx='74' ry='90' fill='url(#skin)'/>
+  <path d='M99 130 C104 72 132 40 168 40 C205 40 222 72 225 122 C207 106 192 100 172 97 C154 96 129 108 99 130 Z' fill='#342520'/>
+  <path d='M96 144 C124 112 134 110 170 108 C195 108 210 114 228 132 C226 172 210 198 182 214 C140 240 102 214 96 144 Z' fill='url(#skin)'/>
+  <path d='M118 139 C136 150 144 152 161 154 C178 152 191 148 205 138' stroke='#8b5f3f' stroke-width='3' fill='none' opacity='.6'/>
+  <ellipse cx='144' cy='152' rx='4.5' ry='4' fill='#2d1d17'/><ellipse cx='182' cy='152' rx='4.5' ry='4' fill='#2d1d17'/>
+  <path d='M152 177 C161 182 169 182 176 176' stroke='#6c4733' stroke-width='3' fill='none' stroke-linecap='round'/>
+  <path d='M88 256 C109 220 132 208 161 208 C193 208 218 222 236 256 L236 320 L88 320 Z' fill='url(#robe)'/>
+  <path d='M138 214 C155 230 176 228 191 214' stroke='#c5a24a' stroke-width='6' fill='none' stroke-linecap='round'/>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'>
+  <rect width='640' height='360' fill='#4d2d1d'/><rect width='640' height='360' fill='url(#l)'/>
+  <defs><radialGradient id='l' cx='80%' cy='34%' r='28%'><stop offset='0%' stop-color='#f2d59a'/><stop offset='44%' stop-color='#d39b4b' stop-opacity='.42'/><stop offset='100%' stop-color='#d39b4b' stop-opacity='0'/></radialGradient></defs>
+  <rect x='232' y='84' width='168' height='190' fill='#d4bd8a' opacity='.2' stroke='#c49f55' stroke-width='4'/><g stroke='#bd9750' stroke-width='5' opacity='.5'><path d='M264 116 h112'/><path d='M264 148 h96'/><path d='M264 180 h104'/><path d='M264 212 h118'/></g><path d='M0 252 C116 242 230 270 346 238 C428 214 518 216 640 246 L640 360 L0 360 Z' fill='#17141a'/>
+</svg>

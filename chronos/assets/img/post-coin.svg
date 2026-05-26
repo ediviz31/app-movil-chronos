@@ -1,0 +1,29 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'>
+  <defs>
+    <linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'>
+      <stop offset='0%' stop-color='#3f2b19'/><stop offset='35%' stop-color='#c48a42'/><stop offset='100%' stop-color='#10151d'/>
+    </linearGradient>
+    <radialGradient id='shine' cx='69%' cy='46%' r='18%'>
+      <stop offset='0%' stop-color='#fff2c4'/><stop offset='45%' stop-color='#deb864' stop-opacity='.6'/><stop offset='100%' stop-color='#deb864' stop-opacity='0'/>
+    </radialGradient>
+  </defs>
+  <rect width='1200' height='600' fill='url(#bg)'/>
+  <rect width='1200' height='600' fill='url(#shine)'/>
+  <g opacity='.38' stroke='#f1ddab' stroke-width='3' fill='none'>
+    <path d='M120 470 C212 358 318 316 470 300 C636 282 766 250 924 180'/>
+    <path d='M180 404 L310 382 L418 340 L556 326'/>
+  </g>
+  <g transform='translate(690 120)'>
+    <circle cx='160' cy='160' r='138' fill='#d0a556' stroke='#f4deb1' stroke-width='8'/>
+    <circle cx='160' cy='160' r='114' fill='#9d6c2f' opacity='.32'/>
+    <path d='M114 214 C126 170 130 146 130 122 C130 78 148 54 178 48 C200 54 216 76 216 120 C216 148 220 172 230 212 Z' fill='#7b541d' opacity='.56'/>
+    <path d='M122 122 C140 138 154 142 174 142 C194 142 208 136 222 122' stroke='#7f561f' stroke-width='4'/>
+    <circle cx='144' cy='116' r='6' fill='#6b4619'/><circle cx='196' cy='116' r='6' fill='#6b4619'/>
+    <path d='M152 176 C164 182 178 182 190 176' stroke='#6b4619' stroke-width='4' fill='none'/>
+    <path d='M152 52 l14 -18 l14 18' stroke='#f3e3bb' stroke-width='5' fill='none'/>
+  </g>
+  <rect x='84' y='120' width='320' height='190' fill='#d8c18f' opacity='.22' stroke='#f0e4c5' stroke-width='4'/>
+  <g stroke='#f0e4c5' stroke-width='4' opacity='.3'>
+    <path d='M122 154 h242'/><path d='M122 184 h180'/><path d='M122 214 h220'/><path d='M122 244 h168'/>
+  </g>
+</svg>

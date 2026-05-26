@@ -1,0 +1,7 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'>
+  <rect width='640' height='360' fill='#22374e'/><rect width='640' height='360' fill='url(#sun)'/>
+  <defs><radialGradient id='sun' cx='68%' cy='28%' r='30%'><stop offset='0%' stop-color='#fff3c2'/><stop offset='45%' stop-color='#efc66e' stop-opacity='.45'/><stop offset='100%' stop-color='#efc66e' stop-opacity='0'/></radialGradient></defs>
+  <path d='M0 218 C112 188 210 216 300 182 C394 148 476 174 640 224 L640 360 L0 360 Z' fill='#83acd0'/>
+  <path d='M0 254 C94 226 160 266 256 236 C340 210 392 208 480 236 C544 256 592 258 640 252 L640 360 L0 360 Z' fill='#5c7b56'/>
+  <g fill='#eadfbf' opacity='.95'><rect x='76' y='84' width='16' height='110'/><rect x='108' y='84' width='16' height='110'/><rect x='140' y='84' width='16' height='110'/><path d='M62 84 l48 -34 l60 34 z'/></g>
+</svg>

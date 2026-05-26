@@ -1,0 +1,26 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'>
+  <defs>
+    <linearGradient id='sea' x1='0' y1='0' x2='1' y2='1'>
+      <stop offset='0%' stop-color='#cfefff'/><stop offset='50%' stop-color='#70acd0'/><stop offset='100%' stop-color='#23354d'/>
+    </linearGradient>
+    <linearGradient id='land' x1='0' y1='0' x2='0' y2='1'>
+      <stop offset='0%' stop-color='#d8d2a2'/><stop offset='100%' stop-color='#8a8b5d'/>
+    </linearGradient>
+  </defs>
+  <rect width='1200' height='600' fill='url(#sea)'/>
+  <path d='M0 420 C94 346 164 322 230 330 C344 346 412 436 500 442 C610 450 708 352 820 324 C932 296 1056 330 1200 426 L1200 600 L0 600 Z' fill='url(#land)'/>
+  <path d='M0 510 C180 446 326 498 480 470 C614 446 754 402 936 448 C1024 470 1108 498 1200 522 L1200 600 L0 600 Z' fill='#2c4a56' opacity='.4'/>
+  <g opacity='.95' fill='none' stroke='#f0e7bf' stroke-width='5'>
+    <path d='M202 132 C332 96 438 104 560 162 C628 196 688 226 780 242'/>
+    <path d='M778 242 l-24 -14 m24 14 l-14 -22'/>
+    <path d='M596 204 C560 278 526 336 506 404'/>
+  </g>
+  <g opacity='.85' fill='#ead793'>
+    <circle cx='218' cy='130' r='12'/><circle cx='596' cy='204' r='10'/><circle cx='780' cy='242' r='12'/><circle cx='506' cy='404' r='10'/>
+  </g>
+  <g fill='#3b3a34' opacity='.6'>
+    <path d='M880 192 l18 -44 h90 l18 44' stroke='#f6e7b3' stroke-width='4' fill='none'/>
+    <rect x='898' y='194' width='16' height='78'/><rect x='930' y='194' width='16' height='78'/><rect x='962' y='194' width='16' height='78'/>
+  </g>
+  <path d='M102 326 Q128 286 182 300 Q148 328 124 386 Z' fill='#24453f' opacity='.55'/>
+</svg>

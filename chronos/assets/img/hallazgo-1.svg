@@ -1,0 +1,8 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'>
+  <rect width='640' height='360' fill='#503018'/><rect width='640' height='360' fill='url(#g1)'/>
+  <defs><radialGradient id='g1' cx='32%' cy='24%' r='46%'><stop offset='0%' stop-color='#ffd27c'/><stop offset='50%' stop-color='#af612a' stop-opacity='.35'/><stop offset='100%' stop-color='#af612a' stop-opacity='0'/></radialGradient></defs>
+  <path d='M0 180 C64 152 126 166 198 134 C284 96 366 112 456 166 C516 202 574 226 640 232 L640 360 L0 360 Z' fill='#342316'/>
+  <path d='M0 244 C136 224 250 256 334 236 C420 218 500 210 640 244 L640 360 L0 360 Z' fill='#1d1512'/>
+  <g fill='#ba9956'><path d='M140 166 l18 -64 h94 l16 64'/><rect x='156' y='166' width='18' height='66'/><rect x='190' y='166' width='18' height='66'/><rect x='224' y='166' width='18' height='66'/></g>
+  <g fill='#b08a49'><path d='M408 170 l16 -54 h82 l16 54'/><rect x='424' y='170' width='16' height='60'/><rect x='456' y='170' width='16' height='60'/><rect x='488' y='170' width='16' height='60'/></g>
+</svg>
