@@ -203,14 +203,14 @@
   }
 }
 
-/* ---- Eliminar el badge Emergent en móvil (cubre el rail bottom) ---- */
+/* ---- Ocultar el badge Emergent en móvil sin tocar !important inline ---- */
 @media (max-width: 900px) {
   #emergent-badge {
-    bottom: 80px !important;
-    right: 12px !important;
-    transform: scale(0.78);
-    transform-origin: bottom right;
-    opacity: 0.75;
+    /* `display` está con !important inline, no podemos override.
+       Pero `visibility` y `pointer-events` no están en el inline. */
+    visibility: hidden !important;
+    pointer-events: none !important;
+    opacity: 0;
   }
 }
 
@@ -242,8 +242,6 @@
 
 /* ---- App instalada (display-mode: standalone) ---- */
 @media (display-mode: standalone) {
-  /* Esconder banner "Made with Emergent" cuando ya está instalada */
-  #emergent-badge { display: none !important; }
   /* Permitir que el contenido toque el borde superior si no hay safe-area */
   body { background: var(--bg-deep); }
 }
@@ -485,3 +483,75 @@
   text-transform: uppercase;
   opacity: 0.5;
 }
+
+/* Resultados de búsqueda inline */
+.mobile-drawer-results {
+  padding: 0 8px 4px;
+  max-height: 50vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.mobile-drawer-empty {
+  padding: 16px;
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 13px;
+}
+.mobile-drawer-result-row {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  transition: background 0.12s ease;
+}
+.mobile-drawer-result-row:active { background: rgba(212, 184, 120, 0.08); }
+.mobile-drawer-result-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-soft);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.mobile-drawer-result-relato-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin: 0 14px;
+  flex-shrink: 0;
+}
+.mobile-drawer-result-row > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.mobile-drawer-result-row strong {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--gold-bright);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mobile-drawer-result-row span {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* spin animation if not exists */
+.spin { animation: spin 1.5s linear infinite; }
+@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }

@@ -1,27 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
+import api from '../services/api';
 import {
   TempleIcon, MapIcon, ChronicleIcon, LibraryIcon, CommunitiesIcon,
-  LogoutIcon, SearchIcon, CloseIcon, OrnateStarIcon, ArrowRightIcon
+  LogoutIcon, SearchIcon, CloseIcon, OrnateStarIcon, ArrowRightIcon,
+  HourglassIcon
 } from './HistoricIcons';
 
 /**
- * Drawer móvil "Más" que da acceso a las secciones secundarias
- * (Épocas, Efemérides, Crónicas, Biblioteca, Legados, Búsqueda, Salir).
- * Se activa con un botón ☰ que sólo aparece en mobile (en topbar).
+ * Drawer móvil "Más" que da acceso a:
+ *  - Búsqueda completa (cronistas + crónicas) con resultados inline
+ *  - Secciones secundarias (Épocas, Efemérides, Crónicas, Biblioteca, Legados)
+ *  - Cerrar sesión
+ * Se activa con el botón ☰ o la lupa del topbar (sólo mobile).
  */
 const MobileMoreDrawer = ({ open, onClose, onLogout }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [search, setSearch] = useState('');
+  const [results, setResults] = useState({ usuarios: [], relatos: [] });
+  const [loading, setLoading] = useState(false);
+  const searchRef = useRef(null);
+  const debounceRef = useRef(null);
 
   useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => searchRef.current?.focus(), 320);
+    } else {
+      document.body.style.overflow = '';
+      setSearch('');
+      setResults({ usuarios: [], relatos: [] });
+    }
     return () => { document.body.style.overflow = ''; };
   }, [open]);
+
+  // Búsqueda con debounce
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!search.trim() || search.trim().length < 2) {
+      setResults({ usuarios: [], relatos: [] });
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await api.get(`/buscar?q=${encodeURIComponent(search.trim())}&limit=6`);
+        setResults(res.data || { usuarios: [], relatos: [] });
+      } catch (_) { /* silencioso */ }
+      finally { setLoading(false); }
+    }, 250);
+    return () => debounceRef.current && clearTimeout(debounceRef.current);
+  }, [search]);
 
   if (!open) return null;
 
@@ -69,13 +102,66 @@ const MobileMoreDrawer = ({ open, onClose, onLogout }) => {
         <form className="mobile-drawer-search" onSubmit={handleSearch}>
           <SearchIcon size={14} />
           <input
+            ref={searchRef}
             type="search"
             placeholder="Buscar cronistas o crónicas..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             data-testid="mobile-drawer-search-input"
           />
+          {loading && <HourglassIcon size={14} className="spin" />}
         </form>
+
+        {/* Resultados de búsqueda inline */}
+        {search.trim().length >= 2 && (
+          <div className="mobile-drawer-results" data-testid="mobile-drawer-results">
+            {!loading && results.usuarios?.length === 0 && results.relatos?.length === 0 && (
+              <div className="mobile-drawer-empty">Sin resultados para "{search}"</div>
+            )}
+            {results.usuarios?.length > 0 && (
+              <>
+                <div className="mobile-drawer-section-label">
+                  <CommunitiesIcon size={10} /> Cronistas
+                </div>
+                {results.usuarios.map(u => (
+                  <button
+                    key={u._id}
+                    className="mobile-drawer-result-row"
+                    onClick={() => go(`/perfil/${u._id}`)}
+                    data-testid={`mobile-search-user-${u._id}`}
+                  >
+                    <img src={getAvatarUrl(u)} alt={u.nombre} className="mobile-drawer-result-avatar" />
+                    <div>
+                      <strong>{u.nombre}</strong>
+                      <span>@{u.usuario}</span>
+                    </div>
+                  </button>
+                ))}
+              </>
+            )}
+            {results.relatos?.length > 0 && (
+              <>
+                <div className="mobile-drawer-section-label">
+                  <ChronicleIcon size={10} /> Crónicas
+                </div>
+                {results.relatos.map(r => (
+                  <button
+                    key={r._id}
+                    className="mobile-drawer-result-row"
+                    onClick={() => go(`/relato/${r._id}`)}
+                    data-testid={`mobile-search-relato-${r._id}`}
+                  >
+                    <div className="mobile-drawer-result-relato-dot" />
+                    <div>
+                      <strong>{r.titulo}</strong>
+                      <span>{r.categoria || 'Crónica histórica'}</span>
+                    </div>
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
+        )}
 
         <div className="mobile-drawer-section-label">
           <OrnateStarIcon size={10} /> Más del archivo

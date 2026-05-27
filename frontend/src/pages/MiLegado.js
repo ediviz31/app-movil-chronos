@@ -171,7 +171,7 @@ const MiLegado = () => {
   const ROOT_X = 600, ROOT_Y = 40 + 3 * 200; // = 640
 
   return (
-    <PageShell activeRail="">
+    <PageShell activeRail="mi-legado">
       <main className="archive-listing-page mi-legado-page" data-testid="mi-legado-page">
         <header className="listing-header">
           <div className="listing-header-text">

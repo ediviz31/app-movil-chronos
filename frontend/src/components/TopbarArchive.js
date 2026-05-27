@@ -7,7 +7,7 @@ import AvisosBadge from './AvisosBadge';
 import MisivasBadge from './MisivasBadge';
 import MobileMoreDrawer from './MobileMoreDrawer';
 import {
-  FeatherIcon, HourglassIcon, MenuIcon,
+  FeatherIcon, HourglassIcon, MenuIcon, SearchIcon,
   OrnateStarIcon, ChronicleIcon, CommunitiesIcon, ScrollIcon
 } from './HistoricIcons';
 
@@ -41,6 +41,15 @@ const TopbarArchive = ({ onCreate }) => {
           <div className="topbar-search-wrap">
             <SearchBar />
           </div>
+          {/* Botón búsqueda compacto solo en mobile (abre el drawer con buscador) */}
+          <button
+            className="icon-btn mobile-only-icon topbar-search-mobile-btn"
+            onClick={() => setDrawerOpen(true)}
+            data-testid="topbar-search-mobile-btn"
+            aria-label="Buscar"
+          >
+            <SearchIcon size={20} />
+          </button>
         </div>
 
         {/* CENTRO: Navegación */}

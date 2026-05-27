@@ -194,19 +194,24 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 
 ### Fase 13 — UX móvil nativo 📱✨
 **Diseño app-like en móvil (≤900px):**
-- Bottom tab bar (5 items: Inicio · Explorar · Misivas · Mi Legado · ☰Más) con indicador dorado superior tipo iOS
-- Topbar minimal (logo + 4 iconos: Crear · Avisos · Misivas · Menú)
-- `<MobileMoreDrawer>` — drawer lateral derecho con avatar, búsqueda y secciones secundarias (Épocas, Efemérides, Crónicas, Biblioteca, Legados, Salir)
+- Bottom tab bar (4 items principales: Inicio · Explorar · Misivas · Mi Legado + ☰Más en topbar) con indicador dorado superior tipo iOS
+- Topbar minimal (logo + Crear · Avisos · Misivas · Buscar · ☰Más)
+- `<MobileMoreDrawer>` — drawer lateral derecho con:
+  - Avatar del usuario clickeable hacia su perfil
+  - Búsqueda inline con debounce 250ms y resultados (cronistas + crónicas)
+  - Secciones secundarias (Épocas, Efemérides, Crónicas, Biblioteca, Legados)
+  - Cerrar sesión
 - Modals tipo "sheet" (suben desde abajo, asa superior, border-radius solo arriba)
 - Touch feedback (scale 0.98 + opacity active state) en todo elemento interactivo
 - Safe-area insets (`env(safe-area-inset-top/bottom)`) para iPhones con notch
 - Items mínimos 44px (touch target), inputs 16px (evita auto-zoom iOS)
 - Cards edge-to-edge en móvil
-- `display-mode: standalone` oculta el badge "Made with Emergent"
-- Overflow horizontal anulado globalmente (`overflow-x: hidden` en body/layout, box-sizing en todos los cards principales)
+- **Overflow horizontal anulado** globalmente + targeted en `.explorar-grid`, `.tree-canvas` (scroll horizontal contenido), `.explore-section`, `.profile-*`, `.archive-listing-page`, `.epocas-grid`, `.cronistas-grid`
+- Badge "Made with Emergent" oculto en móvil vía `visibility: hidden` (workaround del inline `display:!important`)
 - Scrollbars ocultos en móvil (más nativo)
-- Tipografías escaladas (h1 32px → 26px, h2/cards reducidos)
+- Tipografías escaladas (h1 32px → 26px → 22px @≤480px)
 - Animación slide-in del drawer + sheet-up de modales (cubic-bezier nativo)
+- `activeRail` corregido en `MiLegado` y demás páginas con tab en mobile
 
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
