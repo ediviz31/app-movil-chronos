@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import Topbar from '../components/Topbar';
-import Sidebar from '../components/Sidebar';
-import Rightbar from '../components/Rightbar';
-import Post from '../components/Post';
-import CreateRelatoModal from '../components/CreateRelatoModal';
-import { IconQuill, IconBookOpen, IconUsers } from '../components/Icons';
-import { getAvatarUrl } from '../utils/imageHelpers';
+import SideRail from '../components/SideRail';
+import TopbarArchive from '../components/TopbarArchive';
+import ArchiveSidebar from '../components/ArchiveSidebar';
+import ChronicleHero from '../components/ChronicleHero';
+import ChronicleCard, { getYear } from '../components/ChronicleCard';
+import CreateChronicleModal from '../components/CreateChronicleModal';
+import { HourglassIcon, FleurDivider, FeatherIcon, OrnateStarIcon } from '../components/HistoricIcons';
 import api from '../services/api';
 
 const Feed = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [relatos, setRelatos] = useState([]);
   const [vista, setVista] = useState('todos');
   const [loading, setLoading] = useState(true);
@@ -22,143 +22,164 @@ const Feed = () => {
       const response = await api.get(`/relatos?vista=${vista}`);
       setRelatos(response.data);
     } catch (error) {
-      console.error('Error al cargar relatos:', error);
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   }, [vista]);
 
-  useEffect(() => {
-    fetchRelatos();
-  }, [fetchRelatos]);
+  useEffect(() => { fetchRelatos(); }, [fetchRelatos]);
 
-  const handleNewRelato = (nuevoRelato) => {
-    const relatoConStats = {
-      ...nuevoRelato,
-      total_ecos: 0,
-      total_comentarios: 0,
-      total_archivos: 0,
-      usuario_dio_eco: false,
-      usuario_archivado: false
-    };
-    setRelatos([relatoConStats, ...relatos]);
+  const handleNewRelato = (nuevo) => {
+    setRelatos([{ ...nuevo, total_ecos: 0, total_comentarios: 0, total_archivos: 0, usuario_dio_eco: false, usuario_archivado: false }, ...relatos]);
   };
 
-  const handleDeleteRelato = (relatoId) => {
-    setRelatos(relatos.filter(r => r._id !== relatoId));
+  const handleDeleteRelato = (id) => {
+    setRelatos(relatos.filter(r => r._id !== id));
   };
 
-  const avatarSrc = getAvatarUrl(user);
+  // Separar hero del resto
+  const [hero, ...resto] = relatos;
+  const currentUserId = user?._id || user?.id;
+
+  // Asignar variantes a las tarjetas (pergamino cada 3era con contenido largo)
+  const getVariant = (relato, idx) => {
+    if (idx % 5 === 1 && relato.contenido.length > 100 && !relato.imagen) return 'parchment';
+    return 'default';
+  };
 
   return (
-    <>
-      <Topbar />
-      <main className="shell">
-        <Sidebar onCreateRelato={() => setModalOpen(true)} />
+    <div className="archive-layout">
+      <SideRail activeItem="inicio" onLogout={logout} />
 
-        <section className="feed" data-testid="feed-main">
-          <div className="feed-head">
-            <div>
-              <span className="kicker">Sala Chronos</span>
-              <h1>Línea del tiempo</h1>
-              <p>Relatos, hallazgos y fragmentos del pasado compartidos por la comunidad.</p>
-            </div>
+      <div className="main-area">
+        <TopbarArchive onCreate={() => setModalOpen(true)} />
+
+        <main className="archive-feed" data-testid="archive-feed">
+          {/* Tabs */}
+          <div className="archive-tabs" data-testid="archive-tabs">
             <button
-              onClick={() => setModalOpen(true)}
-              className="head-btn"
-              data-testid="btn-crear-relato-head"
-              style={{ border: '1px solid var(--gold-primary)', background: 'rgba(198, 167, 94, 0.1)', cursor: 'pointer' }}
-            >
-              <IconQuill width={16} height={16} /> Crear relato
-            </button>
+              className={`archive-tab ${vista === 'todos' ? 'active' : ''}`}
+              onClick={() => setVista('todos')}
+              data-testid="tab-todos"
+            >Para ti</button>
+            <button
+              className={`archive-tab ${vista === 'siguiendo' ? 'active' : ''}`}
+              onClick={() => setVista('siguiendo')}
+              data-testid="tab-siguiendo"
+            >Legados que sigues</button>
           </div>
 
-          <section className="composer composer-chronos" data-testid="composer">
-            <button
-              onClick={() => setModalOpen(true)}
-              className="composer-entry"
-              data-testid="composer-button"
-              style={{ width: '100%', border: '1px dashed var(--border-subtle)', cursor: 'pointer', background: 'rgba(198, 167, 94, 0.02)' }}
-            >
-              <img className="mini-avatar" src={avatarSrc} alt="" />
-              <span className="composer-copy">
-                <span className="composer-label">Nuevo legado</span>
-                <strong>¿Qué historia quieres compartir hoy?</strong>
-                <small>Escribe un relato, agrega una imagen y compártelo en la línea del tiempo.</small>
-              </span>
-              <span className="composer-cta">
-                <IconQuill width={14} height={14} /> Crear relato
-              </span>
-            </button>
-          </section>
-
-          <nav className="feed-tabs-v136" aria-label="Vista de la línea del tiempo" data-testid="feed-tabs">
-            <a
-              href="#todos"
-              onClick={(e) => { e.preventDefault(); setVista('todos'); }}
-              className={vista === 'todos' ? 'active' : ''}
-              data-testid="tab-todos"
-            >
-              <IconBookOpen width={14} height={14} /> Todos los relatos
-            </a>
-            <a
-              href="#siguiendo"
-              onClick={(e) => { e.preventDefault(); setVista('siguiendo'); }}
-              className={vista === 'siguiendo' ? 'active' : ''}
-              data-testid="tab-siguiendo"
-            >
-              <IconUsers width={14} height={14} /> Legados que sigues
-            </a>
-          </nav>
-
           {loading ? (
-            <div className="panel" style={{ padding: '60px 40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              <div style={{ display: 'inline-block', animation: 'spin 1.5s linear infinite' }}>
-                <IconQuill width={32} height={32} style={{ color: 'var(--gold-primary)' }} />
+            <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--text-muted)' }}>
+              <div className="spin" style={{ display: 'inline-block', color: 'var(--gold)' }}>
+                <HourglassIcon size={40} />
               </div>
-              <p style={{ marginTop: '16px', fontFamily: 'var(--font-serif)', fontSize: 16, fontStyle: 'italic' }}>Recopilando relatos...</p>
+              <p style={{ marginTop: 16, fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16 }}>
+                Recopilando crónicas del archivo...
+              </p>
             </div>
-          ) : relatos.length > 0 ? (
-            <>
-              {relatos.map(relato => (
-                <Post
-                  key={relato._id}
-                  relato={relato}
-                  currentUserId={user?._id || user?.id}
-                  onDelete={handleDeleteRelato}
-                />
-              ))}
-            </>
-          ) : (
-            <section className="empty-feed-state panel" data-testid="empty-state">
-              <span className="kicker">{vista === 'siguiendo' ? 'Sin relatos' : 'Primer legado'}</span>
-              <h3>{vista === 'siguiendo' ? 'Aún no hay relatos de los legados que sigues' : 'Aún no hay relatos publicados'}</h3>
+          ) : relatos.length === 0 ? (
+            <div className="empty-archive" data-testid="empty-state">
+              <FeatherIcon size={48} style={{ color: 'var(--gold)', margin: '0 auto' }} />
+              <h3>{vista === 'siguiendo' ? 'Aún no sigues a ningún cronista' : 'El archivo aguarda tu primera crónica'}</h3>
               <p>
                 {vista === 'siguiendo'
-                  ? 'Cuando los autores que sigues publiquen nuevas historias, aparecerán aquí.'
-                  : 'Cuando la comunidad empiece a compartir historias, aparecerán aquí. Puedes iniciar la línea del tiempo con tu primer relato.'}
+                  ? 'Sigue a otros cronistas para ver sus crónicas aquí.'
+                  : 'Inicia el viaje a través del tiempo compartiendo tu primer relato histórico.'}
               </p>
-              <button
-                onClick={() => setModalOpen(true)}
-                className="head-btn"
-                data-testid="btn-empty-crear"
-                style={{ display: 'inline-flex', margin: '12px auto 0', cursor: 'pointer' }}
-              >
-                <IconQuill width={16} height={16} /> Crear primer relato
+              <button className="empty-archive-btn" onClick={() => setModalOpen(true)} data-testid="btn-empty-crear">
+                <FeatherIcon size={14} /> Crear primera crónica
               </button>
-            </section>
+            </div>
+          ) : (
+            <>
+              {/* HERO */}
+              {hero && (
+                <div className="timeline-marker" data-testid="hero-timeline-item">
+                  <div className="timeline-rail"></div>
+                  <div className="timeline-year">
+                    <div className="timeline-year-num">{getYear(hero.creado_en)}</div>
+                    <div className="timeline-year-label">Hoy</div>
+                  </div>
+                  <div className="timeline-dot"></div>
+                  <ChronicleHero relato={hero} />
+                </div>
+              )}
+
+              {/* Grid de tarjetas con timeline */}
+              {resto.length > 0 && (
+                <>
+                  {/* Primera fila de 3 */}
+                  {resto.slice(0, 3).length > 0 && (
+                    <div className="timeline-marker">
+                      <div className="timeline-rail" style={{ left: 30 }}></div>
+                      <div className="timeline-year">
+                        <div className="timeline-year-num">{getYear(resto[0].creado_en)}</div>
+                        <div className="timeline-year-label">Recientes</div>
+                      </div>
+                      <div className="timeline-dot"></div>
+                      <div className="chronicles-grid">
+                        {resto.slice(0, 3).map((relato, idx) => (
+                          <ChronicleCard
+                            key={relato._id}
+                            relato={relato}
+                            currentUserId={currentUserId}
+                            onDelete={handleDeleteRelato}
+                            variant={getVariant(relato, idx)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Segunda fila de 3 si hay más */}
+                  {resto.slice(3, 6).length > 0 && (
+                    <div className="timeline-marker">
+                      <div className="timeline-year">
+                        <div className="timeline-year-num">{getYear(resto[3].creado_en)}</div>
+                        <div className="timeline-year-label">Archivo</div>
+                      </div>
+                      <div className="timeline-dot"></div>
+                      <div className="chronicles-grid">
+                        {resto.slice(3, 6).map((relato, idx) => (
+                          <ChronicleCard
+                            key={relato._id}
+                            relato={relato}
+                            currentUserId={currentUserId}
+                            onDelete={handleDeleteRelato}
+                            variant={getVariant(relato, idx + 3)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Footer ornamental */}
+              <div className="archive-timeline-bar">
+                <FleurDivider />
+              </div>
+
+              <div style={{ textAlign: 'center', marginTop: 32 }}>
+                <button onClick={() => setModalOpen(true)} className="empty-archive-btn" data-testid="btn-crear-fab">
+                  <FeatherIcon size={14} /> Crear nueva crónica
+                </button>
+              </div>
+            </>
           )}
-        </section>
+        </main>
 
-        <Rightbar />
-      </main>
+        <ArchiveSidebar />
+      </div>
 
-      <CreateRelatoModal
+      <CreateChronicleModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSuccess={handleNewRelato}
       />
-    </>
+    </div>
   );
 };
 
