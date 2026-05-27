@@ -17,6 +17,8 @@ const Archivado = require('./models/Archivado');
 const Seguidor = require('./models/Seguidor');
 const Notificacion = require('./models/Notificacion');
 const MiembroFamiliar = require('./models/MiembroFamiliar');
+const Conversacion = require('./models/Conversacion');
+const Mensaje = require('./models/Mensaje');
 const { getEfemeridesPorFecha, getEfemerideCercana, getCalendarioDelMes } = require('./data/efemerides');
 const { parseGedcomToFamiliares } = require('./utils/gedcomParser');
 
@@ -1554,6 +1556,168 @@ app.get('/api/explorar', auth, async (req, res) => {
   } catch (error) {
     console.error('Error explorar:', error);
     res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al cargar exploración' });
+  }
+});
+
+// ============================================
+// RUTAS DE MISIVAS (Mensajería directa 1-on-1)
+// ============================================
+
+// Helper: normaliza el par de participantes (ordena por ID ascendente)
+const normalizarParticipantes = (userIdA, userIdB) => {
+  const a = String(userIdA);
+  const b = String(userIdB);
+  return a < b ? [userIdA, userIdB] : [userIdB, userIdA];
+};
+
+// GET /api/misivas — lista de conversaciones del usuario actual
+app.get('/api/misivas', auth, async (req, res) => {
+  try {
+    const convs = await Conversacion.find({ participantes: req.userId })
+      .sort({ ultimo_mensaje_en: -1 })
+      .populate('participantes', 'nombre usuario avatar tema_favorito')
+      .lean();
+
+    // Mapear: añadir 'otro' (el participante que no soy yo) y flag no_leidos
+    const resultado = convs.map(c => {
+      const otro = c.participantes.find(p => String(p._id) !== String(req.userId));
+      const meLeido = c.leido_por?.[req.userId] ? new Date(c.leido_por[req.userId]) : null;
+      const noLeidos = !meLeido || (c.ultimo_mensaje_en && new Date(c.ultimo_mensaje_en) > meLeido);
+      // No marcar no_leido si yo soy el último remitente
+      const yoFuiElUltimo = String(c.ultimo_remitente_id) === String(req.userId);
+      return {
+        _id: c._id,
+        otro,
+        ultimo_mensaje_en: c.ultimo_mensaje_en,
+        ultimo_mensaje_resumen: c.ultimo_mensaje_resumen,
+        no_leido: noLeidos && !yoFuiElUltimo
+      };
+    });
+    res.json(resultado);
+  } catch (error) {
+    console.error('Error listando misivas:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al cargar misivas' });
+  }
+});
+
+// GET /api/misivas/no-leidas — count para badge
+app.get('/api/misivas/no-leidas', auth, async (req, res) => {
+  try {
+    const convs = await Conversacion.find({ participantes: req.userId }).lean();
+    let total = 0;
+    for (const c of convs) {
+      const meLeido = c.leido_por?.[req.userId] ? new Date(c.leido_por[req.userId]) : null;
+      const yoFuiElUltimo = String(c.ultimo_remitente_id) === String(req.userId);
+      if (yoFuiElUltimo) continue;
+      if (!meLeido || (c.ultimo_mensaje_en && new Date(c.ultimo_mensaje_en) > meLeido)) {
+        total++;
+      }
+    }
+    res.json({ total });
+  } catch (error) {
+    console.error('Error misivas no leídas:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al contar misivas' });
+  }
+});
+
+// POST /api/misivas/abrir/:userId — abre o crea conversación con otro usuario
+app.post('/api/misivas/abrir/:userId', auth, async (req, res) => {
+  try {
+    const otroId = req.params.userId;
+    if (String(otroId) === String(req.userId)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'No puedes escribirte a ti mismo' });
+    }
+    const otro = await User.findById(otroId).select('nombre usuario avatar tema_favorito');
+    if (!otro) return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Cronista no encontrado' });
+
+    const participantes = normalizarParticipantes(req.userId, otroId);
+    let conv = await Conversacion.findOne({
+      participantes: { $all: participantes, $size: 2 }
+    });
+    if (!conv) {
+      conv = await Conversacion.create({
+        participantes,
+        ultimo_mensaje_en: new Date(),
+        ultimo_mensaje_resumen: ''
+      });
+    }
+    res.json({ _id: conv._id, otro });
+  } catch (error) {
+    console.error('Error abriendo misiva:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al abrir misiva' });
+  }
+});
+
+// GET /api/misivas/:conversacionId/mensajes — historial
+app.get('/api/misivas/:conversacionId/mensajes', auth, async (req, res) => {
+  try {
+    const conv = await Conversacion.findById(req.params.conversacionId);
+    if (!conv) return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Misiva no encontrada' });
+    if (!conv.participantes.map(String).includes(String(req.userId))) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: 'No tienes acceso a esta misiva' });
+    }
+    const mensajes = await Mensaje.find({ conversacion_id: conv._id })
+      .sort({ creado_en: 1 })
+      .lean();
+    const otro = await User.findById(
+      conv.participantes.find(p => String(p) !== String(req.userId))
+    ).select('nombre usuario avatar tema_favorito bio');
+    res.json({ _id: conv._id, otro, mensajes });
+  } catch (error) {
+    console.error('Error obteniendo mensajes:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener misiva' });
+  }
+});
+
+// POST /api/misivas/:conversacionId/mensajes — enviar
+app.post('/api/misivas/:conversacionId/mensajes',
+  auth,
+  [body('contenido').trim().isLength({ min: 1, max: 4000 }).withMessage('Contenido entre 1 y 4000 caracteres')],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ errors: errors.array() });
+      }
+      const conv = await Conversacion.findById(req.params.conversacionId);
+      if (!conv) return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Misiva no encontrada' });
+      if (!conv.participantes.map(String).includes(String(req.userId))) {
+        return res.status(HTTP_STATUS.FORBIDDEN).json({ error: 'No tienes acceso a esta misiva' });
+      }
+      const { contenido } = req.body;
+      const msg = await Mensaje.create({
+        conversacion_id: conv._id,
+        remitente_id: req.userId,
+        contenido
+      });
+      conv.ultimo_mensaje_en = msg.creado_en;
+      conv.ultimo_mensaje_resumen = contenido.slice(0, 140);
+      conv.ultimo_remitente_id = req.userId;
+      // Marcar como leído para el remitente
+      conv.leido_por.set(String(req.userId), msg.creado_en);
+      await conv.save();
+      res.status(HTTP_STATUS.CREATED).json(msg);
+    } catch (error) {
+      console.error('Error enviando misiva:', error);
+      res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al enviar misiva' });
+    }
+  }
+);
+
+// POST /api/misivas/:conversacionId/leer — marca conv como leída
+app.post('/api/misivas/:conversacionId/leer', auth, async (req, res) => {
+  try {
+    const conv = await Conversacion.findById(req.params.conversacionId);
+    if (!conv) return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Misiva no encontrada' });
+    if (!conv.participantes.map(String).includes(String(req.userId))) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: 'No tienes acceso a esta misiva' });
+    }
+    conv.leido_por.set(String(req.userId), new Date());
+    await conv.save();
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error marcando leído:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al marcar leído' });
   }
 });
 

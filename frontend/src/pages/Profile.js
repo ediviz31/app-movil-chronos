@@ -11,7 +11,7 @@ import EditProfileModal from '../components/EditProfileModal';
 import {
   HourglassIcon, FeatherIcon, OrnateStarIcon, ChronicleIcon,
   CommunitiesIcon, CalendarIcon, PlusOrnateIcon, ArrowRightIcon,
-  QuillInkIcon
+  QuillInkIcon, ScrollIcon
 } from '../components/HistoricIcons';
 
 const Profile = () => {
@@ -248,14 +248,23 @@ const Profile = () => {
                       </button>
                     </>
                   ) : (
-                    <button
-                      onClick={toggleFollow}
-                      disabled={followLoading}
-                      className={`profile-action-btn ${stats.esSeguido ? 'secondary' : 'primary'}`}
-                      data-testid="profile-follow-btn"
-                    >
-                      {followLoading ? '...' : (stats.esSeguido ? 'Siguiendo' : 'Seguir')}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => navigate(`/misivas/abrir/${perfil._id}`)}
+                        className="profile-action-btn secondary"
+                        data-testid="profile-misiva-btn"
+                      >
+                        <ScrollIcon size={14} /> Enviar misiva
+                      </button>
+                      <button
+                        onClick={toggleFollow}
+                        disabled={followLoading}
+                        className={`profile-action-btn ${stats.esSeguido ? 'secondary' : 'primary'}`}
+                        data-testid="profile-follow-btn"
+                      >
+                        {followLoading ? '...' : (stats.esSeguido ? 'Siguiendo' : 'Seguir')}
+                      </button>
+                    </>
                   )}
                 </div>
               </div>

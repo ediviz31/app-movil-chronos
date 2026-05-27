@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import SearchBar from './SearchBar';
 import AvisosBadge from './AvisosBadge';
+import MisivasBadge from './MisivasBadge';
 import {
   FeatherIcon, HourglassIcon,
   OrnateStarIcon, ChronicleIcon, CommunitiesIcon, ScrollIcon
@@ -69,6 +70,7 @@ const TopbarArchive = ({ onCreate }) => {
               <FeatherIcon size={20} />
             </button>
             <AvisosBadge />
+            <MisivasBadge />
             <div
               className="user-avatar-small"
               data-testid="topbar-user-avatar"

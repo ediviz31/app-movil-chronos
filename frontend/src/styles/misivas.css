@@ -1,0 +1,449 @@
+/* =====================================================
+   CHRONOS - Misivas (mensajería directa estilo carta)
+   ===================================================== */
+
+.misivas-page {
+  width: 100%;
+  max-width: 1200px;
+}
+
+.misivas-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 22px;
+  margin-top: 8px;
+  min-height: 600px;
+}
+
+/* ===== Sidebar de hilos ===== */
+.misivas-sidebar {
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: 6px;
+  padding: 18px 0 12px;
+  display: flex;
+  flex-direction: column;
+  max-height: 75vh;
+  overflow: hidden;
+}
+
+.misivas-sidebar-head {
+  padding: 0 22px 12px;
+  border-bottom: 1px solid var(--border-thin);
+}
+
+.misivas-sidebar-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.misivas-empty {
+  padding: 40px 22px;
+  text-align: center;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-style: italic;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.misivas-thread-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.misivas-thread-list li { padding: 0; }
+
+.misivas-thread {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  padding: 12px 18px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.misivas-thread:hover {
+  background: rgba(212, 184, 120, 0.05);
+}
+
+.misivas-thread.active {
+  background: rgba(212, 184, 120, 0.08);
+  border-left-color: var(--gold);
+}
+
+.misivas-thread-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-soft);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.misivas-thread-info { flex: 1; min-width: 0; }
+
+.misivas-thread-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.misivas-thread-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--gold-bright);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.misivas-thread-time {
+  font-family: var(--font-elegant);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.misivas-thread-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.misivas-thread-preview {
+  flex: 1;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.misivas-thread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 8px rgba(212, 184, 120, 0.6);
+  flex-shrink: 0;
+}
+
+/* ===== Hilo activo (derecha) ===== */
+.misivas-thread-view {
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  min-height: 600px;
+  max-height: 75vh;
+  overflow: hidden;
+}
+
+.misivas-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 40px 28px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.misivas-placeholder h3 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--gold-bright);
+  margin: 0;
+  font-weight: 500;
+}
+
+.misivas-placeholder p {
+  font-family: var(--font-display);
+  font-style: italic;
+  max-width: 360px;
+  line-height: 1.5;
+}
+
+.misivas-thread-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 22px 12px;
+  border-bottom: 1px solid var(--border-thin);
+}
+
+.misivas-back-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--gold-soft);
+  border-radius: 4px;
+  padding: 6px 10px;
+  color: var(--gold);
+  cursor: pointer;
+}
+
+.misivas-thread-header-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-soft);
+  object-fit: cover;
+}
+
+.misivas-thread-header-name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--gold-bright);
+  font-weight: 500;
+}
+
+.misivas-thread-header-handle {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ===== Hilo de cartas ===== */
+.misivas-hilo {
+  flex: 1;
+  padding: 20px 28px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(212, 184, 120, 0.03), transparent 50%),
+    radial-gradient(circle at 95% 100%, rgba(212, 184, 120, 0.03), transparent 50%);
+}
+
+.misivas-empty-hilo {
+  margin: auto;
+  text-align: center;
+  font-family: var(--font-display);
+  color: var(--text-muted);
+}
+
+/* CARTA INDIVIDUAL */
+.misiva-carta {
+  position: relative;
+  max-width: 78%;
+  padding: 18px 22px 16px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(212, 184, 120, 0.08), transparent 60%),
+    linear-gradient(180deg, rgba(28, 42, 70, 0.7), rgba(18, 28, 52, 0.8));
+  border: 1px solid var(--border-thin);
+  border-radius: 4px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+/* Esquinas ornamentadas tipo papel sellado */
+.misiva-carta::before,
+.misiva-carta::after {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  border: 1px solid var(--gold-soft);
+  opacity: 0.7;
+}
+.misiva-carta::before { top: 6px; left: 6px; border-right: none; border-bottom: none; }
+.misiva-carta::after { bottom: 6px; right: 6px; border-left: none; border-top: none; }
+
+.misiva-carta.mia {
+  align-self: flex-end;
+  border-left: 3px solid var(--gold);
+}
+
+.misiva-carta.recibida {
+  align-self: flex-start;
+  border-right: 3px solid var(--gold);
+}
+
+.misiva-carta-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(212, 184, 120, 0.15);
+}
+
+.misiva-carta-remitente {
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.misiva-carta-fecha {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.misiva-carta-contenido {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--text-default);
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.misiva-carta-sello {
+  position: absolute;
+  bottom: 12px;
+  right: 18px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 184, 120, 0.25), rgba(212, 184, 120, 0.05) 70%);
+  border: 1px solid var(--gold-soft);
+  display: grid;
+  place-items: center;
+  color: var(--gold);
+  opacity: 0.7;
+}
+
+.misiva-carta.mia .misiva-carta-sello {
+  right: auto; left: 18px;
+}
+
+/* ===== Composer (caja para escribir) ===== */
+.misivas-composer {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  padding: 14px 22px 18px;
+  border-top: 1px solid var(--border-thin);
+  background: rgba(6, 13, 30, 0.35);
+}
+
+.misivas-composer-input {
+  flex: 1;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-thin);
+  border-radius: 4px;
+  padding: 12px 14px;
+  color: var(--text-default);
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 70px;
+  max-height: 200px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.misivas-composer-input:focus {
+  border-color: var(--gold-soft);
+}
+
+.misivas-composer-input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.misivas-send-btn {
+  background: var(--gold);
+  color: var(--bg-deep);
+  border: none;
+  border-radius: 4px;
+  padding: 12px 18px;
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.misivas-send-btn:hover:not(:disabled) {
+  background: var(--gold-bright);
+  transform: translateY(-1px);
+}
+
+.misivas-send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Badge de notificación en SideRail */
+.rail-item .rail-badge {
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--gold);
+  color: var(--bg-deep);
+  font-family: var(--font-elegant);
+  font-size: 9px;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+}
+
+/* ===== Mobile responsive ===== */
+@media (max-width: 900px) {
+  .misivas-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+  .misivas-sidebar {
+    max-height: none;
+  }
+  .misivas-back-btn { display: inline-flex; }
+}
+
+@media (max-width: 700px) {
+  .misivas-thread-view, .misivas-sidebar { min-height: 480px; }
+  .misiva-carta { max-width: 92%; padding: 14px 16px 14px; }
+  .misiva-carta-contenido { font-size: 14px; }
+  .misivas-thread { padding: 10px 14px; }
+  .misivas-hilo { padding: 14px 14px; }
+  .misivas-composer { padding: 10px 14px 14px; }
+  .misivas-send-btn { padding: 10px 12px; font-size: 9px; }
+  .misivas-thread-header { padding: 12px 14px 10px; }
+  .misivas-thread-header-name { font-size: 16px; }
+}

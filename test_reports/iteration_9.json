@@ -1,0 +1,66 @@
+{
+  "summary": "Backend + Frontend testing del módulo Misivas (DM 1-on-1 estilo pergamino) — TODOS los criterios del plan PASAN. 16/16 tests pytest verdes y flujo UI completo (envío optimista, polling 10s, marcado leído, badge, /perfil → /misivas/abrir/:id → /misivas/:convId con replace, ctrl+Enter, alineación carta mía/recibida).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/misivas/abrir/:userId", "issue": "Cuando se pasa un userId con formato ObjectId válido pero inexistente, devuelve 404 ('Cronista no encontrado'). Si se pasa un userId con formato malformado, devolverá 500 por CastError de Mongoose. No es bloqueante (el frontend solo lo invoca con IDs válidos)."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_misivas.py",
+    "/app/test_reports/pytest/test_misivas.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.js: el polling silencioso del lado frontend solo refresca si cambia el length de mensajes — funciona, pero si en el futuro se permite EDITAR/eliminar un mensaje, el cliente no lo verá. Mejora futura: comparar updated_at o un hash.",
+    "Conversacion.js: índice 'participantes:1' está bien para queries por participante, pero NO impide duplicados a nivel BD. La unicidad se garantiza solo a nivel app por normalizarParticipantes. Una colisión por race condition podría crear 2 conversaciones. Mitigable con un índice único compuesto sobre los 2 IDs ordenados (campo derivado par_clave) si se vuelve crítico.",
+    "MisivasPage.js: el endpoint POST /misivas/:id/leer se llama cada vez que se entra a la conv y también dentro del polling (porque fetchConversacion se ejecuta al cambiar routeConvId). OK pero genera writes innecesarios; mejorable haciéndolo solo al cargar inicialmente.",
+    "MisivasBadge.js: polling 20s sin cleanup de visibilitychange — sigue corriendo aunque la pestaña esté oculta. Mejora menor.",
+    "server.js / mensajes POST: si el cliente envía contenido vacío Express-validator devuelve 400 con {errors:[...]}; otros endpoints devuelven {error: 'mensaje'}. Formato inconsistente — el frontend hace alert(err.response?.data?.error || 'Error...') por lo que en el caso de validación NO muestra detalles. Aceptable, pero homogeneizar a {error: '...'} mejoraría DX.",
+    "Profile.js + Auth.context: usa user._id o user.id como myId — robusto. OK."
+  ],
+  "test_results_detail": {
+    "backend_pytest": "16/16 PASS (TestAbrir x4, TestLista x2, TestMensajes x5, TestAcceso x5) en 2.70s",
+    "abrir_idempotente": "PASS — dos POST devuelven mismo _id",
+    "abrir_self_400": "PASS",
+    "abrir_user_inexistente": "PASS — 404",
+    "lista_estructura": "PASS — {_id, otro:{nombre,usuario,avatar}, ultimo_mensaje_en, ultimo_mensaje_resumen, no_leido}",
+    "no_leidas_count": "PASS",
+    "flujo_envio_no_leido_lectura": "PASS — keilin envía → legado ve no_leido=true y total=N → marca leído → no_leido=false y total=N-1",
+    "yo_no_me_notifico": "PASS — mis propios mensajes nunca aparecen no_leido en mi lista",
+    "no_leidas_excluye_mis_mensajes": "PASS — coincide count con conversaciones no_leido",
+    "mensaje_vacio_400": "PASS",
+    "mensaje_4001_chars_400": "PASS",
+    "no_participante_get_403": "PASS",
+    "no_participante_post_403": "PASS",
+    "no_participante_leer_403": "PASS",
+    "id_inexistente": "PASS — 404",
+    "sin_auth": "PASS — 401",
+    "frontend_rail_navega": "PASS — rail-misivas → /misivas",
+    "frontend_misivas_page_layout": "PASS — data-testid=misivas-page, misivas-sidebar, misivas-thread-view presentes",
+    "frontend_profile_misiva_btn": "PASS — profile-misiva-btn navega a /misivas/abrir/:id y redirige (replace) a /misivas/:convId",
+    "frontend_envio_optimista": "PASS — el mensaje aparece inmediatamente (count +1 antes de poll)",
+    "frontend_ctrl_enter": "PASS — ctrl+Enter envía el mensaje",
+    "frontend_polling_10s_recibe": "PASS — keilin envía via API, legado en /misivas/:id ve nuevo mensaje sin recargar tras ~12s",
+    "frontend_marca_leido_al_abrir": "PASS — entrar al hilo dispara /leer y misivas-unread-<id> desaparece de la lista",
+    "frontend_carta_mia_recibida": "PASS — mensajes míos tienen class 'misiva-carta mia', recibidos 'misiva-carta recibida' (con OrnateStarIcon sello)",
+    "frontend_send_disabled_vacio": "PASS — botón sellar deshabilitado con whitespace",
+    "frontend_topbar_badge": "PASS — topbar-misivas-btn presente; misivas-badge='1' visible tras mensaje nuevo",
+    "frontend_regresion": "PASS — /efemerides, /avisos, /explorar cargan sin errores"
+  },
+  "updated_files": [
+    "/app/backend/tests/test_misivas.py (NUEVO)"
+  ],
+  "success_rate": {"backend": "100% (16/16)", "frontend": "100% (todos los criterios del plan)"},
+  "test_credentials": "keilin@chronos.com / chronos123 (campo 'correo'), legado@chronos.com, arqueo@chronos.com — mismo password",
+  "seed_data_creation": "Tests crean mensajes prefijados con 'TEST_' en conversación keilin↔legado y keilin↔arqueo (verificación 403). No se limpian — son texto plano sin efectos secundarios.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Módulo Misivas (DM) verificado end-to-end. Test suite reutilizable en /app/backend/tests/test_misivas.py (16 tests). data-testids implementados: misivas-page, misivas-sidebar, misivas-thread-view, misivas-thread-<id>, misivas-unread-<id>, misivas-hilo, misiva-<id>, misivas-composer, misivas-input, misivas-send-btn, misivas-back-btn, misivas-thread-otro-nombre, rail-misivas, topbar-misivas-btn, misivas-badge, profile-misiva-btn. Idempotencia, polling 10s, optimistic append, marcado leído auto al abrir, badge, alineación mia/recibida — todo funcionando. Único punto menor: format inconsistente de error de validación (express-validator vs custom). Recomendación: homogeneizar a {error: 'msg'} si se quiere mostrar detalles al usuario.",
+  "rca of the issue": "N/A — sin issues bloqueantes."
+}
