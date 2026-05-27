@@ -12,14 +12,38 @@ const TopbarArchive = ({ onCreate }) => {
   const navItems = [
     { path: '/', label: 'Para ti', icon: '✦' },
     { path: '/cronicas', label: 'Crónicas', icon: '◈' },
-    { path: '/legados', label: 'Legados', icon: '⊙' }
+    { path: '/legados', label: 'Legados', icon: '⊙' },
+    { path: '/documentos', label: 'Documentos', icon: '⬚' }
   ];
 
   return (
     <header className="archive-topbar" data-testid="archive-topbar">
       <div className="topbar-inner">
-        {/* IZQUIERDA: Nav + Acciones */}
+        {/* IZQUIERDA: Buscador */}
         <div className="topbar-section-left">
+          <div className="archive-search" data-testid="archive-search">
+            <SearchIcon size={16} style={{ color: 'var(--gold)' }} />
+            <input
+              type="text"
+              placeholder="Buscar"
+            />
+          </div>
+        </div>
+
+        {/* CENTRO: Logo + Nav */}
+        <div className="topbar-section-center">
+          <div className="topbar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} data-testid="topbar-brand">
+            <div className="topbar-brand-icon">
+              <HourglassIcon size={26} />
+            </div>
+            <div className="topbar-brand-text">
+              <span className="brand-name">CHRONOS</span>
+              <span className="brand-tag">ARCHIVO VIVO</span>
+            </div>
+          </div>
+
+          <div className="topbar-brand-divider"></div>
+
           <nav className="archive-nav">
             {navItems.map(item => (
               <a
@@ -37,7 +61,10 @@ const TopbarArchive = ({ onCreate }) => {
               </a>
             ))}
           </nav>
+        </div>
 
+        {/* DERECHA: Acciones */}
+        <div className="topbar-section-right">
           <div className="archive-topbar-actions">
             <button className="icon-btn" onClick={onCreate} data-testid="topbar-create-btn" title="Crear crónica">
               <FeatherIcon size={18} />
@@ -47,30 +74,6 @@ const TopbarArchive = ({ onCreate }) => {
             </button>
             <div className="user-avatar-small" data-testid="topbar-user-avatar">
               <img src={getAvatarUrl(user)} alt={user?.nombre} />
-            </div>
-          </div>
-        </div>
-
-        {/* CENTRO: Búsqueda */}
-        <div className="topbar-section-center">
-          <div className="archive-search" data-testid="archive-search">
-            <SearchIcon size={16} style={{ color: 'var(--gold)' }} />
-            <input
-              type="text"
-              placeholder="Buscar"
-            />
-          </div>
-        </div>
-
-        {/* DERECHA: Logo CHRONOS (alineado con sidebar de iconos) */}
-        <div className="topbar-section-right">
-          <div className="topbar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} data-testid="topbar-brand">
-            <div className="topbar-brand-text" style={{ textAlign: 'right' }}>
-              <span className="brand-name">CHRONOS</span>
-              <span className="brand-tag">ARCHIVO VIVO</span>
-            </div>
-            <div className="topbar-brand-icon">
-              <HourglassIcon size={26} />
             </div>
           </div>
         </div>
