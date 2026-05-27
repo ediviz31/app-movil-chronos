@@ -97,6 +97,13 @@ button {
   z-index: 1;
 }
 
+.archive-layout > .main-area-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0;
+}
+
 /* ===== SIDEBAR LATERAL ANGOSTA ===== */
 .side-rail {
   position: sticky;
