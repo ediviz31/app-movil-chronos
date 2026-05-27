@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { HourglassIcon } from '../components/HistoricIcons';
 
@@ -11,7 +11,6 @@ const Register = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect') || '/';
 
@@ -22,10 +21,10 @@ const Register = () => {
     setError(''); setLoading(true);
     try {
       await register(formData);
-      navigate(redirect);
+      // No navegamos manualmente: PublicRoute detectará isAuthenticated=true
+      // y redirigirá al ?redirect= automáticamente.
     } catch (err) {
       setError(err.response?.data?.error || 'Error al registrarse');
-    } finally {
       setLoading(false);
     }
   };

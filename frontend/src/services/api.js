@@ -21,21 +21,25 @@ const api = axios.create({
   withCredentials: true // Importante para enviar cookies
 });
 
-// Interceptor para manejar errores de autenticación
+// Interceptor para manejar errores de autenticación.
+// Política: solo redirigir a /login cuando una acción ACTIVA del usuario
+// (POST/PUT/DELETE o GET de páginas que requieren auth) recibe 401.
+// El check pasivo /auth/me al cargar la app NUNCA debe redirigir — es
+// esperado que un anónimo en una ruta pública reciba 401 y simplemente
+// continúe como visitante.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === HTTP_STATUS.UNAUTHORIZED) {
-      // No redirigir si estamos en una ruta pública (login/registro/relato público)
-      // ni si el endpoint que falló es /auth/me (verificación pasiva al cargar)
+      const failedUrl = error.config?.url || '';
+      const isAuthMeCheck = failedUrl.includes('/auth/me');
       const currentPath = window.location.pathname;
+      // Páginas que pueden mostrarse a anónimos: no forzar redirect
       const isPublicPath =
         currentPath === '/login' ||
         currentPath === '/registro' ||
         currentPath.startsWith('/relato/');
-      const failedUrl = error.config?.url || '';
-      const isAuthMeCheck = failedUrl.includes('/auth/me');
-      if (!isPublicPath && !isAuthMeCheck) {
+      if (!isAuthMeCheck && !isPublicPath) {
         window.location.href = '/login';
       }
     }

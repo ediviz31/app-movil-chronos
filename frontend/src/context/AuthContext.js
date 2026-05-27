@@ -21,7 +21,10 @@ export const AuthProvider = ({ children }) => {
       const response = await api.get('/auth/me');
       setUser(response.data);
     } catch (error) {
-      console.error('Error al verificar autenticación:', error);
+      // 401 esperado para anónimos en rutas públicas: no es un error
+      if (error.response?.status !== 401) {
+        console.error('Error al verificar autenticación:', error);
+      }
       setUser(null);
     } finally {
       setLoading(false);

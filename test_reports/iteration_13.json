@@ -1,0 +1,32 @@
+{
+  "summary": "Retest iter13 — Bug del redirect post-login/registro: ARREGLADO. 7/7 escenarios PASS. El patrón nuevo (handleSubmit no navega manualmente + PublicRoute reactivo con useSearchParams + supresión de console.error para 401 esperado en /auth/me) funciona correctamente y no rompe regresiones.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_13.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Login.js y Register.js dejan `loading=true` permanentemente cuando el submit es exitoso (no se resetea porque ya no hay catch+setLoading(false) en el camino feliz). El componente se desmonta al navegar via PublicRoute → no es un problema funcional visible, pero técnicamente es un dead-state. Aceptable.",
+    "api.js: el comentario del interceptor está bien documentado, pero la heurística `currentPath.startsWith('/relato/')` es frágil; cualquier ruta pública nueva (ej. /preview, /share) requerirá re-tocar este interceptor. Considerar invertir la política: el interceptor solo redirige cuando la llamada lleva un header/flag explícito 'requires-auth-redirect'. Esto es follow-up, no bloqueante.",
+    "AuthContext.checkAuth() sigue ejecutándose en cada montaje de la app — para visitantes anónimos genera un 401 inevitable en la pestaña Network (no console.error, pero sí entrada en network). Es aceptable; lo importante (no ruido en console) está resuelto."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skip)", "frontend": "100%"},
+  "test_credentials": "keilin@chronos.com / chronos123 (campo correo) + nuevo usuario test_iter13_<ts>@chronos.com creado durante el test",
+  "seed_data_creation": "Se creó UN usuario nuevo durante el test 7 (registro): test_iter13_<timestamp>@chronos.com / tester_<timestamp> / password test1234. No bloqueante; puede limpiarse manualmente si se desea.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "El bug iter12 está cerrado. Verificado con Playwright los 7 flujos:\n  T1 anon /relato/X → renderiza PublicShell + join-cta + comment-locked-cta, sin redirect a /login, sin console.error 'Error al verificar autenticación'.\n  T2 anon click relato-eco-btn → /registro?redirect=%2Frelato%2F<id> (URL-encoded, correcto).\n  T3 /login?redirect=/relato/X + submit con keilin@chronos.com → aterriza en /relato/X (BUG FIX).\n  T4 /login con sesión activa → / (feed).\n  T5 /login?redirect=/relato/X con sesión previa → /relato/X directamente.\n  T6 /, /efemerides, /mi-legado, /misivas accesibles autenticado.\n  T7 /registro?redirect=/relato/X + submit con usuario nuevo → /relato/X (BUG FIX también aplica a Register).\nÚnicas entradas en console son los 401 de /auth/me (entradas de Network, no console.error) que son esperados para anónimos.",
+  "rca_of_the_issue": {
+    "summary": "El bug 2 de iter12 (redirect ignorado post-submit) se solucionó moviendo el redirect de un navigate() imperativo dentro de handleSubmit a un <Navigate> declarativo en PublicRoute, que ahora usa useSearchParams() (reactivo) en vez de window.location.search. Cuando setUser() dispara el rerender, PublicRoute detecta isAuthenticated=true y lee searchParams de forma sincrónica con el router, devolviendo <Navigate to={redirect}>. Esto elimina la race condition.",
+    "verification": "TEST3 (login con keilin@chronos.com en /login?redirect=/relato/6a162ecd24dbda262c859563) → URL final == /relato/6a162ecd24dbda262c859563. TEST7 (registro con usuario nuevo en /registro?redirect=...) → idem. Ambos PASS de forma reproducible."
+  }
+}

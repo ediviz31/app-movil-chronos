@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -51,10 +51,10 @@ const ProtectedRoute = ({ children }) => {
 
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
+  const [searchParams] = useSearchParams();
   if (loading) return <LoadingScreen />;
   if (isAuthenticated) {
-    const params = new URLSearchParams(window.location.search);
-    const redirect = params.get('redirect') || '/';
+    const redirect = searchParams.get('redirect') || '/';
     return <Navigate to={redirect} replace />;
   }
   return children;

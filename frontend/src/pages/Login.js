@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { HourglassIcon } from '../components/HistoricIcons';
 
@@ -9,7 +9,6 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect') || '/';
 
@@ -18,10 +17,10 @@ const Login = () => {
     setError(''); setLoading(true);
     try {
       await login(correo, password);
-      navigate(redirect);
+      // No navegamos manualmente: PublicRoute detectará isAuthenticated=true
+      // y redirigirá automáticamente al ?redirect= si está presente, o a '/'.
     } catch (err) {
       setError(err.response?.data?.error || 'Credenciales inválidas');
-    } finally {
       setLoading(false);
     }
   };
