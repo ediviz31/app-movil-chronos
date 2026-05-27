@@ -627,6 +627,79 @@ app.put('/api/usuarios/perfil', auth, async (req, res) => {
   }
 });
 
+// Subir avatar
+app.post('/api/usuarios/avatar', auth, upload.avatares.single('imagen'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Falta el archivo' });
+    }
+    const avatarUrl = `/api/uploads/avatares/${req.file.filename}`;
+    const usuario = await User.findByIdAndUpdate(
+      req.userId,
+      { avatar: avatarUrl },
+      { new: true }
+    ).select('-password');
+    res.json({ mensaje: 'Avatar actualizado', usuario, avatar: avatarUrl });
+  } catch (error) {
+    console.error('Error subiendo avatar:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al subir avatar' });
+  }
+});
+
+// Subir portada
+app.post('/api/usuarios/portada', auth, upload.portadas.single('imagen'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Falta el archivo' });
+    }
+    const portadaUrl = `/api/uploads/portadas/${req.file.filename}`;
+    const usuario = await User.findByIdAndUpdate(
+      req.userId,
+      { portada: portadaUrl },
+      { new: true }
+    ).select('-password');
+    res.json({ mensaje: 'Portada actualizada', usuario, portada: portadaUrl });
+  } catch (error) {
+    console.error('Error subiendo portada:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al subir portada' });
+  }
+});
+
+// Obtener relatos de un usuario específico
+app.get('/api/usuarios/:id/relatos', auth, async (req, res) => {
+  try {
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'ID inválido' });
+    }
+    const relatos = await Publicacion.find({ usuario_id: req.params.id })
+      .populate('usuario_id', 'nombre usuario avatar tema_favorito interes')
+      .sort({ creado_en: -1 });
+
+    const relatosConStats = await Promise.all(relatos.map(async (relato) => {
+      const [total_ecos, total_comentarios, total_archivos, usuario_dio_eco, usuario_archivado] = await Promise.all([
+        Eco.countDocuments({ publicacion_id: relato._id }),
+        Comentario.countDocuments({ publicacion_id: relato._id }),
+        Archivado.countDocuments({ publicacion_id: relato._id }),
+        Eco.countDocuments({ publicacion_id: relato._id, usuario_id: req.userId }),
+        Archivado.countDocuments({ publicacion_id: relato._id, usuario_id: req.userId })
+      ]);
+      return {
+        ...relato.toObject(),
+        total_ecos,
+        total_comentarios,
+        total_archivos,
+        usuario_dio_eco: usuario_dio_eco > 0,
+        usuario_archivado: usuario_archivado > 0
+      };
+    }));
+
+    res.json(relatosConStats);
+  } catch (error) {
+    console.error('Error al obtener relatos del usuario:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener relatos' });
+  }
+});
+
 // Obtener perfil de usuario por ID
 app.get('/api/usuarios/:id', auth, async (req, res) => {
   try {
@@ -704,6 +777,70 @@ app.get('/api/estadisticas/me', auth, async (req, res) => {
   } catch (error) {
     console.error('Error al obtener estadísticas:', error);
     res.status(500).json({ error: 'Error al obtener estadísticas' });
+  }
+});
+
+// ============================================
+// RUTA DE BÚSQUEDA AVANZADA
+// ============================================
+
+// Búsqueda global de usuarios y relatos
+app.get('/api/buscar', auth, async (req, res) => {
+  try {
+    const { q = '', tipo = 'todo', limit = 10 } = req.query;
+    const termino = q.trim();
+
+    if (termino.length < 1) {
+      return res.json({ usuarios: [], relatos: [] });
+    }
+
+    // Crear regex insensible a acentos y case
+    // Reemplaza cada vocal por su clase con acentos
+    const escapado = termino.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const accentInsensitive = escapado
+      .replace(/[aáàäâãAÁÀÄÂÃ]/gi, '[aáàäâã]')
+      .replace(/[eéèëêEÉÈËÊ]/gi, '[eéèëê]')
+      .replace(/[iíìïîIÍÌÏÎ]/gi, '[iíìïî]')
+      .replace(/[oóòöôõOÓÒÖÔÕ]/gi, '[oóòöôõ]')
+      .replace(/[uúùüûUÚÙÜÛ]/gi, '[uúùüû]')
+      .replace(/[nñNÑ]/gi, '[nñ]')
+      .replace(/[cçCÇ]/gi, '[cç]');
+    const regex = new RegExp(accentInsensitive, 'i');
+
+    const lim = Math.min(parseInt(limit) || 10, 25);
+
+    let usuarios = [];
+    let relatos = [];
+
+    if (tipo === 'todo' || tipo === 'usuarios') {
+      usuarios = await User.find({
+        $or: [
+          { nombre: regex },
+          { usuario: regex },
+          { bio: regex }
+        ]
+      })
+        .select('nombre usuario avatar bio tema_favorito')
+        .limit(lim);
+    }
+
+    if (tipo === 'todo' || tipo === 'relatos') {
+      relatos = await Publicacion.find({
+        $or: [
+          { titulo: regex },
+          { contenido: regex },
+          { categoria: regex }
+        ]
+      })
+        .populate('usuario_id', 'nombre usuario avatar')
+        .sort({ creado_en: -1 })
+        .limit(lim);
+    }
+
+    res.json({ usuarios, relatos, total: usuarios.length + relatos.length });
+  } catch (error) {
+    console.error('Error en búsqueda:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al buscar' });
   }
 });
 

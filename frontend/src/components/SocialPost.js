@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { getImageUrl, getAvatarUrl } from '../utils/imageHelpers';
 import { EchoIcon, ValueIcon, ShareIcon, PreserveIcon } from './HistoricIcons';
@@ -19,6 +20,7 @@ const formatFechaRelativa = (fecha) => {
 };
 
 const SocialPost = ({ relato, currentUserId, onDelete }) => {
+  const navigate = useNavigate();
   const [dioEco, setDioEco] = useState(relato.usuario_dio_eco);
   const [totalEcos, setTotalEcos] = useState(relato.total_ecos);
   const [archivado, setArchivado] = useState(relato.usuario_archivado);
@@ -91,11 +93,19 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
     <article className="social-post" data-testid={`social-post-${relato._id}`}>
       {/* Header */}
       <div className="social-post-header">
-        <div className="social-post-avatar">
+        <div
+          className="social-post-avatar"
+          onClick={() => usuario?._id && navigate(`/perfil/${usuario._id}`)}
+          style={{ cursor: usuario?._id ? 'pointer' : 'default' }}
+        >
           <img src={avatarSrc} alt={usuario?.nombre} />
         </div>
         <div className="social-post-meta">
-          <div className="social-post-author">
+          <div
+            className="social-post-author"
+            onClick={() => usuario?._id && navigate(`/perfil/${usuario._id}`)}
+            style={{ cursor: usuario?._id ? 'pointer' : 'default' }}
+          >
             {usuario?.nombre}
             <span className="epoch-tag">{relato.categoria}</span>
           </div>

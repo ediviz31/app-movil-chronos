@@ -2,8 +2,9 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
+import SearchBar from './SearchBar';
 import {
-  SearchIcon, FeatherIcon, BellIcon, HourglassIcon,
+  FeatherIcon, BellIcon, HourglassIcon,
   OrnateStarIcon, ChronicleIcon, CommunitiesIcon, ScrollIcon
 } from './HistoricIcons';
 
@@ -33,13 +34,7 @@ const TopbarArchive = ({ onCreate }) => {
               <span className="brand-tag">Archivo Vivo</span>
             </div>
           </div>
-          <div className="archive-search" data-testid="archive-search">
-            <SearchIcon size={16} style={{ color: 'var(--gold)' }} />
-            <input
-              type="text"
-              placeholder="Buscar en Chronos"
-            />
-          </div>
+          <SearchBar />
         </div>
 
         {/* CENTRO: Navegación */}
@@ -75,7 +70,13 @@ const TopbarArchive = ({ onCreate }) => {
             <button className="icon-btn" data-testid="topbar-notif-btn" title="Notificaciones">
               <BellIcon size={18} />
             </button>
-            <div className="user-avatar-small" data-testid="topbar-user-avatar">
+            <div
+              className="user-avatar-small"
+              data-testid="topbar-user-avatar"
+              onClick={() => user && navigate(`/perfil/${user._id || user.id}`)}
+              style={{ cursor: 'pointer' }}
+              title="Mi perfil"
+            >
               <img src={getAvatarUrl(user)} alt={user?.nombre} />
             </div>
           </div>

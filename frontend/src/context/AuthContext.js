@@ -54,12 +54,17 @@ export const AuthProvider = ({ children }) => {
     window.location.href = '/login';
   };
 
+  const updateUser = (patch) => {
+    setUser((prev) => prev ? { ...prev, ...patch } : prev);
+  };
+
   const value = {
     user,
     loading,
     login,
     register,
     logout,
+    updateUser,
     isAuthenticated: !!user
   };
 

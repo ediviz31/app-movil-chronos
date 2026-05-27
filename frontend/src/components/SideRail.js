@@ -57,7 +57,13 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
         <span>Salir</span>
       </button>
 
-      <div className="rail-user" data-testid="rail-user-avatar">
+      <div
+        className="rail-user"
+        data-testid="rail-user-avatar"
+        onClick={() => user && navigate(`/perfil/${user._id || user.id}`)}
+        style={{ cursor: 'pointer' }}
+        title="Mi perfil"
+      >
         <img src={getAvatarUrl(user)} alt={user?.nombre} />
       </div>
       <div className="rail-user-label">Mi legado</div>

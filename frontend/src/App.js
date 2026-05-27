@@ -4,9 +4,12 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Feed from './pages/Feed';
+import Profile from './pages/Profile';
 import { HourglassIcon } from './components/HistoricIcons';
 import './styles/archive.css';
 import './styles/social-refine.css';
+import './styles/search.css';
+import './styles/profile.css';
 
 const LoadingScreen = () => (
   <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg-deep)' }}>
@@ -41,6 +44,7 @@ function App() {
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/registro" element={<PublicRoute><Register /></PublicRoute>} />
           <Route path="/" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+          <Route path="/perfil/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
