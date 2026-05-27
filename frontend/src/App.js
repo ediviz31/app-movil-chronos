@@ -12,6 +12,7 @@ import DocumentosPage from './pages/DocumentosPage';
 import EpocasPage from './pages/EpocasPage';
 import EpocaDetailPage from './pages/EpocaDetailPage';
 import AvisosPage from './pages/AvisosPage';
+import EfemeridesPage from './pages/EfemeridesPage';
 import { HourglassIcon } from './components/HistoricIcons';
 import './styles/archive.css';
 import './styles/social-refine.css';
@@ -19,6 +20,7 @@ import './styles/search.css';
 import './styles/profile.css';
 import './styles/pages.css';
 import './styles/avisos.css';
+import './styles/efemerides.css';
 
 const LoadingScreen = () => (
   <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg-deep)' }}>
@@ -59,6 +61,7 @@ function App() {
           <Route path="/epocas" element={<ProtectedRoute><EpocasPage /></ProtectedRoute>} />
           <Route path="/epocas/:nombre" element={<ProtectedRoute><EpocaDetailPage /></ProtectedRoute>} />
           <Route path="/avisos" element={<ProtectedRoute><AvisosPage /></ProtectedRoute>} />
+          <Route path="/efemerides" element={<ProtectedRoute><EfemeridesPage /></ProtectedRoute>} />
           <Route path="/relato/:id" element={<ProtectedRoute><RelatoDetail /></ProtectedRoute>} />
           <Route path="/perfil/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />

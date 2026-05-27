@@ -31,7 +31,14 @@ const AvisosBadge = () => {
   useEffect(() => {
     fetchCount();
     const id = setInterval(fetchCount, POLL_INTERVAL);
-    return () => clearInterval(id);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchCount();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [fetchCount]);
 
   const handleClick = () => {

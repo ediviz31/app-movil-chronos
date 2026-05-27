@@ -15,6 +15,7 @@ const Comentario = require('./models/Comentario');
 const Archivado = require('./models/Archivado');
 const Seguidor = require('./models/Seguidor');
 const Notificacion = require('./models/Notificacion');
+const { getEfemeridesPorFecha, getEfemerideCercana, getCalendarioDelMes } = require('./data/efemerides');
 
 // Middleware
 const auth = require('./middleware/auth');
@@ -686,10 +687,15 @@ app.put('/api/usuarios/perfil', auth, async (req, res) => {
     const { nombre, bio, interes, tema_favorito } = req.body;
     const usuario = await User.findById(req.userId);
 
-    if (nombre) usuario.nombre = nombre;
-    if (bio) usuario.bio = bio;
-    if (interes) usuario.interes = interes;
-    if (tema_favorito) usuario.tema_favorito = tema_favorito;
+    if (nombre !== undefined) usuario.nombre = String(nombre).trim().slice(0, 80);
+    if (bio !== undefined) usuario.bio = String(bio).trim().slice(0, 220);
+    if (interes !== undefined) usuario.interes = String(interes).trim().slice(0, 60);
+    if (tema_favorito !== undefined) usuario.tema_favorito = String(tema_favorito).trim().slice(0, 60);
+
+    // Validación mínima: nombre no puede quedar vacío
+    if (!usuario.nombre || usuario.nombre.length < 1) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'El nombre no puede estar vacío' });
+    }
 
     await usuario.save();
     
@@ -1028,6 +1034,70 @@ app.post('/api/avisos/:id/leido', auth, async (req, res) => {
   } catch (error) {
     console.error('Error marcando aviso:', error);
     res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al marcar' });
+  }
+});
+
+// ============================================
+// RUTAS DE EFEMÉRIDES (CALENDARIO HISTÓRICO REAL)
+// ============================================
+
+// Efemérides de hoy (o fecha más cercana si no hay para hoy)
+app.get('/api/efemerides/hoy', auth, async (req, res) => {
+  try {
+    const hoy = new Date();
+    const eventosHoy = getEfemeridesPorFecha(hoy);
+    if (eventosHoy.length > 0) {
+      return res.json({
+        fecha: `${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`,
+        dia: hoy.getDate(),
+        mes: hoy.getMonth() + 1,
+        es_hoy: true,
+        eventos: eventosHoy
+      });
+    }
+    // No hay para hoy: la más cercana
+    const cercana = getEfemerideCercana(hoy);
+    if (!cercana) return res.json({ eventos: [] });
+    res.json({
+      ...cercana,
+      es_hoy: false,
+      distancia_dias: cercana.distancia_dias
+    });
+  } catch (error) {
+    console.error('Error efemérides hoy:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener efemérides' });
+  }
+});
+
+// Efemérides de una fecha específica MM-DD
+app.get('/api/efemerides/fecha/:fecha', auth, async (req, res) => {
+  try {
+    const fecha = req.params.fecha;
+    if (!/^\d{2}-\d{2}$/.test(fecha)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Formato inválido. Use MM-DD' });
+    }
+    const eventos = getEfemeridesPorFecha(fecha);
+    const [mm, dd] = fecha.split('-').map(Number);
+    res.json({ fecha, mes: mm, dia: dd, eventos });
+  } catch (error) {
+    console.error('Error efemérides fecha:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener efemérides' });
+  }
+});
+
+// Calendario del mes: año/mes con conteo de eventos por día
+app.get('/api/efemerides/calendario/:year/:month', auth, async (req, res) => {
+  try {
+    const year = parseInt(req.params.year);
+    const month = parseInt(req.params.month);
+    if (!year || !month || month < 1 || month > 12) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Año/mes inválido' });
+    }
+    const dias = getCalendarioDelMes(year, month);
+    res.json({ year, month, dias });
+  } catch (error) {
+    console.error('Error calendario:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener calendario' });
   }
 });
 

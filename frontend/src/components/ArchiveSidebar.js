@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useState, useCallback } from 'react';
 import api from '../services/api';
 import { getAvatarUrl } from '../utils/imageHelpers';
@@ -20,18 +21,22 @@ const EPOCAS_DATA = {
 };
 
 const ArchiveSidebar = () => {
+  const navigate = useNavigate();
   const [rutasPopulares, setRutasPopulares] = useState([]);
   const [usuariosSugeridos, setUsuariosSugeridos] = useState([]);
   const [loadingFollow, setLoadingFollow] = useState({});
+  const [efemeride, setEfemeride] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const [rutasRes, usuariosRes] = await Promise.all([
+      const [rutasRes, usuariosRes, efemRes] = await Promise.all([
         api.get('/rutas/populares'),
-        api.get('/usuarios/sugeridos')
+        api.get('/usuarios/sugeridos'),
+        api.get('/efemerides/hoy')
       ]);
       setRutasPopulares(rutasRes.data);
       setUsuariosSugeridos(usuariosRes.data);
+      setEfemeride(efemRes.data);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -51,12 +56,9 @@ const ArchiveSidebar = () => {
     }
   };
 
-  // Efeméride del día (mock con datos curados)
-  const today = new Date();
-  const ephemerides = [
-    { day: today.getDate(), month: today.toLocaleString('es-ES', { month: 'long' }).toUpperCase(), year: '1822', title: 'Nace Agustín de Iturbide', desc: 'Militar y político que jugó un papel clave en la Independencia de México y fue su primer emperador.', img: 'https://images.unsplash.com/photo-1552432552-06c0b0a94dda?w=80&q=80' },
-  ];
-  const efemeride = ephemerides[0];
+  // Toma el primer evento de la efeméride
+  const evento = efemeride?.eventos?.[0];
+  const MESES = ['', 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
   const epocasMostradas = rutasPopulares.length > 0
     ? rutasPopulares.slice(0, 4)
@@ -81,19 +83,43 @@ const ArchiveSidebar = () => {
           </button>
         </div>
         <div className="ephemeris-content">
-          <div className="ephemeris-date">
-            <div className="ephemeris-day">{efemeride.day}</div>
-            <div className="ephemeris-month">{efemeride.month.substring(0,5)}</div>
-            <div className="ephemeris-year">{efemeride.year}</div>
-          </div>
-          <div className="ephemeris-divider"></div>
-          <div className="ephemeris-body">
-            <p>{efemeride.title}</p>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>{efemeride.desc}</p>
-            <a href="#" className="sidebar-link">
-              Explorar efemérides <ArrowRightIcon size={12} />
-            </a>
-          </div>
+          {evento ? (
+            <>
+              <div className="ephemeris-date">
+                <div className="ephemeris-day">{efemeride.dia}</div>
+                <div className="ephemeris-month">{MESES[efemeride.mes]?.substring(0,3).toUpperCase()}</div>
+                <div className="ephemeris-year">
+                  {evento.anio < 0 ? `${Math.abs(evento.anio)} a.C.` : evento.anio}
+                </div>
+              </div>
+              <div className="ephemeris-divider"></div>
+              <div className="ephemeris-body">
+                <p style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--text-bright)', marginBottom: 6, fontWeight: 500 }}>
+                  {evento.epoca}
+                </p>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14, fontStyle: 'italic', lineHeight: 1.4 }}>
+                  {evento.evento}
+                </p>
+                {!efemeride.es_hoy && (
+                  <p style={{ fontSize: 11, color: 'var(--gold)', marginBottom: 10, fontFamily: 'var(--font-elegant)', letterSpacing: '0.1em' }}>
+                    Fecha cercana
+                  </p>
+                )}
+                <a
+                  href="/efemerides"
+                  className="sidebar-link"
+                  onClick={(e) => { e.preventDefault(); navigate('/efemerides'); }}
+                  data-testid="ephemeris-link"
+                >
+                  Explorar efemérides <ArrowRightIcon size={12} />
+                </a>
+              </div>
+            </>
+          ) : (
+            <p style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', padding: 8 }}>
+              Consultando el archivo...
+            </p>
+          )}
         </div>
       </section>
 
@@ -111,7 +137,13 @@ const ArchiveSidebar = () => {
         {epocasMostradas.map(ruta => {
           const data = EPOCAS_DATA[ruta.categoria] || { period: 'Diversa', img: 'https://images.unsplash.com/photo-1568736333610-eae6e0ab9206?w=200&q=80' };
           return (
-            <div key={ruta.categoria} className="epoch-row" data-testid={`epoch-${ruta.categoria}`}>
+            <div
+              key={ruta.categoria}
+              className="epoch-row"
+              data-testid={`epoch-${ruta.categoria}`}
+              onClick={() => navigate(`/epocas/${encodeURIComponent(ruta.categoria)}`)}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="epoch-avatar">
                 <img src={data.img} alt={ruta.categoria} />
               </div>

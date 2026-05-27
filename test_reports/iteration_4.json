@@ -1,0 +1,27 @@
+{
+  "summary": "Phase 3 (Efemérides historical calendar) fully verified. Backend: 13/13 pytest tests passed against curated dataset (~55 events). All endpoints — GET /api/efemerides/hoy, /fecha/:MM-DD, /calendario/:year/:month — return correct shape, require auth (401 without cookie), validate input (400 on bad month/format), and surface the right canonical events (Julio César 03-15 anio=-44 Roma imperial; Cristóbal Colón 10-12 anio=1492 Edad Moderna). Frontend: Playwright e2e for keilin@chronos.com — /efemerides page renders inside PageShell with topbar+rail, calendar shows month/year header with Mon-Sun weekdays, 31 day cells for May, 4 offset empty cells, 4 gold-dot days, today highlighted; cal-next/prev change month and reload data; navigating to Marzo 2026 + clicking cal-day-15 shows event-0 with '44 a.C.' + 'Roma imperial' + 'César'; selected class applied; empty day shows 'El archivo guarda silencio sobre este día'; epoca pill navigates to /epocas/Roma%20imperial. ArchiveSidebar on home renders real efeméride (29 MAY 1453 Constantinople — nearest, since today=27 May 2026 has no entry), 'Fecha cercana' tag visible, ephemeris-link navigates to /efemerides, epoch rows clickable to /epocas/:nombre.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_phase3_efemerides.py",
+    "/app/test_reports/pytest/phase3_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.js is now 1122 lines (was 1052 at iteration 3). The recommendation to split into routes/efemerides.js, routes/avisos.js, routes/comentarios.js, etc. is increasingly urgent — Phase 3 added 60+ lines to an already-large single file. Maintainability risk grows with each phase.",
+    "Dataset coverage is sparse: only ~55 days out of 366 have events (≈15% coverage). For UX, this is fine because the nearest-date fallback works, but consider documenting somewhere that the curated dataset is intentionally selective.",
+    "getEfemerideCercana uses ordinal MMDD math with modulo 1231; this works for the cyclical use case but is non-obvious. The min distance returned can be misleading when crossing year boundaries (e.g., 12-30 to 01-01 returns distance 71 rather than 2 because of the (m*100+d) encoding gap from 1231→0101). Acceptable for an MVP, but worth a comment in the code or future refactor to true day-of-year math.",
+    "/api/efemerides/fecha/:fecha does not reject impossible dates like '02-30' or '13-01' — it silently returns eventos:[] because the lookup just misses. Consider validating month 01-12 and day 01-31 (or per-month-max) for cleaner error responses, though current behaviour is non-breaking.",
+    "Frontend: EfemeridesPage primerDiaSemana calc `(new Date(year, month - 1, 1).getDay() + 6) % 7` correctly handles Monday-first week. Confirmed visually with 4 empty offset cells for May 2026 (May 1 = Friday).",
+    "Frontend: when clicking cal-prev/cal-next, diaSeleccionado is reset to 1 — but the events panel briefly shows previous month's events for ~200ms because fetchEventosDia is debounced by the useEffect deps. Minor flicker, no functional impact.",
+    "ArchiveSidebar formats anio<0 inline (Math.abs check) instead of reusing the formatAnio helper from EfemeridesPage. Light DRY violation — extract a shared util in utils/ for consistency."
+  ],
+  "updated_files": ["/app/backend/tests/test_phase3_efemerides.py (new)"],
+  "success_rate": {"backend": "100% (13/13)", "frontend": "100% (all UI checks passed)"},
+  "test_credentials": "keilin@chronos.com / chronos123",
+  "seed_data_creation": "None — Phase 3 endpoints are read-only over a static dataset; no DB writes occurred.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 3 verified end-to-end. Curated dataset at /app/backend/data/efemerides.js with ~55 'MM-DD'-keyed events. Endpoints all require cookie auth (return 401 otherwise). Frontend testids: efemerides-page, calendar-wrap, cal-prev, cal-next, cal-day-{1..31}, events-panel, event-{idx}, ephemeris-link (on ArchiveSidebar), efemeride-section. Calendar uses Monday-first European week. Selected/today/has-event CSS classes confirmed. Negative anio rendered as 'N a.C.' both on EfemeridesPage (formatAnio) and ArchiveSidebar (inline). Today during testing was 27 May 2026 which has no event, so /api/efemerides/hoy returned es_hoy:false with 29-05 (Constantinople fall) at distance 2 days. If running on a different date this fallback may pick a different event.",
+  "rca of the issue": "N/A — no bugs found in Phase 3."
+}

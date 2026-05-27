@@ -1,0 +1,318 @@
+/* =====================================================
+   CHRONOS - Página de Efemérides
+   Calendario histórico real
+   ===================================================== */
+
+.efemerides-layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 32px;
+  align-items: flex-start;
+  margin-top: 8px;
+}
+
+/* CALENDARIO */
+.calendar-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: 8px;
+  padding: 22px;
+  position: sticky;
+  top: 84px;
+}
+
+.calendar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-thin);
+}
+
+.calendar-nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border-thin);
+  color: var(--gold);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-nav-btn:hover {
+  background: var(--gold-ghost);
+  border-color: var(--gold);
+}
+
+.calendar-title {
+  text-align: center;
+}
+
+.calendar-month {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text-bright);
+  letter-spacing: 0.02em;
+}
+
+.calendar-year {
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  margin-top: 2px;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+.calendar-weekdays > div {
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-align: center;
+  color: var(--gold);
+  text-transform: uppercase;
+  padding: 6px 0;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-cell {
+  aspect-ratio: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.calendar-cell.empty {
+  cursor: default;
+  pointer-events: none;
+}
+
+.calendar-cell:hover:not(.empty) {
+  background: var(--gold-ghost);
+  color: var(--text-bright);
+}
+
+.calendar-cell.has-event {
+  color: var(--text-default);
+  font-weight: 500;
+}
+
+.calendar-cell.selected {
+  background: var(--gold);
+  color: var(--bg-deep);
+  font-weight: 600;
+}
+
+.calendar-cell.selected .calendar-day-dot {
+  background: var(--bg-deep);
+}
+
+.calendar-cell.today:not(.selected) {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+
+.calendar-day-num {
+  line-height: 1;
+}
+
+.calendar-day-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 18px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-thin);
+}
+
+.legend-item {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.legend-dot.today {
+  background: transparent;
+  border: 1px solid var(--gold);
+}
+
+/* PANEL DE EVENTOS */
+.events-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: 8px;
+  padding: 28px 32px;
+  min-height: 400px;
+}
+
+.events-panel-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-thin);
+}
+
+.events-panel-day {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--gold-bright);
+}
+
+.events-panel-month {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--text-bright);
+  letter-spacing: 0.01em;
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.event-card {
+  display: flex;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px dashed var(--border-thin);
+}
+
+.event-card:last-child {
+  border-bottom: none;
+}
+
+.event-card-year {
+  flex-shrink: 0;
+  width: 110px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--gold);
+  text-align: right;
+  padding-top: 2px;
+  border-right: 2px solid var(--gold-soft);
+  padding-right: 18px;
+  line-height: 1.1;
+}
+
+.event-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.event-card-epoca {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  background: var(--gold-ghost);
+  border: 1px solid var(--gold-soft);
+  border-radius: 12px;
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+}
+
+.event-card-epoca:hover {
+  background: var(--gold);
+  color: var(--bg-deep);
+}
+
+.event-card-text {
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--text-default);
+  margin: 0;
+}
+
+.events-empty {
+  text-align: center;
+  padding: 60px 20px;
+  font-family: var(--font-display);
+  color: var(--text-muted);
+}
+
+.events-empty p {
+  margin-top: 16px;
+  font-style: italic;
+  font-size: 17px;
+  color: var(--gold-bright);
+}
+
+.events-empty small {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .efemerides-layout {
+    grid-template-columns: 1fr;
+  }
+  .calendar-wrap {
+    position: static;
+  }
+  .events-panel {
+    padding: 20px;
+  }
+  .events-panel-day {
+    font-size: 40px;
+  }
+}
