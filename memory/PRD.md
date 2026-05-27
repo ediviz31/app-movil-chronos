@@ -163,6 +163,35 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - Solo se muestra cuando `visitas > 0`
 - Nuevo icono `EyeScrollIcon` (inspirado en Ojo de Horus) en `HistoricIcons`
 
+### Fase 12 — PWA + Web Push notifications 📱🔔
+**Branding visual generado con IA:**
+- Logo/ícono de la app generado con **Gemini Nano Banana** (`@gemini-3.1-flash-image-preview`)
+- Reloj de arena dorado ornamentado sobre fondo dark navy, sin texto, estilo heráldico
+- Genera con `python /app/backend/scripts/generate_chronos_logo.py`
+- Sale a `/app/frontend/public/icons/{icon-192,256,384,512.png, apple-touch-icon.png, favicon-16/32.png}` + `favicon.ico`
+
+**PWA básica:**
+- `manifest.json` con name "Chronos · Archivo vivo de la historia", theme_color `#0a1228`, display standalone, shortcuts (Crear crónica · Misivas · Mi Legado)
+- `sw.js` service worker: cache-first para assets estáticos, network-first para navegaciones, /api/** sin cache
+- Meta tags PWA en `index.html`: apple-mobile-web-app-capable, apple-touch-icon, theme-color, etc.
+- Registro del SW desde `/src/index.js` vía `registerServiceWorker()`
+
+**Web Push (VAPID self-hosted):**
+- Librería `web-push` npm + VAPID keys en `/app/backend/.env`
+- Nuevo modelo `PushSubscription` (endpoint único, keys{p256dh,auth}, user_agent)
+- Endpoints `/api/push/{public-key, suscribir, desuscribir, test}`
+- `enviarPushAUsuario(userId, payload)` integrado en `crearAviso()` y `POST /api/misivas/:id/mensajes` — dispara en `setImmediate` (no bloquea respuesta)
+- Limpia subscripciones expiradas automáticamente (410/404)
+
+**UX opt-in:**
+- `PushOptInBanner` aparece tras 25s para usuarios autenticados con permiso `default` y sin subscripción
+- Botones "Activar avisos" / cierre (X) — el dismiss persiste en `localStorage chronos_push_dismissed_v1`
+- Robusto contra re-renders del contexto (ref-based, timer no se resetea)
+
+**Service Worker push handler:**
+- Evento `push`: muestra notificación con icon, badge, tag, url, vibrate
+- Evento `notificationclick`: enfoca ventana existente o abre nueva en la URL específica
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
 - `/explorar` ← Fase 5
@@ -215,7 +244,6 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 ### P1 - Próximas (en orden secuencial)
 - 🛡️ **Moderación de contenido con IA** (Claude Sonnet 4.5 / Gemini 3) — preservar el tono histórico del archivo: bloquear memes, ofensas, contenido fuera de contexto
 - 🚩 Sistema de reportes comunitario + panel admin
-- 📱 PWA (manifest + service worker + ícono + push web)
 - 🏛️ Detalle de Época funcional (relatos por era histórica)
 - 📨 Newsletter semanal con Resend
 - 🎥 Videos de exploradores históricos (Fase A MVP)

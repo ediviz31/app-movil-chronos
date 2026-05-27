@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   pushSupported,
@@ -19,29 +19,35 @@ const DELAY_MS = 25000; // mostrar tras 25s para no agobiar al primer paint
  *  - El permiso NO está concedido ni denegado (Notification.permission === 'default')
  *  - No hay subscripción activa
  *  - El usuario no ha pulsado "ahora no" en esta sesión (localStorage flag)
+ *
+ * Robustez: usa un ref para que el timer solo se programe UNA VEZ por
+ * montaje del shell (independiente de re-renders de AuthContext).
  */
 const PushOptInBanner = () => {
   const { isAuthenticated } = useAuth();
   const [show, setShow] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const scheduledRef = useRef(false);
 
   useEffect(() => {
-    let cancelled = false;
     if (!isAuthenticated) return;
     if (!pushSupported()) return;
+    if (scheduledRef.current) return;
     if (localStorage.getItem(LS_KEY)) return;
+    scheduledRef.current = true;
 
     const timer = setTimeout(async () => {
       try {
         const perm = await getPushPermissionState();
-        if (perm !== 'default') return; // ya decidió antes
+        if (perm !== 'default') return;
         const sub = await getCurrentSubscription();
         if (sub) return;
-        if (!cancelled) setShow(true);
+        if (localStorage.getItem(LS_KEY)) return;
+        setShow(true);
       } catch (_) { /* ignore */ }
     }, DELAY_MS);
 
-    return () => { cancelled = true; clearTimeout(timer); };
+    return () => clearTimeout(timer);
   }, [isAuthenticated]);
 
   const handleActivar = async () => {
