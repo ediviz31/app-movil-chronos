@@ -62,8 +62,8 @@ mongoose.connect(process.env.MONGO_URL)
 const setAuthCookie = (res, token) => {
   res.cookie('chronos_token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: true, // Siempre HTTPS en producción
+    sameSite: 'lax', // Lax para mejor compatibilidad con preview
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
   });
 };
@@ -585,13 +585,60 @@ app.get('/api/siguiendo/:usuarioId', auth, async (req, res) => {
 // RUTAS DE USUARIO/PERFIL
 // ============================================
 
-// Obtener perfil de usuario
+// Obtener usuarios sugeridos (DEBE IR ANTES de /api/usuarios/:id)
+app.get('/api/usuarios/sugeridos', auth, async (req, res) => {
+  try {
+    // Obtener usuarios que ya sigo
+    const siguiendo = await Seguidor.find({ seguidor_id: req.userId });
+    const siguiendoIds = siguiendo.map(s => s.seguido_id.toString());
+
+    // Buscar usuarios que no sigo (excluyéndome a mí mismo)
+    const usuariosSugeridos = await User.find({
+      _id: { $nin: [...siguiendoIds, req.userId] }
+    })
+    .select('nombre usuario avatar bio tema_favorito')
+    .limit(5);
+
+    res.json(usuariosSugeridos);
+  } catch (error) {
+    console.error('Error al obtener sugeridos:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener usuarios sugeridos' });
+  }
+});
+
+// Actualizar perfil (DEBE IR ANTES de /api/usuarios/:id)
+app.put('/api/usuarios/perfil', auth, async (req, res) => {
+  try {
+    const { nombre, bio, interes, tema_favorito } = req.body;
+    const usuario = await User.findById(req.userId);
+
+    if (nombre) usuario.nombre = nombre;
+    if (bio) usuario.bio = bio;
+    if (interes) usuario.interes = interes;
+    if (tema_favorito) usuario.tema_favorito = tema_favorito;
+
+    await usuario.save();
+    
+    const usuarioActualizado = await User.findById(req.userId).select('-password');
+    res.json({ mensaje: 'Perfil actualizado', usuario: usuarioActualizado });
+  } catch (error) {
+    console.error('Error al actualizar perfil:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al actualizar perfil' });
+  }
+});
+
+// Obtener perfil de usuario por ID
 app.get('/api/usuarios/:id', auth, async (req, res) => {
   try {
+    // Validar que el ID sea un ObjectId válido
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'ID de usuario inválido' });
+    }
+    
     const usuario = await User.findById(req.params.id).select('-password');
     
     if (!usuario) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Usuario no encontrado' });
     }
 
     // Estadísticas
@@ -613,49 +660,7 @@ app.get('/api/usuarios/:id', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Error al obtener perfil:', error);
-    res.status(500).json({ error: 'Error al obtener perfil' });
-  }
-});
-
-// Actualizar perfil
-app.put('/api/usuarios/perfil', auth, async (req, res) => {
-  try {
-    const { nombre, bio, interes, tema_favorito } = req.body;
-    const usuario = await User.findById(req.userId);
-
-    if (nombre) usuario.nombre = nombre;
-    if (bio) usuario.bio = bio;
-    if (interes) usuario.interes = interes;
-    if (tema_favorito) usuario.tema_favorito = tema_favorito;
-
-    await usuario.save();
-    
-    const usuarioActualizado = await User.findById(req.userId).select('-password');
-    res.json({ mensaje: 'Perfil actualizado', usuario: usuarioActualizado });
-  } catch (error) {
-    console.error('Error al actualizar perfil:', error);
-    res.status(500).json({ error: 'Error al actualizar perfil' });
-  }
-});
-
-// Obtener usuarios sugeridos
-app.get('/api/usuarios/sugeridos', auth, async (req, res) => {
-  try {
-    // Obtener usuarios que ya sigo
-    const siguiendo = await Seguidor.find({ seguidor_id: req.userId });
-    const siguiendoIds = siguiendo.map(s => s.seguido_id.toString());
-
-    // Buscar usuarios que no sigo (excluyéndome a mí mismo)
-    const usuariosSugeridos = await User.find({
-      _id: { $nin: [...siguiendoIds, req.userId] }
-    })
-    .select('nombre usuario avatar bio tema_favorito')
-    .limit(5);
-
-    res.json(usuariosSugeridos);
-  } catch (error) {
-    console.error('Error al obtener sugeridos:', error);
-    res.status(500).json({ error: 'Error al obtener usuarios sugeridos' });
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener perfil' });
   }
 });
 
