@@ -1570,6 +1570,27 @@ const normalizarParticipantes = (userIdA, userIdB) => {
   return a < b ? [userIdA, userIdB] : [userIdB, userIdA];
 };
 
+// GET /api/misivas/contactos-sugeridos — para el modal de "Compartir crónica"
+// Devuelve cronistas que sigo + los que me siguen, deduplicados, sin yo mismo
+app.get('/api/misivas/contactos-sugeridos', auth, async (req, res) => {
+  try {
+    const sigoA = await Seguidor.find({ seguidor_id: req.userId }).select('seguido_id');
+    const meSiguen = await Seguidor.find({ seguido_id: req.userId }).select('seguidor_id');
+    const ids = new Set();
+    sigoA.forEach(s => ids.add(String(s.seguido_id)));
+    meSiguen.forEach(s => ids.add(String(s.seguidor_id)));
+    ids.delete(String(req.userId));
+    if (ids.size === 0) return res.json([]);
+    const users = await User.find({ _id: { $in: Array.from(ids) } })
+      .select('nombre usuario avatar tema_favorito bio')
+      .limit(30);
+    res.json(users);
+  } catch (error) {
+    console.error('Error contactos sugeridos:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al cargar contactos' });
+  }
+});
+
 // GET /api/misivas — lista de conversaciones del usuario actual
 app.get('/api/misivas', auth, async (req, res) => {
   try {

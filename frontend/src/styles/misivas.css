@@ -447,3 +447,218 @@
   .misivas-thread-header { padding: 12px 14px 10px; }
   .misivas-thread-header-name { font-size: 16px; }
 }
+
+/* ===== SHARE CHRONICLE MODAL ===== */
+.share-chronicle-modal {
+  padding: 0;
+}
+
+.share-chronicle-relato {
+  margin: 0 24px 14px;
+  padding: 14px 16px;
+  background: rgba(6, 13, 30, 0.4);
+  border: 1px solid var(--border-thin);
+  border-left: 3px solid var(--gold);
+  border-radius: 4px;
+}
+
+.share-chronicle-kicker {
+  display: block;
+  font-family: var(--font-elegant);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.share-chronicle-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--gold-bright);
+  margin: 0 0 4px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.share-chronicle-author {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.share-chronicle-link-row {
+  display: flex;
+  gap: 8px;
+  margin: 0 24px 14px;
+}
+
+.share-chronicle-link {
+  flex: 1;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-thin);
+  border-radius: 4px;
+  padding: 10px 12px;
+  color: var(--text-default);
+  font-family: var(--font-body);
+  font-size: 12px;
+  outline: none;
+}
+
+.share-chronicle-copy-btn {
+  background: transparent;
+  border: 1px solid var(--gold-soft);
+  color: var(--gold);
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.share-chronicle-copy-btn:hover {
+  background: rgba(212, 184, 120, 0.1);
+  color: var(--gold-bright);
+}
+
+.share-chronicle-divider {
+  position: relative;
+  text-align: center;
+  margin: 14px 0 10px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.share-chronicle-divider::before,
+.share-chronicle-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 30%;
+  height: 1px;
+  background: var(--border-thin);
+}
+.share-chronicle-divider::before { left: 24px; }
+.share-chronicle-divider::after { right: 24px; }
+
+.share-chronicle-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 24px 12px;
+  padding: 10px 14px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-thin);
+  border-radius: 4px;
+  color: var(--gold);
+}
+
+.share-chronicle-search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-default);
+  font-family: var(--font-display);
+  font-size: 14px;
+}
+
+.share-chronicle-search input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.share-chronicle-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 24px;
+  margin-bottom: 6px;
+  font-family: var(--font-elegant);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.share-chronicle-list {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 0 16px 18px;
+}
+
+.share-chronicle-empty {
+  text-align: center;
+  padding: 30px 24px;
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.share-chronicle-row {
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.share-chronicle-row:hover {
+  background: rgba(212, 184, 120, 0.06);
+  border-color: var(--gold-soft);
+}
+
+.share-chronicle-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-soft);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.share-chronicle-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.share-chronicle-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--gold-bright);
+  font-weight: 500;
+}
+
+.share-chronicle-meta {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.share-chronicle-arrow {
+  color: var(--gold);
+  opacity: 0.6;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.share-chronicle-row:hover .share-chronicle-arrow {
+  transform: translateX(4px);
+  opacity: 1;
+}

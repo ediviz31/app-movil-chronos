@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import PageShell from '../components/PageShell';
@@ -31,6 +31,8 @@ const formatFechaLarga = (iso) => {
 
 const MisivasPage = () => {
   const { conversacionId: routeConvId, userIdToOpen } = useParams();
+  const [searchParams] = useSearchParams();
+  const compartirRelatoId = searchParams.get('compartir');
   const navigate = useNavigate();
   const { user } = useAuth();
   const myId = user?._id || user?.id;
@@ -41,6 +43,7 @@ const MisivasPage = () => {
   const [loadingConv, setLoadingConv] = useState(false);
   const [sending, setSending] = useState(false);
   const [texto, setTexto] = useState('');
+  const [precarga, setPrecarga] = useState(false); // flag para no sobreescribir si el user empieza a editar
   const hiloRef = useRef(null);
 
   const fetchLista = useCallback(async () => {
@@ -72,26 +75,57 @@ const MisivasPage = () => {
   // Carga inicial
   useEffect(() => { fetchLista(); }, [fetchLista]);
 
-  // Abrir por userId via /misivas/abrir/:userId
+  // Abrir por userId via /misivas/abrir/:userId (con posible ?compartir=<relatoId>)
   useEffect(() => {
     if (userIdToOpen) {
       (async () => {
         try {
           const res = await api.post(`/misivas/abrir/${userIdToOpen}`);
-          navigate(`/misivas/${res.data._id}`, { replace: true });
+          const target = compartirRelatoId
+            ? `/misivas/${res.data._id}?compartir=${compartirRelatoId}`
+            : `/misivas/${res.data._id}`;
+          navigate(target, { replace: true });
         } catch (err) {
           console.error(err);
           navigate('/misivas', { replace: true });
         }
       })();
     }
-  }, [userIdToOpen, navigate]);
+  }, [userIdToOpen, navigate, compartirRelatoId]);
 
   // Cargar conversación cuando cambia la ruta
   useEffect(() => {
     if (routeConvId) fetchConversacion(routeConvId);
     else setConvActiva(null);
   }, [routeConvId, fetchConversacion]);
+
+  // Pre-cargar composer si venimos con ?compartir=<relatoId>
+  useEffect(() => {
+    if (!compartirRelatoId || !routeConvId || precarga) return;
+    (async () => {
+      try {
+        const res = await api.get(`/relatos/${compartirRelatoId}`);
+        const r = res.data;
+        const fragmento = (r.contenido || '').replace(/\s+/g, ' ').slice(0, 180);
+        const enlace = `${window.location.origin}/relato/${r._id}`;
+        const autor = r.usuario_id?.nombre || 'un cronista';
+        const plantilla =
+`Te comparto una crónica del archivo que pensé que te interesaría:
+
+"${r.titulo}" — ${autor}
+
+«${fragmento}${(r.contenido || '').length > 180 ? '...' : ''}»
+
+${enlace}
+
+`;
+        setTexto(plantilla);
+        setPrecarga(true);
+      } catch (err) {
+        console.error('No se pudo precargar la crónica', err);
+      }
+    })();
+  }, [compartirRelatoId, routeConvId, precarga]);
 
   // Polling lista + conversación activa
   useEffect(() => {

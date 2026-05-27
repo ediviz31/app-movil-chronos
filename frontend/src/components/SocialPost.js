@@ -4,6 +4,7 @@ import api from '../services/api';
 import { getImageUrl, getAvatarUrl } from '../utils/imageHelpers';
 import { CoinLaurelIcon, ParchmentIcon, DoveScrollIcon, ChestIcon, TabletDaggerIcon } from './HistoricIcons';
 import HashtagText from './HashtagText';
+import ShareChronicleModal from './ShareChronicleModal';
 
 const formatFechaRelativa = (fecha) => {
   const date = new Date(fecha);
@@ -30,6 +31,7 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [posting, setPosting] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const handleEco = async () => {
     try {
@@ -194,7 +196,7 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
         <button
           className="social-action-btn"
           data-testid={`btn-difundir-${relato._id}`}
-          onClick={() => navigator.clipboard?.writeText(window.location.origin + '/relato/' + relato._id)}
+          onClick={() => setShareOpen(true)}
           title="Compartir crónica"
         >
           <DoveScrollIcon size={20} />
@@ -250,6 +252,12 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
           </form>
         </div>
       )}
+
+      <ShareChronicleModal
+        relato={relato}
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+      />
     </article>
   );
 };
