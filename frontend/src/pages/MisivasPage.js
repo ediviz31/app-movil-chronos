@@ -107,7 +107,7 @@ const MisivasPage = () => {
         const res = await api.get(`/relatos/${compartirRelatoId}`);
         const r = res.data;
         const fragmento = (r.contenido || '').replace(/\s+/g, ' ').slice(0, 180);
-        const enlace = `${window.location.origin}/relato/${r._id}`;
+        const enlace = `${window.location.origin}/api/og/relato/${r._id}`;
         const autor = r.usuario_id?.nombre || 'un cronista';
         const plantilla =
 `Te comparto una crónica del archivo que pensé que te interesaría:

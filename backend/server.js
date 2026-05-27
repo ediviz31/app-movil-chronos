@@ -21,6 +21,7 @@ const Conversacion = require('./models/Conversacion');
 const Mensaje = require('./models/Mensaje');
 const { getEfemeridesPorFecha, getEfemerideCercana, getCalendarioDelMes } = require('./data/efemerides');
 const { parseGedcomToFamiliares } = require('./utils/gedcomParser');
+const { Resvg } = require('@resvg/resvg-js');
 
 // Middleware
 const auth = require('./middleware/auth');
@@ -1739,6 +1740,217 @@ app.post('/api/misivas/:conversacionId/leer', auth, async (req, res) => {
   } catch (error) {
     console.error('Error marcando leído:', error);
     res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al marcar leído' });
+  }
+});
+
+// ============================================
+// RUTAS OPEN GRAPH (vista previa en redes externas)
+// ============================================
+
+// Helpers para escape de HTML / XML
+const escapeHtml = (s = '') => String(s)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+const escapeXml = escapeHtml;
+
+// Trunca un texto manteniendo palabras completas, hasta maxLen, con ellipsis si recorta
+const truncar = (texto, maxLen) => {
+  const t = String(texto || '').trim();
+  if (t.length <= maxLen) return t;
+  const cortado = t.slice(0, maxLen);
+  const ultimo = cortado.lastIndexOf(' ');
+  return (ultimo > maxLen * 0.6 ? cortado.slice(0, ultimo) : cortado) + '…';
+};
+
+// Construye SVG ornamental tipo pergamino con título, autor y época
+const buildOgSvg = ({ titulo, autor, epoca, fragmento }) => {
+  const t = escapeXml(truncar(titulo, 80));
+  const a = escapeXml(autor || 'Cronista anónimo');
+  const e = escapeXml(epoca || 'Crónica histórica');
+  const f = escapeXml(truncar(fragmento || '', 100));
+  // 1200x630 — proporción OG estándar
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a1228"/>
+      <stop offset="1" stop-color="#050a18"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="0%" r="80%">
+      <stop offset="0" stop-color="#d4b878" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#d4b878" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Fondo -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- Marco ornamentado -->
+  <rect x="30" y="30" width="1140" height="570" fill="none" stroke="#d4b878" stroke-width="1" opacity="0.5"/>
+  <rect x="42" y="42" width="1116" height="546" fill="none" stroke="#d4b878" stroke-width="0.5" opacity="0.35"/>
+
+  <!-- Esquinas decorativas (flor de lis simplificada) -->
+  <g fill="#d4b878" opacity="0.8">
+    <circle cx="30" cy="30" r="4"/>
+    <circle cx="1170" cy="30" r="4"/>
+    <circle cx="30" cy="600" r="4"/>
+    <circle cx="1170" cy="600" r="4"/>
+  </g>
+
+  <!-- Reloj de arena monograma -->
+  <g transform="translate(95, 95)" fill="none" stroke="#d4b878" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0 0 L40 0 M0 56 L40 56"/>
+    <path d="M4 0 L4 8 Q4 16 12 20 L28 28 Q36 32 36 40 L36 56"/>
+    <path d="M36 0 L36 8 Q36 16 28 20 L12 28 Q4 32 4 40 L4 56"/>
+    <path d="M8 4 L32 4 L28 14 Q20 18 12 14 Z" fill="#d4b878" stroke="none" opacity="0.55"/>
+  </g>
+
+  <!-- Marca "CHRONOS" -->
+  <text x="170" y="105" font-family="'Marcellus','Cinzel','Times New Roman',serif" font-size="22" fill="#d4b878" letter-spacing="6">CHRONOS</text>
+  <text x="170" y="130" font-family="'Cormorant Garamond','Garamond','Times New Roman',serif" font-style="italic" font-size="16" fill="#a6a98c">archivo vivo de la historia</text>
+
+  <!-- Kicker de época -->
+  <text x="600" y="240" text-anchor="middle" font-family="'Marcellus','Cinzel','Times New Roman',serif" font-size="18" fill="#d4b878" letter-spacing="6" text-transform="uppercase">${e.toUpperCase()}</text>
+
+  <!-- Divisor flor de lis -->
+  <g transform="translate(600, 260)" fill="#d4b878" opacity="0.6">
+    <line x1="-150" y1="0" x2="-25" y2="0" stroke="#d4b878" stroke-width="0.5"/>
+    <line x1="25" y1="0" x2="150" y2="0" stroke="#d4b878" stroke-width="0.5"/>
+    <circle cx="0" cy="0" r="3"/>
+    <path d="M-12 -8 Q0 -14 12 -8 M-12 8 Q0 14 12 8" fill="none" stroke="#d4b878" stroke-width="0.8"/>
+  </g>
+
+  <!-- TÍTULO (con wrap manual hasta 2 líneas) -->
+  ${(() => {
+    // Wrap manual sencillo en 2 líneas máximo
+    const words = t.split(/\s+/);
+    const lines = [[]];
+    const maxChars = 38;
+    for (const w of words) {
+      const tentative = [...lines[lines.length - 1], w].join(' ');
+      if (tentative.length > maxChars && lines[lines.length - 1].length > 0) {
+        if (lines.length < 2) lines.push([w]);
+        else { lines[lines.length - 1].push('…'); break; }
+      } else {
+        lines[lines.length - 1].push(w);
+      }
+    }
+    const renderedLines = lines.map(l => l.join(' '));
+    return renderedLines.map((line, i) =>
+      `<text x="600" y="${340 + i * 64}" text-anchor="middle" font-family="'Cormorant Garamond','Garamond','Times New Roman',serif" font-size="54" fill="#f3e7c5" font-weight="500">${line}</text>`
+    ).join('\n');
+  })()}
+
+  <!-- Fragmento -->
+  ${f ? `<text x="600" y="475" text-anchor="middle" font-family="'Cormorant Garamond','Garamond','Times New Roman',serif" font-style="italic" font-size="20" fill="#a6a98c">«${f}»</text>` : ''}
+
+  <!-- Autor -->
+  <text x="600" y="540" text-anchor="middle" font-family="'Cormorant Garamond','Garamond','Times New Roman',serif" font-style="italic" font-size="22" fill="#d4b878">— ${a}</text>
+</svg>`;
+};
+
+// GET /api/og/relato/:id/imagen — PNG dinámico para OG cards
+app.get('/api/og/relato/:id/imagen', async (req, res) => {
+  try {
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).send('ID inválido');
+    }
+    const relato = await Publicacion.findById(req.params.id)
+      .populate('usuario_id', 'nombre usuario');
+    if (!relato) return res.status(HTTP_STATUS.NOT_FOUND).send('Relato no encontrado');
+
+    const svg = buildOgSvg({
+      titulo: relato.titulo,
+      autor: relato.usuario_id?.nombre,
+      epoca: relato.categoria,
+      fragmento: relato.contenido
+    });
+
+    const resvg = new Resvg(svg, { background: '#0a1228', fitTo: { mode: 'width', value: 1200 } });
+    const png = resvg.render().asPng();
+
+    res.set('Content-Type', 'image/png');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+    res.send(Buffer.from(png));
+  } catch (error) {
+    console.error('Error generando OG image:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).send('Error');
+  }
+});
+
+// GET /api/og/relato/:id — HTML con meta tags Open Graph + redirect a /relato/:id
+app.get('/api/og/relato/:id', async (req, res) => {
+  try {
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).send('ID inválido');
+    }
+    const relato = await Publicacion.findById(req.params.id)
+      .populate('usuario_id', 'nombre usuario');
+    if (!relato) return res.status(HTTP_STATUS.NOT_FOUND).send('Relato no encontrado');
+
+    // URL pública del relato (en la app React)
+    const proto = req.get('x-forwarded-proto') || req.protocol;
+    const host = req.get('x-forwarded-host') || req.get('host');
+    const base = `${proto}://${host}`;
+    const urlRelato = `${base}/relato/${relato._id}`;
+    const urlImagen = `${base}/api/og/relato/${relato._id}/imagen`;
+
+    const titulo = escapeHtml(relato.titulo);
+    const autor = escapeHtml(relato.usuario_id?.nombre || 'Cronista anónimo');
+    const epoca = escapeHtml(relato.categoria || 'Crónica histórica');
+    const descripcion = escapeHtml(
+      truncar(relato.contenido || `Una crónica del archivo de Chronos por ${autor}.`, 200)
+    );
+
+    // Detección de bots vs humanos para servir el redirect correcto
+    const ua = (req.get('user-agent') || '').toLowerCase();
+    const esBot = /bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|discord|telegram|slackbot|skypeuripreview|preview|embed/i.test(ua);
+
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    res.set('Cache-Control', 'public, max-age=600, s-maxage=600');
+    res.send(`<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>${titulo} — Chronos</title>
+<meta name="description" content="${descripcion}">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Chronos · Archivo vivo de la historia">
+<meta property="og:title" content="${titulo}">
+<meta property="og:description" content="${descripcion}">
+<meta property="og:url" content="${urlRelato}">
+<meta property="og:image" content="${urlImagen}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${titulo} — ${autor}">
+<meta property="article:author" content="${autor}">
+<meta property="article:section" content="${epoca}">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${titulo}">
+<meta name="twitter:description" content="${descripcion}">
+<meta name="twitter:image" content="${urlImagen}">
+
+<!-- Para humanos: redirigir a la app React -->
+${esBot ? '' : `<meta http-equiv="refresh" content="0;url=${urlRelato}">`}
+</head>
+<body style="background:#0a1228;color:#d4b878;font-family:serif;text-align:center;padding:60px 20px;">
+<p style="font-style:italic;">Abriendo el archivo…</p>
+<p><a href="${urlRelato}" style="color:#d4b878;">Continuar a la crónica</a></p>
+<script>setTimeout(function(){location.href='${urlRelato}'},50);</script>
+</body>
+</html>`);
+  } catch (error) {
+    console.error('Error OG relato:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).send('Error');
   }
 });
 

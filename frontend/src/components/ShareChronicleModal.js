@@ -25,7 +25,7 @@ const ShareChronicleModal = ({ relato, isOpen, onClose }) => {
   const [copiado, setCopiado] = useState(false);
 
   const enlace = typeof window !== 'undefined'
-    ? `${window.location.origin}/relato/${relato?._id}`
+    ? `${window.location.origin}/api/og/relato/${relato?._id}`
     : '';
 
   // Cargar contactos sugeridos al abrir

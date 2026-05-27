@@ -1,0 +1,45 @@
+{
+  "summary": "Feature 'Open Graph cards para crónicas' validada end-to-end. Backend 21/21 PASS (test_og_cards.py): HTML con meta og:* completas (article, title, description, url, image, width=1200, height=630, twitter:card=summary_large_image), og:image apunta a /api/og/relato/:id/imagen, og:url apunta a /relato/:id (app React, no /api/og), bot UA (WhatsApp/Twitterbot/facebookexternalhit/Discordbot/TelegramBot) NO recibe meta refresh, humano (Mozilla) SÍ recibe meta refresh hacia /relato/:id, ID malformado 400, ID inexistente 404, no requiere auth (público), escape HTML correcto en meta content. PNG: 1200x630 exacto (verificado leyendo IHDR), content-type image/png, ~58KB. Frontend E2E PASS: enlace en ShareChronicleModal data-testid=share-relato-link es /api/og/relato/:id, composer pre-rellenado en MisivasPage ?compartir=:id incluye /api/og/relato/:id (349 chars), navegación a /misivas/<convId>?compartir=<id> funcional. Regresión OK: /, /explorar, /tags/:tag, /mi-legado, /misivas, /efemerides, /avisos, /perfil/:id cargan sin console errors.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/og/relato/:id y /api/og/relato/:id/imagen", "issue": "El ingress de preview (Cloudflare/k8s) reescribe Cache-Control con 'no-store, no-cache, must-revalidate', anulando el 'public, max-age=600/3600' que fija el handler. Comprobado contra localhost:8001 que el handler emite el header correcto; el override es a nivel de infra del entorno de preview, no del código. En deploy de producción habrá que validar que el proxy respete los Cache-Control salientes (o whitelist /api/og/*) para no perder el beneficio de cacheo en bots/CDN."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_og_cards.py",
+    "/app/test_reports/pytest/test_og_cards.xml",
+    "/app/test_reports/pytest/all_tests.xml"
+  ],
+  "action_items": [
+    "Considerar quitar el <script>setTimeout(...location.href...)</script> incondicional del body del HTML OG (línea 1948 de server.js): hoy se incluye también para bots; aunque la mayoría de crawlers no ejecuta JS, dejarlo solo para humanos (al lado del meta refresh, dentro del bloque esBot? '' : `...`) es más limpio y evita cualquier riesgo de que un bot ejecute JS y siga la redirección antes de leer las metas.",
+    "Validar en producción que la CDN/ingress no reescriba Cache-Control de /api/og/* (ver issue minor)."
+  ],
+  "critical_code_review_comments": [
+    "server.js: handlers OG bien separados, helpers escapeHtml/truncar/buildOgSvg reusables; SVG construido inline con wrap manual a 2 líneas funciona para títulos largos (caso 'César y el Rubicón: la noche que cambió Roma' se renderiza completo).",
+    "Detección de bots por regex de UA es razonable; lista cubre WhatsApp/Facebook/Twitter/Discord/Telegram/Slack/Skype y patrones genéricos bot|crawl|spider|preview|embed.",
+    "El <script>setTimeout(..., 50)</script> en el body se emite siempre (también para bots). Aunque los crawlers no ejecutan JS, es más limpio dejarlo dentro del bloque humano. NO bloqueante.",
+    "escapeHtml/escapeXml comparten implementación — OK para meta y SVG (ambos exigen mismo escape).",
+    "ShareChronicleModal.js línea 28 y MisivasPage.js línea 110 actualizados correctamente a /api/og/relato/<id>. Consistencia mantenida.",
+    "Validación ObjectId con regex /^[0-9a-fA-F]{24}$/ correcta antes de Mongoose findById — evita CastError 500.",
+    "Pre-existente NO relacionado: test_phase2_avisos.py::test_eco_creates_aviso_for_relato_owner falla (AttributeError 'NoneType' línea 125). Fuera de scope de esta iteración."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_og_cards.py (NUEVO — 21 tests)"
+  ],
+  "success_rate": {
+    "backend": "100% (21/21 OG tests; 133/134 suite completa, 1 fallo preexistente NO relacionado en test_phase2_avisos)",
+    "frontend": "100% (modal + composer + regresión navegación)"
+  },
+  "test_credentials": "keilin@chronos.com / chronos123 (campo 'correo')",
+  "seed_data_creation": "Ninguna. Solo lecturas (GET) de un relato seed existente.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Feature OG cards completa y verificada. Endpoints públicos /api/og/relato/:id (HTML) y /api/og/relato/:id/imagen (PNG 1200x630). Detección de bots por UA decide si incluir meta http-equiv refresh. Frontend: ShareChronicleModal y MisivasPage usan /api/og/relato/<id> en lugar de /relato/<id> para que la preview funcione al pegar en redes externas. Hay un override de Cache-Control por el ingress del preview (no del código backend), validado contra localhost:8001 que el handler emite los headers correctos. Test suite global: 133 pasan, 1 falla preexistente en test_phase2_avisos no relacionada con OG.",
+  "rca of the issue": "N/A — sin issues."
+}
