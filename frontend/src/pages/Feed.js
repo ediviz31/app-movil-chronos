@@ -6,6 +6,7 @@ import ArchiveSidebar from '../components/ArchiveSidebar';
 import SocialPost from '../components/SocialPost';
 import CreateChronicleModal from '../components/CreateChronicleModal';
 import { HourglassIcon, FeatherIcon, OrnateStarIcon, PlusOrnateIcon, ScrollIcon, MapIcon } from '../components/HistoricIcons';
+import WeeklyHighlight from '../components/WeeklyHighlight';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import api from '../services/api';
 
@@ -65,6 +66,9 @@ const Feed = () => {
             <h1>{greeting}, {user?.nombre?.split(' ')[0] || 'Cronista'}</h1>
             <p>Comparte un fragmento del pasado o descubre las historias de hoy</p>
           </div>
+
+          {/* Boletín del archivo: lo más resonante de la semana */}
+          <WeeklyHighlight />
 
           {/* COMPOSER - Crear publicación */}
           <div className="social-composer" data-testid="social-composer">

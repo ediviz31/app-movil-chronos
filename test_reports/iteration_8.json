@@ -1,0 +1,45 @@
+{
+  "summary": "Frontend testing for Bloque 4 — tarjeta 'Boletín del archivo · Resonancia de la semana' (WeeklyHighlight) en el Feed. 8/9 ítems del plan PASAN; 1 observación sobre datos (cronista no renderiza porque /api/explorar devuelve cronistas:[] — no es bug del frontend, el componente oculta silenciosamente como se espera).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/explorar", "issue": "Devuelve cronistas: [] (vacío) para keilin@chronos.com — la nota del main agent decía cronistas=1. Posiblemente el endpoint excluye al usuario actual y solo había 1 cronista (keilin) con relatos en últimos 7 días, o el filtro de últimos 7 días deja fuera a Legado Épico. Verificar lógica si se espera ver cronista destacado en el feed."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Verificar por qué GET /api/explorar devuelve cronistas:[] para keilin — confirmar si es comportamiento esperado (excluir al propio usuario) o si la ventana de 7 días deja sin cronistas destacados. El componente WeeklyHighlight maneja el caso correctamente ocultando la sección 'Cronista a seguir', pero el plan original esperaba verla renderizada."
+  ],
+  "critical_code_review_comments": [
+    "WeeklyHighlight.js: buen patrón — captura silenciosa de errores y retorno null cuando no hay datos. No rompe el feed (verificado).",
+    "Posible mejora: en lugar de 'eco's y más' usar el score completo o aclarar que score = ecos + comentarios + archivos (actualmente muestra '17 ecos y más' lo cual es ambiguo).",
+    "El componente solo se monta una vez (sin polling). Aceptable para boletín semanal.",
+    "Accesibilidad: button con role implícito OK, pero podría añadirse aria-label más descriptivo en los chips de tags."
+  ],
+  "test_results_detail": {
+    "weekly_highlight_visible_in_feed": "PASS — data-testid=weekly-highlight presente entre feed-greeting (top=92px) y social-composer (top=659px)",
+    "top_relato": "PASS — 'César y el Rubicón: la noche que cambió Roma' · Legado Épico · 17 ecos y más · click navega a /relato/6a162ecd24dbda262c859563",
+    "top_cronista": "OBSERVACIÓN — no renderiza porque API devuelve cronistas:[]. Componente oculta sección correctamente (silent hide funciona). No es bug de frontend.",
+    "top_tags": "PASS — 3 chips renderizan (weekly-tag-cesar, weekly-tag-historia, weekly-tag-napoleon en última corrida; data-testid='weekly-tag-<tag>' OK). Click en weekly-tag-hashtags navegó a /tags/hashtags correctamente.",
+    "cta_explorar": "PASS — botón weekly-cta-explorar navega a /explorar",
+    "silent_failure": "PASS — el componente retorna null cuando no hay datos. Sin cronistas se renderiza solo relato + tags, sin romper el feed.",
+    "design_paleta_historica": "PASS — sello dorado (CoinLaurelIcon), divisor flor de lis (FleurDivider), tipografía display, paleta consistente. Visualmente cohesivo con el resto del feed.",
+    "mobile_responsive_700px": "PASS — gridTemplateColumns='638px' (1 columna a 700px viewport), whWidth=676px, stacking vertical correcto. No rompe layout. Rail bottom no presente a este ancho.",
+    "regresion_composer_modal": "PASS — click en composer-input-btn abre el modal CreateChronicleModal (data-testid=modal-backdrop visible)",
+    "regresion_tabs": "PASS — tab-todos y tab-siguiendo presentes y clicables",
+    "regresion_fab": "PASS — fab-create visible en desktop y mobile",
+    "regresion_navegacion": "PASS — /relato/:id, /tags/:tag, /explorar funcionan correctamente desde la tarjeta"
+  },
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100% (todos los criterios técnicos cumplen — el cronista vacío es observación de datos, no bug)"},
+  "test_credentials": "keilin@chronos.com / chronos123 (campo 'correo')",
+  "seed_data_creation": "Ninguno",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Bloque 4 (WeeklyHighlight en Feed) verificado en frontend. Todos los data-testid del plan están presentes y funcionan. Único punto pendiente: revisar lógica de /api/explorar.cronistas — devuelve [] para keilin, por lo que la sección 'Cronista a seguir' no se ve en el feed (correctamente oculta). Si el producto requiere SIEMPRE ver un cronista destacado, ajustar la query (no excluir al usuario o ampliar ventana). Sin esto, el componente cumple con todo el spec."
+}
