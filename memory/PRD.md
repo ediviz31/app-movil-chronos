@@ -149,6 +149,20 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - Interceptor de `api.js` actualizado: no redirige a `/login` desde rutas públicas (login/registro/relato/) ni para checks pasivos `/auth/me`
 - `AuthContext.checkAuth` suprime `console.error` para 401 esperado en anónimos
 
+### Fase 11 — Contador de lecturas 👁️
+**Backend:**
+- Campo `visitas: Number, default: 0` en modelo `Publicacion`
+- `POST /api/relatos/:id/visita` (auth opcional) — incrementa atómicamente con anti-flooding
+- Cache en memoria con TTL 30min, clave `${userId|ip}:${relatoId}` → evita refrescos infladores
+- Excepción: el autor NO infla sus propias lecturas (respuesta `contado=false razon='autor'`)
+- `app.set('trust proxy', true)` para que `x-forwarded-for` funcione tras el ingress
+
+**Frontend:**
+- `RelatoDetail` dispara POST visita al montar (fire-and-forget)
+- Badge `EyeScrollIcon + "N lecturas"` (singular/plural en español) en el kicker del relato
+- Solo se muestra cuando `visitas > 0`
+- Nuevo icono `EyeScrollIcon` (inspirado en Ojo de Horus) en `HistoricIcons`
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
 - `/explorar` ← Fase 5
@@ -198,11 +212,14 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 
 ## Backlog / Roadmap
 
-### P1 - Próximas
-- 📱 PWA (manifest + service worker + ícono + push web) — paso 2 de la roadmap progresiva
+### P1 - Próximas (en orden secuencial)
+- 🛡️ **Moderación de contenido con IA** (Claude Sonnet 4.5 / Gemini 3) — preservar el tono histórico del archivo: bloquear memes, ofensas, contenido fuera de contexto
+- 🚩 Sistema de reportes comunitario + panel admin
+- 📱 PWA (manifest + service worker + ícono + push web)
 - 🏛️ Detalle de Época funcional (relatos por era histórica)
-- 📨 Newsletter semanal por email con Resend (reutilizando WeeklyHighlight)
-- 💳 Stripe + Plan Cronista Premium (árbol ilimitado, export PDF, sonidos exclusivos)
+- 📨 Newsletter semanal con Resend
+- 🎥 Videos de exploradores históricos (Fase A MVP)
+- 💳 Stripe + Plan Cronista Premium
 
 ### P2 - Mejoras
 - 🔗 **FamilySearch API OAuth** (sincronización con árbol externo más grande del mundo)

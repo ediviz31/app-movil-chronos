@@ -43,6 +43,9 @@ const HTTP_STATUS = {
 };
 
 // Middleware
+// Confiar en el ingress/proxy para obtener IP real vía x-forwarded-for
+// (necesario para anti-flood del contador de visitas y rate-limits futuros)
+app.set('trust proxy', true);
 app.use(cors({
   origin: process.env.CORS_ORIGINS || '*',
   credentials: true
