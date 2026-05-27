@@ -108,6 +108,18 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - Botón "Enviar misiva" en perfil ajeno
 - Entrada "Misivas" en SideRail (DoveScrollIcon)
 
+### Fase 8 — Compartir crónica por misiva 📜→💌
+**Backend:**
+- `GET /api/misivas/contactos-sugeridos` — devuelve cronistas que sigo + me siguen, dedup, sin yo mismo
+
+**Frontend:**
+- `<ShareChronicleModal>` reemplaza el comportamiento anterior del botón "Compartir" (que solo copiaba al portapapeles)
+- Dos vías: copiar enlace o seleccionar un cronista (lista sugeridos + búsqueda con debounce 250ms)
+- Al seleccionar destinatario → `/misivas/abrir/:userId?compartir=<relatoId>`
+- `MisivasPage` propaga el `?compartir` al redirigir a `/misivas/:convId?compartir=<relatoId>`
+- Composer se pre-rellena con plantilla editable: `título + autor + fragmento (180 chars) + enlace`
+- Usuario puede editar antes de enviar (preserva intimidad, no spam automático)
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
 - `/explorar` ← Fase 5
@@ -137,10 +149,11 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - `GET /api/tags/populares`
 - `GET /api/tags/:tag/relatos` → `{tag, total, relatos}`
 
-### Misivas (Fase 7)
+### Misivas (Fase 7 + 8)
 - `POST /api/misivas/abrir/:userId`
 - `GET /api/misivas`
 - `GET /api/misivas/no-leidas`
+- `GET /api/misivas/contactos-sugeridos` (Fase 8 — para "Compartir crónica")
 - `GET /api/misivas/:conversacionId/mensajes`
 - `POST /api/misivas/:conversacionId/mensajes`
 - `POST /api/misivas/:conversacionId/leer`
@@ -184,9 +197,10 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 ## Tests
 - `/app/backend/tests/test_*.py` (pytest, 6 archivos)
 - `test_phase4_legado.py` — 22 tests del árbol
-- Iteraciones: `/app/test_reports/iteration_{1..9}.json` — todas 100%
+- Iteraciones: `/app/test_reports/iteration_{1..10}.json` — todas 100%
 - `test_phase5_explorar.py` — 12 tests
 - `test_misivas.py` — 16 tests (DM 1-on-1)
+- `test_share_chronicle.py` — 8 tests (compartir crónica por misiva)
 
 ## Credenciales
 Ver `/app/memory/test_credentials.md`
