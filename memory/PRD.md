@@ -74,6 +74,14 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 **Mobile responsive sweep (Bloque 3 base)**:
 - Media queries `@max-width: 1100px` (sidebar oculta, rail comprimido) y `@max-width: 700px` (rail bottom nav, topbar simplificada, timeline compactada)
 
+### Fase 6 — Boletín del archivo (Weekly Highlight)
+- Componente `<WeeklyHighlight>` en el Feed (entre saludo y composer)
+- Reutiliza `GET /api/explorar` (sin endpoint nuevo)
+- 3 secciones: relato más resonante, cronista para seguir, 3 hashtags populares + CTA "Visitar el archivo de la semana"
+- Diseño: sello dorado (laurel), divisor flor de lis, paleta histórica existente
+- Empty state: silent hide si la API falla o no hay datos; secciones individuales también se ocultan independientemente
+- Mobile responsive: a ≤700px se reorganiza a 1 columna
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed
 - `/explorar` ← NUEVO Fase 5
