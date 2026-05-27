@@ -9,7 +9,7 @@ import HashtagText from '../components/HashtagText';
 import {
   HourglassIcon, ArrowRightIcon, OrnateStarIcon,
   CoinLaurelIcon, ParchmentIcon, DoveScrollIcon, ChestIcon, TabletDaggerIcon,
-  FeatherIcon
+  FeatherIcon, EyeScrollIcon
 } from '../components/HistoricIcons';
 
 const formatFechaCompleta = (fecha) => {
@@ -68,6 +68,18 @@ const RelatoDetail = () => {
   }, [id, navigate]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Registrar visita (anti-flood en backend: misma sesión = 1 visita por 30 min)
+  // Se hace fire-and-forget para no bloquear ni reintentar
+  useEffect(() => {
+    if (!id) return;
+    api.post(`/relatos/${id}/visita`).then(res => {
+      // Si el contador subió, actualizar el estado local sin re-fetch completo
+      if (res.data?.contado && typeof res.data.visitas === 'number') {
+        setRelato(prev => prev ? { ...prev, visitas: res.data.visitas } : prev);
+      }
+    }).catch(() => { /* silencioso */ });
+  }, [id]);
 
   const handleEco = async () => {
     if (!relato || requireAuth()) return;
@@ -187,6 +199,19 @@ const RelatoDetail = () => {
             </span>
             <span className="relato-kicker-dot">·</span>
             <span>{formatFechaCompleta(relato.creado_en)}</span>
+            {typeof relato.visitas === 'number' && relato.visitas > 0 && (
+              <>
+                <span className="relato-kicker-dot">·</span>
+                <span
+                  className="relato-visitas"
+                  data-testid="relato-visitas"
+                  title="Lecturas de esta crónica"
+                >
+                  <EyeScrollIcon size={14} />
+                  <span>{relato.visitas.toLocaleString('es-ES')} {relato.visitas === 1 ? 'lectura' : 'lecturas'}</span>
+                </span>
+              </>
+            )}
           </div>
 
           {/* Titulo */}

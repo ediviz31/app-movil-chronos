@@ -1751,6 +1751,73 @@ app.post('/api/misivas/:conversacionId/leer', auth, async (req, res) => {
 });
 
 // ============================================
+// CONTADOR DE VISITAS (auth opcional + anti-flooding)
+// ============================================
+
+// Cache en memoria para evitar inflar el contador con refrescos
+// Clave: `${userIdOrIP}:${relatoId}` → timestamp
+// TTL: 30 minutos (misma sesión cuenta una sola visita)
+const visitasCache = new Map();
+const VISITA_TTL = 30 * 60 * 1000;
+
+// Limpieza periódica
+setInterval(() => {
+  const ahora = Date.now();
+  for (const [key, ts] of visitasCache.entries()) {
+    if (ahora - ts > VISITA_TTL) visitasCache.delete(key);
+  }
+}, 10 * 60 * 1000).unref();
+
+// POST /api/relatos/:id/visita — incrementa visitas si pasó el TTL
+app.post('/api/relatos/:id/visita', authOptional, async (req, res) => {
+  try {
+    const relatoId = req.params.id;
+    if (!relatoId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'ID inválido' });
+    }
+
+    // Identificador: userId si está logueado, sino IP (con proxy headers)
+    const ip = req.headers['x-forwarded-for']?.split(',')[0].trim()
+      || req.ip
+      || req.connection?.remoteAddress
+      || 'anon';
+    const visitorId = req.userId || `ip:${ip}`;
+    const cacheKey = `${visitorId}:${relatoId}`;
+    const ahora = Date.now();
+    const ultimo = visitasCache.get(cacheKey);
+
+    // Si NO está autenticado y es el autor, igual cuenta.
+    // Si está autenticado y es el autor, NO contar (no inflar las propias visitas).
+    const relato = await Publicacion.findById(relatoId).select('usuario_id visitas');
+    if (!relato) return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Relato no encontrado' });
+
+    const esAutor = req.userId && String(relato.usuario_id) === String(req.userId);
+
+    if (esAutor) {
+      // No incrementar, pero devolver el total actual
+      return res.json({ visitas: relato.visitas || 0, contado: false, razon: 'autor' });
+    }
+
+    if (ultimo && (ahora - ultimo) < VISITA_TTL) {
+      return res.json({ visitas: relato.visitas || 0, contado: false, razon: 'reciente' });
+    }
+
+    // Incrementar de forma atómica
+    const actualizado = await Publicacion.findByIdAndUpdate(
+      relatoId,
+      { $inc: { visitas: 1 } },
+      { new: true, select: 'visitas' }
+    );
+
+    visitasCache.set(cacheKey, ahora);
+    res.json({ visitas: actualizado.visitas, contado: true });
+  } catch (error) {
+    console.error('Error registrando visita:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al registrar visita' });
+  }
+});
+
+// ============================================
 // RUTAS OPEN GRAPH (vista previa en redes externas)
 // ============================================
 

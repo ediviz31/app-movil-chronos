@@ -8,6 +8,20 @@ const baseIcon = {
   strokeLinejoin: 'round'
 };
 
+// Ojo histórico (inspirado en Ojo de Horus) — para contador de lecturas
+export const EyeScrollIcon = ({ size = 16, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...baseIcon} {...props}>
+    {/* Ojo almendrado */}
+    <path d="M2 12 Q12 4 22 12 Q12 20 2 12 Z"/>
+    <circle cx="12" cy="12" r="3"/>
+    <circle cx="12" cy="12" r="1" fill="currentColor"/>
+    {/* Pestaña inferior diagonal estilo Horus */}
+    <path d="M14 16 L17 19"/>
+    <path d="M15 18 Q17 19 18 17"/>
+  </svg>
+);
+
+
 // Reloj de arena ornamental
 export const HourglassIcon = ({ size = 32, ...props }) => (
   <svg width={size} height={size} viewBox="0 0 32 40" {...baseIcon} {...props}>

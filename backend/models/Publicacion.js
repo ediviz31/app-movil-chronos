@@ -29,6 +29,11 @@ const publicacionSchema = new mongoose.Schema({
     type: [String],
     default: [],
     index: true
+  },
+  // Contador de lecturas (visitas únicas con anti-flooding)
+  visitas: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: { createdAt: 'creado_en', updatedAt: 'actualizado_en' }

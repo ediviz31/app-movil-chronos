@@ -138,6 +138,19 @@
   border-color: var(--gold);
 }
 
+/* ===== Vista pública — contador de visitas en kicker ===== */
+.relato-visitas {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: inherit;
+  letter-spacing: 0.02em;
+}
+.relato-visitas svg { opacity: 0.85; }
+
 /* ===== CTA "Únete a Chronos" en relato público ===== */
 .relato-join-cta {
   display: grid;
