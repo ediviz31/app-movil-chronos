@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 
@@ -49,12 +50,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Crear carpetas de uploads si no existen
-const fs = require('fs');
-['uploads', 'uploads/avatares', 'uploads/portadas', 'uploads/relatos'].forEach(dir => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+// Asegurar que las carpetas de uploads existan al arranque (multer no las crea)
+['relatos', 'avatares', 'portadas', 'familiares'].forEach(dir => {
+  const full = path.join(__dirname, 'uploads', dir);
+  if (!fs.existsSync(full)) fs.mkdirSync(full, { recursive: true });
 });
 
 // Conexión a MongoDB
@@ -1176,11 +1175,21 @@ app.get('/api/familiares/usuario/:userId', auth, async (req, res) => {
 // Crear familiar
 app.post('/api/familiares', auth, async (req, res) => {
   try {
+    const PARENTESCOS = ['padre', 'madre',
+      'abuelo_paterno', 'abuela_paterna', 'abuelo_materno', 'abuela_materna',
+      'bisabuelo_pp', 'bisabuela_pp', 'bisabuelo_pm', 'bisabuela_pm',
+      'bisabuelo_mp', 'bisabuela_mp', 'bisabuelo_mm', 'bisabuela_mm',
+      'hermano', 'hermana', 'tio', 'tia', 'primo', 'prima',
+      'hijo', 'hija', 'conyuge', 'otro'];
+
     const { nombre, apellido, genero, fecha_nacimiento, fecha_defuncion,
             lugar_nacimiento, ocupacion, bio, foto, parentesco, vinculado_a_usuario } = req.body;
 
     if (!nombre || !parentesco) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Nombre y parentesco son requeridos' });
+    }
+    if (!PARENTESCOS.includes(parentesco)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Parentesco inválido' });
     }
 
     const familiar = new MiembroFamiliar({

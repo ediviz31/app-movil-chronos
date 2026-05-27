@@ -10,26 +10,38 @@ import {
 } from '../components/HistoricIcons';
 import { PARENTESCO_POSICION, getParentescoLabel, formatFechaCorta } from '../utils/parentescoMap';
 
-// Calcula posición {x, y} en el SVG dado el parentesco, considerando duplicados
+// Calcula posición {x, y} en el SVG dado el parentesco, considerando duplicados.
+// Si varios miembros comparten el mismo parentesco, los distribuye horizontalmente
+// (fan-out) para que no se superpongan visualmente.
 const calculateLayout = (familiares) => {
   const NODE_W = 140;
   const NODE_H = 160;
   const COL_W = 170;
   const ROW_H = 200;
   const CENTER_X = 600;
-  const CENTER_Y = 40;  // Inicio en la fila superior (bisabuelos)
+  const CENTER_Y = 40;
+
+  // Agrupar por parentesco para conocer el total antes de posicionar
+  const grupos = {};
+  for (const f of familiares) {
+    const key = f.parentesco;
+    if (!grupos[key]) grupos[key] = [];
+    grupos[key].push(f);
+  }
 
   const items = [];
-  const usadosPorPosicion = {};
-
-  for (const f of familiares) {
-    const pos = PARENTESCO_POSICION[f.parentesco] || PARENTESCO_POSICION.otro;
-    const key = `${pos.col}-${pos.row}`;
-    const offset = usadosPorPosicion[key] || 0;
-    usadosPorPosicion[key] = offset + 1;
-    const x = CENTER_X + (pos.col * COL_W) + (offset * 30);
-    const y = CENTER_Y + (pos.row * ROW_H);
-    items.push({ ...f, _x: x, _y: y, _w: NODE_W, _h: NODE_H, _pos: pos });
+  for (const key of Object.keys(grupos)) {
+    const grupo = grupos[key];
+    const pos = PARENTESCO_POSICION[key] || PARENTESCO_POSICION.otro;
+    const n = grupo.length;
+    // Fan-out: el grupo se centra en pos.col, separación de 1.2 columnas entre miembros
+    const spread = 130; // px de separación
+    const start = -((n - 1) * spread) / 2;
+    grupo.forEach((f, idx) => {
+      const x = CENTER_X + (pos.col * COL_W) + start + idx * spread;
+      const y = CENTER_Y + (pos.row * ROW_H);
+      items.push({ ...f, _x: x, _y: y, _w: NODE_W, _h: NODE_H, _pos: pos });
+    });
   }
   return items;
 };

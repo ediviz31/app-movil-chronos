@@ -16,6 +16,14 @@ const FamiliarDetailModal = ({ familiar, onClose, onEdit, onDelete, onUpdated })
     setHistorias(familiar?.historias || []);
   }, [familiar]);
 
+  // ESC para cerrar
+  useEffect(() => {
+    if (!familiar) return;
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [familiar, onClose]);
+
   useEffect(() => {
     if (!familiar?.fecha_nacimiento) { setEfemerides([]); return; }
     // Intentar parsear MM-DD del nacimiento

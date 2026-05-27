@@ -30,7 +30,7 @@ const auth = async (req, res, next) => {
     }
 
     req.user = user;
-    req.userId = user._id;
+    req.userId = user._id.toString();
     next();
   } catch (error) {
     res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: 'Por favor autentícate' });

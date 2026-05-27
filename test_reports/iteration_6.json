@@ -1,0 +1,31 @@
+{
+  "summary": "Iteration 6 RETEST of Phase 4 (Mi Legado). All 6 critical/minor fixes from iteration_5 verified end-to-end. Backend: 22/22 pytest tests PASSED (up from 16/22 in iter5). Frontend: full Phase 4 UI flow validated — AddFamiliarModal opens, ESC closes, familiar-genero-input testid present, owner can CREATE → click node → see edit/delete buttons → DELETE successfully (all without 403). Visual tree fan-out confirmed: 3 hermanos rendered at x=26, x=156, x=286 (130px horizontal spacing, no overlap).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_phase4_legado.py",
+    "/app/test_reports/pytest/phase4_iter6_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.js is now ~1390 lines. Still strongly recommend extracting routes/familiares.js + routes/preferencias.js for maintainability — not urgent but technical debt grows each phase.",
+    "Owner-check pattern is consistent now via req.userId = user._id.toString() in middleware. Consider a helper `isOwner(doc, req)` to prevent regressions when new resources are added.",
+    "Foto upload directory uploads/familiares should be created at boot with fs.mkdirSync({recursive:true}) — still missing as of iter6.",
+    "MiembroFamiliar.parentesco enum + PARENTESCOS array in server.js + parentescoMap.js in frontend = 3 duplicated lists. Extract to a shared constants module."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (22/22)", "frontend": "100% (all targeted flows verified)"},
+  "test_credentials": "keilin@chronos.com / chronos123, arqueo@chronos.com / chronos123",
+  "seed_data_creation": "Test created TEST_Iter6Hno1/2/3 familiares (hermano) during the run to verify fan-out — all 3 were deleted via UI at end of test, confirming DELETE works for the owner. No residual TEST_ data in DB.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 4 is complete and stable. All iter5 bugs fixed. /app/backend/tests/test_phase4_legado.py is the regression suite (22 tests, ~3.5s). Tree positioning logic in /app/frontend/src/pages/MiLegado.js calculateLayout groups by parentesco and fans out siblings horizontally. ESC handler in AddFamiliarModal + FamiliarDetailModal. Owner identity in middleware: req.userId is always a String.",
+  "rca of the issue": "N/A — no new issues. All 3 critical + 2 minor + 1 visual issues from iteration_5 confirmed fixed: (1) middleware/auth.js sets req.userId as String → PUT/DELETE/foto/historias return 200 for owner [verified via test_update_own_familiar, test_delete_own_familiar, test_private_tree_accessible_to_owner, test_add_and_remove_historia, test_upload_foto — all PASS]. (2) server.js validates parentesco against PARENTESCOS whitelist before save → 400 not 500 [verified via test_create_invalid_parentesco_rejected — PASS]. (3) gedcomParser.js uses individuos[0] as root → canonical 3-person GEDCOM imports 2 familiares [verified via test_import_valid_gedcom_creates_familiares — PASS]. (4) AddFamiliarModal ESC handler [verified via Playwright: 'Modal closed after ESC: True']. (5) familiar-genero-input data-testid added [verified: 'familiar-genero-input present: True']. (6) Tree fan-out for siblings [verified: 3 hermanos at unique x positions 26/156/286, 130px spacing]."
+}

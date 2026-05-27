@@ -128,9 +128,8 @@ function parseGedcomToFamiliares(content, usuario_id) {
   const famById = {};
   for (const f of familias) famById[f.id] = f;
 
-  // Determinar persona ROOT (primera INDI o la única sin FAMC)
-  // Estrategia: tomamos la primera y todos los demás se mapean en relación a ésta
-  const root = individuos.find(i => !i.fields.FAMC) || individuos[0];
+  // Determinar persona ROOT: por spec GEDCOM la primera INDI es el "chronicler"/probando
+  const root = individuos[0];
 
   // Map de relaciones desde root
   const familiares = [];

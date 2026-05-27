@@ -35,6 +35,14 @@ const AddFamiliarModal = ({ isOpen, onClose, onSaved, editing = null }) => {
     setError('');
   }, [editing, isOpen]);
 
+  // ESC para cerrar
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handle = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
@@ -131,7 +139,8 @@ const AddFamiliarModal = ({ isOpen, onClose, onSaved, editing = null }) => {
             <div className="form-group">
               <label className="form-label">Género</label>
               <select className="form-select" value={form.genero}
-                      onChange={(e) => handle('genero', e.target.value)}>
+                      onChange={(e) => handle('genero', e.target.value)}
+                      data-testid="familiar-genero-input">
                 <option value="">Sin especificar</option>
                 <option value="masculino">Masculino</option>
                 <option value="femenino">Femenino</option>
