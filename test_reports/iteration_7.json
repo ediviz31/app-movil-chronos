@@ -1,0 +1,43 @@
+{
+  "summary": "Iteration 7 — Bloque 2 (Explorar + Tags + Hashtags + Timeline). Backend: 12/12 NEW Phase 5 tests PASS + full regression 89/89 (2 skipped). Frontend: SideRail 'Explorar' navigates → /explorar; 4 sections render (trending, cronistas, tags, épocas); tag-chip click → /tags/:tag; TagPage renders relatos via SocialPost; #hashtag inside SocialPost is clickable and navigates to /tags/<tag>; MiLegado toggle Árbol↔Línea cronológica works; with familiar containing fecha_nacimiento the Timeline shows 10 hitos históricos, spine and 6 familiar nodes. Regression on /, /efemerides, /avisos OK.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/trending", "issue": "Spec dice 'devuelve lista' pero realmente devuelve {dias:7, relatos:[...]}. No es un bug per se (ExplorarPage usa /api/explorar), pero la documentación o el endpoint deberían alinearse para evitar confusión a futuros consumidores."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/mi-legado vista Línea cronológica (sin familiares con fecha)", "issues": ["Cuando ningún familiar tiene fecha_nacimiento, TimelineView muestra SOLO el mensaje 'Agrega fechas...' y oculta hitos históricos + espina + cameo TÚ. Spec sugería que esos 3 elementos siempre estén presentes incluso sin familiares. Considerar renderizar la línea con hitos + cameo TÚ y mostrar el aviso como overlay/footer."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_phase5_explorar.py",
+    "/app/test_reports/pytest/phase5_results.xml",
+    "/app/test_reports/pytest/all_iter7_results.xml"
+  ],
+  "action_items": [
+    "(MINOR) Decidir si /api/trending devuelve lista plana o el objeto {dias, relatos} actual y documentar consistentemente.",
+    "(MINOR) Mejorar TimelineView empty state: renderizar hitos históricos + cameo TÚ + spine aunque conAnio.length===0, mostrando el mensaje como hint adicional."
+  ],
+  "critical_code_review_comments": [
+    "ExplorarPage.js — está OK pero los íconos OrnateStarIcon y HourglassIcon están importados aunque uno (OrnateStar) no se usa. Limpiar.",
+    "TagPage.js — importa FeatherIcon, HourglassIcon, ArrowRightIcon, OrnateStarIcon pero useAuth se desestructura sin usar `user` directamente (solo currentUserId). OK pero verificable.",
+    "HashtagText.js — split regex `/(#[\\p{L}\\p{N}_]{2,30})/gu` es correcto. Considerar excluir #hashtag pegado a palabra (e.g. 'foo#bar' debería capturar #bar? actualmente sí). No es problema funcional.",
+    "server.js sigue creciendo (~1578 líneas). Extraer rutas explorar/trending/tags a routes/explore.js sería buena higiene.",
+    "TimelineView.js — el componente decide ocultar TODO el chrome (hitos, spine, TÚ) cuando no hay familiares con fecha; eso confunde al usuario (ver design_issues).",
+    "Endpoint /api/relatos/perfil/:id devuelve 404; verificar si está montado o si se accede vía query param de /api/relatos."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_phase5_explorar.py (nuevo, 12 tests)"
+  ],
+  "success_rate": {"backend": "100% (12/12 nuevos · 89/89 regression)", "frontend": "100% (todos los flujos críticos validados)"},
+  "test_credentials": "keilin@chronos.com / chronos123 (campo `correo`, NO `email`). Cookie httpOnly chronos_token.",
+  "seed_data_creation": "Creados temporalmente: relato TEST_Iter7 hashtags auto extract (eliminado por fixture), familiar TEST_Iter7Abuelo (eliminado vía DELETE). DB queda limpia de prefijo TEST_ creados por esta iteración. Quedan otros TEST_ relatos de iteraciones previas (no de esta).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Bloque 2 (Explorar/Tags/Hashtags/Timeline) está estable. Suite Phase 5 vive en /app/backend/tests/test_phase5_explorar.py (12 tests, ~1s). Todos los selectores frontend usan data-testid: explorar-page, explore-trending, explore-cronistas, explore-tags, explore-epocas, tag-chip-<tag>, trending-<id>, cronista-<id>, epoca-<cat>, tag-page, tag-title, tag-relatos-list, hashtag-<tag>, view-tree-btn, view-timeline-btn, timeline-hito-<anio>, rail-explorar. POST /api/relatos devuelve {mensaje, relato:{...}} (no relato plano). /api/trending devuelve {dias, relatos:[...]}. Para validar timeline UI con datos reales: crear un familiar con parentesco válido (PARENTESCOS whitelist en server.js:1184) + fecha_nacimiento.",
+  "rca of the issue": "N/A — no se encontraron bugs críticos. Las observaciones son menores (forma de respuesta /api/trending y empty-state de TimelineView). Hashtag extraction funciona correctamente: POST y PUT extraen #palabras (Unicode \\p{L}) y persisten en `tags` minúsculas; verificado por test_create_extracts_hashtags + test_update_reextracts_hashtags (PUT borra tags previos y reemplaza por los nuevos). El flujo end-to-end click hashtag → /tags/:tag → SocialPost render → click otro hashtag funciona."
+}
