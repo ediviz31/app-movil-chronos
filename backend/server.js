@@ -15,7 +15,9 @@ const Comentario = require('./models/Comentario');
 const Archivado = require('./models/Archivado');
 const Seguidor = require('./models/Seguidor');
 const Notificacion = require('./models/Notificacion');
+const MiembroFamiliar = require('./models/MiembroFamiliar');
 const { getEfemeridesPorFecha, getEfemerideCercana, getCalendarioDelMes } = require('./data/efemerides');
+const { parseGedcomToFamiliares } = require('./utils/gedcomParser');
 
 // Middleware
 const auth = require('./middleware/auth');
@@ -1098,6 +1100,248 @@ app.get('/api/efemerides/calendario/:year/:month', auth, async (req, res) => {
   } catch (error) {
     console.error('Error calendario:', error);
     res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener calendario' });
+  }
+});
+
+// ============================================
+// RUTAS DE PREFERENCIAS (sonido + árbol público)
+// ============================================
+app.put('/api/usuarios/preferencias', auth, async (req, res) => {
+  try {
+    const { sonido_aviso, arbol_publico } = req.body;
+    const usuario = await User.findById(req.userId);
+    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    if (!usuario.preferencias) usuario.preferencias = {};
+    if (sonido_aviso !== undefined) {
+      if (!['cuerno', 'lira', 'campana', 'silencio'].includes(sonido_aviso)) {
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Sonido inválido' });
+      }
+      usuario.preferencias.sonido_aviso = sonido_aviso;
+    }
+    if (arbol_publico !== undefined) {
+      usuario.preferencias.arbol_publico = Boolean(arbol_publico);
+    }
+    await usuario.save();
+    const u = await User.findById(req.userId).select('-password');
+    res.json({ mensaje: 'Preferencias actualizadas', usuario: u });
+  } catch (error) {
+    console.error('Error actualizando preferencias:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al actualizar preferencias' });
+  }
+});
+
+// ============================================
+// RUTAS DEL ÁRBOL GENEALÓGICO (Mi Legado Familiar)
+// ============================================
+
+// Listar familiares del usuario logueado (mi árbol)
+app.get('/api/familiares/mios', auth, async (req, res) => {
+  try {
+    const familiares = await MiembroFamiliar.find({ usuario_id: req.userId })
+      .populate('vinculado_a_usuario', 'nombre usuario avatar')
+      .sort({ creado_en: 1 });
+    res.json(familiares);
+  } catch (error) {
+    console.error('Error listando familiares:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener familiares' });
+  }
+});
+
+// Listar familiares de OTRO usuario (solo si su árbol es público)
+app.get('/api/familiares/usuario/:userId', auth, async (req, res) => {
+  try {
+    if (!req.params.userId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'ID inválido' });
+    }
+    const dueño = await User.findById(req.params.userId).select('preferencias nombre usuario');
+    if (!dueño) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    const esMio = req.userId === req.params.userId;
+    const esPublico = dueño.preferencias?.arbol_publico === true;
+    if (!esMio && !esPublico) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: 'Este legado familiar es privado' });
+    }
+
+    const familiares = await MiembroFamiliar.find({ usuario_id: req.params.userId })
+      .populate('vinculado_a_usuario', 'nombre usuario avatar')
+      .sort({ creado_en: 1 });
+    res.json({ dueño: { _id: dueño._id, nombre: dueño.nombre, usuario: dueño.usuario }, familiares, es_publico: esPublico });
+  } catch (error) {
+    console.error('Error listando familiares de usuario:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener familiares' });
+  }
+});
+
+// Crear familiar
+app.post('/api/familiares', auth, async (req, res) => {
+  try {
+    const { nombre, apellido, genero, fecha_nacimiento, fecha_defuncion,
+            lugar_nacimiento, ocupacion, bio, foto, parentesco, vinculado_a_usuario } = req.body;
+
+    if (!nombre || !parentesco) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Nombre y parentesco son requeridos' });
+    }
+
+    const familiar = new MiembroFamiliar({
+      usuario_id: req.userId,
+      nombre: String(nombre).trim().slice(0, 80),
+      apellido: apellido ? String(apellido).trim().slice(0, 80) : '',
+      genero: genero || '',
+      fecha_nacimiento: fecha_nacimiento || '',
+      fecha_defuncion: fecha_defuncion || '',
+      lugar_nacimiento: lugar_nacimiento ? String(lugar_nacimiento).slice(0, 120) : '',
+      ocupacion: ocupacion ? String(ocupacion).slice(0, 80) : '',
+      bio: bio ? String(bio).slice(0, 1500) : '',
+      foto: foto || '',
+      parentesco,
+      vinculado_a_usuario: vinculado_a_usuario || null
+    });
+    await familiar.save();
+    const populated = await MiembroFamiliar.findById(familiar._id)
+      .populate('vinculado_a_usuario', 'nombre usuario avatar');
+    res.status(201).json({ mensaje: 'Familiar agregado', familiar: populated });
+  } catch (error) {
+    console.error('Error creando familiar:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al crear familiar' });
+  }
+});
+
+// Editar familiar
+app.put('/api/familiares/:id', auth, async (req, res) => {
+  try {
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'ID inválido' });
+    }
+    const familiar = await MiembroFamiliar.findById(req.params.id);
+    if (!familiar) return res.status(404).json({ error: 'Familiar no encontrado' });
+    if (familiar.usuario_id.toString() !== req.userId) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: 'No autorizado' });
+    }
+    const fields = ['nombre', 'apellido', 'genero', 'fecha_nacimiento', 'fecha_defuncion',
+                    'lugar_nacimiento', 'ocupacion', 'bio', 'foto', 'parentesco', 'vinculado_a_usuario'];
+    for (const f of fields) {
+      if (req.body[f] !== undefined) familiar[f] = req.body[f];
+    }
+    await familiar.save();
+    const populated = await MiembroFamiliar.findById(familiar._id)
+      .populate('vinculado_a_usuario', 'nombre usuario avatar');
+    res.json({ mensaje: 'Familiar actualizado', familiar: populated });
+  } catch (error) {
+    console.error('Error editando familiar:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al editar familiar' });
+  }
+});
+
+// Eliminar familiar
+app.delete('/api/familiares/:id', auth, async (req, res) => {
+  try {
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'ID inválido' });
+    }
+    const familiar = await MiembroFamiliar.findById(req.params.id);
+    if (!familiar) return res.status(404).json({ error: 'Familiar no encontrado' });
+    if (familiar.usuario_id.toString() !== req.userId) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: 'No autorizado' });
+    }
+    await MiembroFamiliar.deleteOne({ _id: familiar._id });
+    res.json({ mensaje: 'Familiar eliminado' });
+  } catch (error) {
+    console.error('Error eliminando familiar:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al eliminar familiar' });
+  }
+});
+
+// Subir foto del familiar
+app.post('/api/familiares/:id/foto', auth, upload.familiares.single('imagen'), async (req, res) => {
+  try {
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'ID inválido' });
+    }
+    if (!req.file) return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Falta el archivo' });
+
+    const familiar = await MiembroFamiliar.findById(req.params.id);
+    if (!familiar) return res.status(404).json({ error: 'Familiar no encontrado' });
+    if (familiar.usuario_id.toString() !== req.userId) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: 'No autorizado' });
+    }
+    familiar.foto = `/api/uploads/familiares/${req.file.filename}`;
+    await familiar.save();
+    res.json({ mensaje: 'Foto actualizada', foto: familiar.foto });
+  } catch (error) {
+    console.error('Error subiendo foto:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al subir foto' });
+  }
+});
+
+// Agregar historia a un familiar
+app.post('/api/familiares/:id/historias', auth, async (req, res) => {
+  try {
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'ID inválido' });
+    }
+    const { titulo, contenido } = req.body;
+    if (!contenido || !contenido.trim()) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Contenido requerido' });
+    }
+    const familiar = await MiembroFamiliar.findById(req.params.id);
+    if (!familiar) return res.status(404).json({ error: 'Familiar no encontrado' });
+    if (familiar.usuario_id.toString() !== req.userId) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: 'No autorizado' });
+    }
+    familiar.historias.push({
+      titulo: String(titulo || '').slice(0, 120),
+      contenido: String(contenido).slice(0, 2000)
+    });
+    await familiar.save();
+    res.json({ mensaje: 'Historia agregada', historias: familiar.historias });
+  } catch (error) {
+    console.error('Error agregando historia:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al agregar historia' });
+  }
+});
+
+// Eliminar una historia de un familiar
+app.delete('/api/familiares/:id/historias/:idxOrId', auth, async (req, res) => {
+  try {
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'ID inválido' });
+    }
+    const familiar = await MiembroFamiliar.findById(req.params.id);
+    if (!familiar) return res.status(404).json({ error: 'Familiar no encontrado' });
+    if (familiar.usuario_id.toString() !== req.userId) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: 'No autorizado' });
+    }
+    // Buscar por _id de subdocumento
+    const historiaId = req.params.idxOrId;
+    familiar.historias = familiar.historias.filter(h => h._id.toString() !== historiaId);
+    await familiar.save();
+    res.json({ mensaje: 'Historia eliminada', historias: familiar.historias });
+  } catch (error) {
+    console.error('Error eliminando historia:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al eliminar historia' });
+  }
+});
+
+// IMPORT GEDCOM — recibe el contenido como texto plano
+app.post('/api/familiares/importar-gedcom', auth, async (req, res) => {
+  try {
+    const { gedcom } = req.body;
+    if (!gedcom || typeof gedcom !== 'string') {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Contenido GEDCOM requerido' });
+    }
+    const importados = parseGedcomToFamiliares(gedcom, req.userId);
+    if (importados.length === 0) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'No se encontraron familiares válidos en el archivo GEDCOM' });
+    }
+    const result = await MiembroFamiliar.insertMany(importados);
+    res.status(201).json({
+      mensaje: `${result.length} familiares importados desde GEDCOM`,
+      total: result.length
+    });
+  } catch (error) {
+    console.error('Error importando GEDCOM:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al importar GEDCOM' });
   }
 });
 

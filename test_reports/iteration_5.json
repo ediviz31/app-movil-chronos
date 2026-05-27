@@ -1,0 +1,56 @@
+{
+  "summary": "Phase 4 (Mi Legado / Family Tree) tested. Backend: 16/22 pytest tests PASSED (auth guards, preferencias sonido + arbol_publico CRUD with 400 on invalid sonido, familiar CREATE+GET+ /mios list, cross-user 403 on PUT/DELETE, privacy public-tree visible to other user, privacy private-tree blocked to other user, historia required-content 400, GEDCOM empty/invalid 400). 6/22 FAILED — all caused by ONE root cause: middleware/auth.js sets req.userId = user._id (Mongoose ObjectId), and the new /api/familiares/* and historia/foto routes compare `familiar.usuario_id.toString() !== req.userId` (string !== ObjectId is always TRUE). Result: the OWNER is forbidden from updating/deleting/uploading-foto/adding-historias on their own familiar, and from viewing /api/familiares/usuario/:ownId when arbol is private. SEPARATE bug: GEDCOM parser picks 'first INDI without FAMC' as root (I2 Father in the canonical sample), so familiares=[] is returned for the spec sample (per spec the FIRST INDI should be root → expected 2 familiares padre+madre). Frontend: /mi-legado page renders correctly inside PageShell — header 'Árbol del legado', subtitle, Importar GEDCOM + Agregar familiar buttons, SideRail 'Mi legado' (feather icon) link, tree SVG with cameo dorado circles. AddFamiliarModal opens with photo-upload circle, nombre, apellido, parentesco (24 options — model enum is 24 not 25 as the spec said), género, nacimiento, defunción, lugar, ocupación, bio. Could not complete detail-modal / preferencias / GEDCOM-modal flows because: (a) AddFamiliarModal does not close on Escape and its backdrop intercepts subsequent clicks (UX bug), (b) clicking the first tree node (which is the root/self cameo) does not open the detail modal — only familiar nodes do, my script picked the wrong index.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "PUT /api/familiares/:id, DELETE /api/familiares/:id, POST /api/familiares/:id/foto, POST/DELETE /api/familiares/:id/historias/*, GET /api/familiares/usuario/:userId (own private)", "issue": "Owner gets 403 on their own resource. Root cause in /app/backend/middleware/auth.js line 33 — req.userId is assigned user._id (ObjectId), but Phase 4 routes compare `familiar.usuario_id.toString() !== req.userId` (string vs ObjectId) which is ALWAYS true. Existing Phase 1 code at server.js:354,381 correctly does `req.userId.toString()`. Fix: either change middleware to `req.userId = user._id.toString();` (preferred, matches existing pattern usage) OR add `.toString()` to all Phase 4 comparisons (lines 1160, 1218, 1244, 1265, 1289, 1312).", "priority": "CRITICAL"},
+      {"endpoint": "POST /api/familiares/importar-gedcom", "issue": "Parser returns 0 familiares for the canonical spec GEDCOM. /app/backend/utils/gedcomParser.js line 133: `const root = individuos.find(i => !i.fields.FAMC) || individuos[0];` — for the spec sample (I1 has FAMC, I2/I3 don't) this picks I2 (Father) as root, then I2 has no FAMC so no ancestors are derived → familiares=[] → 400. Per spec note 'The first INDI is treated as root'; the fallback strategy is inverted. Fix: change to `const root = individuos[0];` (and let buscarAbuelos handle the case where the root itself has no FAMC).", "priority": "CRITICAL"}
+    ],
+    "minor": [
+      {"endpoint": "POST /api/familiares", "issue": "Invalid parentesco returns 500 (mongoose ValidationError caught by generic catch), not 400. Add explicit enum check before .save() or convert ValidationError → 400."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "AddFamiliarModal", "issue": "Escape key does not close modal; backdrop intercepts clicks on outside elements (e.g. import-gedcom-btn) until user clicks the X. Blocks subsequent interactions in test scripts and real users who press ESC.", "selector": "[data-testid='add-familiar-modal']", "priority": "MEDIUM"},
+      {"component": "AddFamiliarModal — Género select", "issue": "Missing data-testid='familiar-genero-input' on the género select (spec lists it). All other inputs have testids.", "selector": "select (género)", "priority": "LOW"},
+      {"component": "MiLegado tree SVG", "issue": "When multiple familiares share the same parentesco (e.g. two 'padre' entries), their cameos render at the SAME x,y coordinates causing visually overlapping circles + stacked text labels (e.g. 'TEST_PadreSoto' overlapping 'TEST_Mod'). Position function should fan out siblings horizontally within their row.", "selector": "[data-testid='tree-canvas'] g.tree-node", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "Familiar mutate (edit, delete, upload foto, add historia)", "issue": "All owner mutations fail with 403 from backend due to auth.js bug above. The UI buttons therefore appear broken for the legitimate owner.", "affected_selectors": ["[data-testid='familiar-edit-btn']", "[data-testid='familiar-delete-btn']", "[data-testid='historia-submit-btn']"]},
+      {"flow": "GEDCOM import (UI happy path)", "issue": "Cannot be verified end-to-end: backend parser bug returns 400 for the canonical sample, so 'Importar GEDCOM' will always show error toast for typical Ancestry/MyHeritage exports that follow the structure of the spec sample."}
+    ],
+    "design_issues": [
+      {"screen": "Mi Legado tree", "issues": ["Sibling cameos overlap when parentesco is shared (no horizontal fan-out)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_phase4_legado.py",
+    "/app/test_reports/pytest/phase4_results.xml"
+  ],
+  "action_items": [
+    "CRITICAL: Fix middleware/auth.js — set req.userId = user._id.toString() (or add .toString() to all 6 Phase 4 owner-check sites in server.js: 1160, 1218, 1244, 1265, 1289, 1312).",
+    "CRITICAL: Fix utils/gedcomParser.js line 133 — use `individuos[0]` as root unconditionally (spec: first INDI is root).",
+    "Convert mongoose ValidationError on parentesco enum into a 400 response.",
+    "AddFamiliarModal: add ESC-key close handler and click-on-backdrop close.",
+    "Add data-testid='familiar-genero-input' to the género select.",
+    "Tree layout: horizontally distribute siblings sharing the same parentesco so cameos don't overlap."
+  ],
+  "critical_code_review_comments": [
+    "server.js continues to grow (now 1366 lines, +244 since iter 4). Phase 4 added ~250 lines of route handlers for familiares + preferencias to a single monolithic file. Strongly recommend extracting routes/familiares.js, routes/preferencias.js. Maintenance & merge-conflict risk is now substantial.",
+    "Phase 4 owner-check pattern `familiar.usuario_id.toString() !== req.userId` differs from Phase 1 pattern `.toString() !== req.userId.toString()`. This drift is exactly what caused the 403 bug. Recommend a helper: `function isOwner(doc, req) { return doc.usuario_id.toString() === String(req.userId); }`.",
+    "gedcomParser.js: the duplicate-removal `seen` Set keys on `${parentesco}-${nombre}-${apellido}` will collapse two siblings with the same name + same parentesco. Edge case but documented.",
+    "MiembroFamiliar.parentesco enum hard-codes 24 values. If the UI ever wants to surface 'tatarabuelo' or similar, this must be edited in 3 places (model, parser, UI dropdown). Consider a shared constants module.",
+    "Foto upload: no check that uploads/familiares directory exists at startup. multer disk-storage will silently fail if the directory is missing on a fresh deploy. Add fs.mkdirSync({recursive:true}) at boot.",
+    "Privacy: /api/familiares/usuario/:userId leaks 'es_publico' flag back to caller even when 403 path was avoided; fine for /mios. But note that the dueño's 'nombre' and 'usuario' are returned even though selection didn't ask for them — minor leak."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_phase4_legado.py (new — 22 tests, Phase 4 coverage)"
+  ],
+  "success_rate": {"backend": "73% (16/22)", "frontend": "~70% (UI shell + AddFamiliarModal open + tree render verified; detail-modal + preferencias + gedcom-modal UI paths blocked by modal-backdrop UX issue, not verified end-to-end)"},
+  "test_credentials": "keilin@chronos.com / chronos123 and arqueo@chronos.com / chronos123 (both work)",
+  "seed_data_creation": "Test created TEST_-prefixed familiares for keilin during the run. Cleanup fixture auto-removes them before & after the module. A handful of TEST_* nodes pre-existed from earlier interrupted runs and were cleaned up; one such node 'TEST_PubMember' is owned by keilin with arbol_publico flipping during privacy tests — left in tree at end of run because cleanup runs once per module.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 4 test file: /app/backend/tests/test_phase4_legado.py (22 tests, structured by class: AuthGuard, Preferencias, FamiliaresCRUD, Privacy, Historias, FotoUpload, GedcomImport). Run with: `pytest /app/backend/tests/test_phase4_legado.py -v --junitxml=/app/test_reports/pytest/phase4_results.xml`. Once the auth.js + gedcomParser.js bugs are fixed, all 22 should pass. For UI retest, dismiss AddFamiliarModal via its close X (not ESC) before clicking other buttons. Tree node[0] is the root/self cameo (Keilin) — to click a familiar use node[1+] or query by `[data-testid^='tree-node-']:not(.tree-node-root)`. PreferenciasModal is reached via Profile → 'Editar legado' button → 'Sonido y privacidad' button (data-testid='open-preferencias-btn'). Sonido options preview-play on click via /utils/chronosSound.js variants cuerno/lira/campana/silencio.",
+  "rca of the issue": "ROOT CAUSE 1 (6 failing tests): /app/backend/middleware/auth.js line 33 assigns `req.userId = user._id` — a Mongoose ObjectId instance. The new Phase 4 routes in /app/backend/server.js compare `familiar.usuario_id.toString() !== req.userId` (lines 1160, 1218, 1244, 1265, 1289, 1312). Since string `'68...'` is never strictly-equal to ObjectId('68...'), the comparison is ALWAYS true → 403 for the legitimate owner. Phase 1 routes at lines 354/381 use `.toString()` on BOTH sides, which is why those work. REPRO: login keilin → POST /api/familiares (succeeds 201) → PUT /api/familiares/:newId with same session (returns 403 instead of 200). MITIGATION: one-line fix to middleware — `req.userId = user._id.toString();` — restores all 6 endpoints to working state with no other code changes needed (since existing toString-on-both-sides callers are tolerant of either type). ROOT CAUSE 2 (1 failing test): /app/backend/utils/gedcomParser.js line 133 selects root as `individuos.find(i => !i.fields.FAMC) || individuos[0]` which for the spec's canonical sample picks I2 (Father, no FAMC) over I1 (intended chronicler with FAMC pointing at F1). Because I2 has no FAMC, no parents/abuelos can be derived and the duplicate-removal pass yields []. REPRO: node -e \"require('./utils/gedcomParser').parseGedcomToFamiliares(SAMPLE, 'x')\" → [].  MITIGATION: change to `const root = individuos[0];` per spec ('The first INDI is treated as root'). With this fix, the canonical sample produces 2 familiares (padre + madre) as the spec promises."
+}

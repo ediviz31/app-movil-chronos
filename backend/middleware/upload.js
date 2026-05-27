@@ -31,5 +31,6 @@ const upload = makeUpload('relatos');
 upload.makeUpload = makeUpload;
 upload.avatares = makeUpload('avatares');
 upload.portadas = makeUpload('portadas');
+upload.familiares = makeUpload('familiares');
 
 module.exports = upload;

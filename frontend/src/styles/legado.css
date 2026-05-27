@@ -1,0 +1,527 @@
+/* =====================================================
+   CHRONOS - Mi Legado Familiar (árbol genealógico)
+   ===================================================== */
+
+.mi-legado-page {
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* CANVAS SVG */
+.tree-canvas-wrap {
+  background: 
+    radial-gradient(circle at 50% 30%, rgba(212, 184, 120, 0.04), transparent 60%),
+    var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: 8px;
+  padding: 24px;
+  overflow-x: auto;
+  position: relative;
+  margin-top: 8px;
+}
+
+.tree-canvas {
+  width: 100%;
+  min-width: 1100px;
+  height: auto;
+  display: block;
+}
+
+/* CAMEO DOURADO */
+.cameo-ring {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2;
+  opacity: 0.85;
+}
+
+.cameo-ring.root {
+  stroke-width: 3;
+  opacity: 1;
+  filter: drop-shadow(0 0 8px rgba(212, 184, 120, 0.4));
+}
+
+.cameo-bg {
+  fill: var(--bg-deep);
+}
+
+.cameo-bg.root {
+  fill: var(--gold-ghost);
+}
+
+.cameo-initial {
+  font-family: var(--font-display);
+  font-size: 36px;
+  fill: var(--gold-bright);
+  font-weight: 500;
+}
+
+.cameo-initial.root {
+  fill: var(--gold-bright);
+  font-size: 42px;
+}
+
+/* TEXTO NODO */
+.tree-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  fill: var(--text-bright);
+  font-weight: 500;
+}
+
+.tree-name.root {
+  fill: var(--gold-bright);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.tree-surname {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12px;
+  fill: var(--text-muted);
+}
+
+.tree-date {
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  fill: var(--gold);
+}
+
+/* LÍNEAS DE CONEXIÓN */
+.tree-link {
+  stroke: var(--gold-soft);
+  stroke-width: 1;
+  opacity: 0.3;
+  stroke-dasharray: 3 4;
+}
+
+/* HOVER EN NODOS */
+.tree-node:hover .cameo-ring {
+  stroke-width: 3;
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(212, 184, 120, 0.5));
+}
+
+.tree-node:hover .cameo-initial {
+  fill: var(--gold-bright);
+}
+
+/* LEYENDA */
+.tree-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  margin-top: 16px;
+  background: var(--bg-deep);
+  border-radius: 6px;
+  border: 1px solid var(--border-thin);
+}
+
+.tree-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.tree-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 8px var(--gold-soft);
+}
+
+.tree-legend-hint {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ===== MODAL: AGREGAR FAMILIAR ===== */
+.add-familiar-modal {
+  max-width: 580px;
+}
+
+.fam-foto-preview {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: var(--bg-deep);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.fam-foto-preview:hover {
+  filter: brightness(1.15);
+}
+
+.fam-foto-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(0.3) contrast(1.05);
+}
+
+/* ===== MODAL: DETALLE FAMILIAR ===== */
+.familiar-detail-modal {
+  max-width: 640px;
+}
+
+.fam-detail-hero {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-thin);
+  margin-bottom: 16px;
+}
+
+.fam-detail-portrait {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: var(--bg-deep);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px var(--gold-soft), 0 8px 20px rgba(0,0,0,0.5);
+}
+
+.fam-detail-portrait img {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: sepia(0.3) contrast(1.05);
+}
+
+.fam-detail-initial {
+  font-family: var(--font-display);
+  font-size: 42px;
+  color: var(--gold-bright);
+}
+
+.fam-detail-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.fam-detail-parentesco {
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.fam-detail-period {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--gold-bright);
+  margin-bottom: 8px;
+}
+
+.fam-detail-row {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--text-default);
+  margin-bottom: 4px;
+}
+
+.fam-detail-row span {
+  color: var(--text-muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  margin-right: 4px;
+}
+
+.fam-detail-section {
+  margin-bottom: 22px;
+}
+
+.fam-detail-section-title {
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: var(--gold);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-thin);
+}
+
+.fam-detail-bio {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.55;
+  color: var(--text-default);
+  white-space: pre-wrap;
+}
+
+/* CONTEXTO HISTÓRICO */
+.fam-context-events {
+  background: var(--gold-ghost);
+  border-left: 3px solid var(--gold);
+  border-radius: 4px;
+  padding: 14px 16px;
+}
+
+.fam-context-event {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.fam-context-event:last-child { margin-bottom: 0; }
+
+.fam-context-year {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--gold-bright);
+  font-size: 14px;
+  flex-shrink: 0;
+  min-width: 56px;
+}
+
+.fam-context-text {
+  font-family: var(--font-display);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-default);
+}
+
+/* HISTORIAS */
+.fam-historia-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.fam-historias-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fam-historia-card {
+  background: rgba(6, 13, 30, 0.5);
+  border: 1px solid var(--border-thin);
+  border-left: 2px solid var(--gold);
+  border-radius: 4px;
+  padding: 12px 36px 12px 14px;
+  position: relative;
+}
+
+.fam-historia-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold-bright);
+  margin-bottom: 6px;
+}
+
+.fam-historia-text {
+  font-family: var(--font-display);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-default);
+  font-style: italic;
+  margin: 0;
+}
+
+.fam-historia-delete {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fam-historia-delete:hover {
+  background: rgba(244, 67, 54, 0.15);
+  color: #E57373;
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+.fam-detail-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-thin);
+}
+
+.fam-detail-delete-btn {
+  background: transparent;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  color: #E57373;
+  padding: 8px 16px;
+  border-radius: 16px;
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.fam-detail-delete-btn:hover {
+  background: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.6);
+}
+
+/* ===== PREFERENCIAS MODAL ===== */
+.preferencias-modal { max-width: 520px; }
+
+.sound-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.sound-option {
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-thin);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sound-option:hover {
+  border-color: var(--gold-soft);
+}
+
+.sound-option.active {
+  border-color: var(--gold);
+  background: var(--gold-ghost);
+  box-shadow: 0 0 0 1px var(--gold-soft);
+}
+
+.sound-option-label {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-bright);
+  margin-bottom: 4px;
+}
+
+.sound-option.active .sound-option-label {
+  color: var(--gold-bright);
+}
+
+.sound-option-desc {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+/* TOGGLE */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-thin);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.toggle-row:hover {
+  border-color: var(--gold-soft);
+}
+
+.toggle-text {
+  flex: 1;
+}
+
+.toggle-text strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--gold-bright);
+  margin-bottom: 4px;
+}
+
+.toggle-text small {
+  display: block;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.toggle-switch {
+  width: 44px;
+  height: 24px;
+  background: var(--border-mid);
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toggle-switch.on {
+  background: var(--gold);
+}
+
+.toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg-deep);
+  transition: left 0.2s ease;
+}
+
+.toggle-switch.on .toggle-knob {
+  left: 22px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .sound-options { grid-template-columns: 1fr; }
+  .fam-detail-hero { flex-direction: column; align-items: center; text-align: center; }
+  .tree-canvas { min-width: 900px; }
+}

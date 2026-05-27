@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { HornHeraldIcon } from './HistoricIcons';
 import { playChronosAlert, primeAudio } from '../utils/chronosSound';
 
@@ -8,17 +9,18 @@ const POLL_INTERVAL = 25000; // 25s
 
 const AvisosBadge = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [count, setCount] = useState(0);
   const prevCountRef = useRef(0);
   const initializedRef = useRef(false);
+  const variante = user?.preferencias?.sonido_aviso || 'cuerno';
 
   const fetchCount = useCallback(async () => {
     try {
       const res = await api.get('/avisos/no-leidos/count');
       const newCount = res.data.total || 0;
-      // Solo tocar sonido si subió (no en el primer fetch)
       if (initializedRef.current && newCount > prevCountRef.current) {
-        playChronosAlert();
+        playChronosAlert(variante);
       }
       prevCountRef.current = newCount;
       initializedRef.current = true;
@@ -26,7 +28,7 @@ const AvisosBadge = () => {
     } catch (err) {
       // 401 u otros: ignorar silenciosamente
     }
-  }, []);
+  }, [variante]);
 
   useEffect(() => {
     fetchCount();

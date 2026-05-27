@@ -15,11 +15,12 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
   const items = [
     { id: 'inicio', label: 'Inicio', icon: OrnateStarIcon, path: '/' },
     { id: 'epocas', label: 'Épocas', icon: TempleIcon, path: '/epocas' },
-    { id: 'rutas', label: 'Rutas', icon: MapIcon, path: '/rutas' },
+    { id: 'efemerides', label: 'Efemérides', icon: MapIcon, path: '/efemerides' },
     { id: 'explorar', label: 'Explorar', icon: TelescopeIcon, path: '/explorar' },
     { id: 'cronicas', label: 'Crónicas', icon: ChronicleIcon, path: '/cronicas' },
     { id: 'biblioteca', label: 'Biblioteca', icon: LibraryIcon, path: '/documentos' },
-    { id: 'legados', label: 'Legados', icon: CommunitiesIcon, path: '/legados' }
+    { id: 'legados', label: 'Legados', icon: CommunitiesIcon, path: '/legados' },
+    { id: 'mi-legado', label: 'Mi Legado', icon: FeatherIcon, path: '/mi-legado' }
   ];
 
   const handleClick = (item) => {

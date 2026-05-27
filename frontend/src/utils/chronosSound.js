@@ -1,11 +1,14 @@
 /**
  * chronosSound.js
  *
- * Genera el sonido custom de Chronos para avisos usando Web Audio API.
- * Es un "cuerno de heraldo" sintetizado: dos notas en sucesión rápida
- * (fanfare corta de 2 tonos) con un chime metálico al final.
+ * Genera los 3 sonidos custom de Chronos para avisos usando Web Audio API.
+ * Variantes:
+ *  - 'cuerno'   → Cuerno de heraldo (G3 → C4 + chime)
+ *  - 'lira'     → Lira griega (arpegio C-E-G suave)
+ *  - 'campana'  → Campana de monasterio (B4 con armónicos largos)
+ *  - 'silencio' → No reproduce nada
  *
- * No usa archivos externos. Único, propio y respeta el tema histórico.
+ * Sin archivos externos. Únicos y propios de Chronos.
  */
 
 let audioCtxSingleton = null;
@@ -18,119 +21,156 @@ const getCtx = () => {
   return audioCtxSingleton;
 };
 
-/**
- * Toca una sola "nota de cuerno" sintetizada (warm brass).
- */
+// ─── CUERNO DE HERALDO ─────────────────────────────────────────
 const playHornNote = (ctx, freq, startTime, duration = 0.5, volume = 0.18) => {
-  // Oscilador principal (triangular para warmth)
   const osc = ctx.createOscillator();
   osc.type = 'triangle';
   osc.frequency.setValueAtTime(freq, startTime);
-
-  // Detune subtle for organic feel
   const osc2 = ctx.createOscillator();
   osc2.type = 'sine';
-  osc2.frequency.setValueAtTime(freq * 0.5, startTime); // octava inferior
-
-  // Gain envelope (attack-decay-release de cuerno)
+  osc2.frequency.setValueAtTime(freq * 0.5, startTime);
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(0, startTime);
   gain.gain.linearRampToValueAtTime(volume, startTime + 0.04);
   gain.gain.exponentialRampToValueAtTime(volume * 0.5, startTime + duration * 0.4);
   gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-  // Filtro pasabajos para suavizar (brass-like)
   const filter = ctx.createBiquadFilter();
   filter.type = 'lowpass';
   filter.frequency.value = 1800;
   filter.Q.value = 1.2;
-
-  osc.connect(filter);
-  osc2.connect(filter);
-  filter.connect(gain);
-  gain.connect(ctx.destination);
-
-  osc.start(startTime);
-  osc2.start(startTime);
+  osc.connect(filter); osc2.connect(filter);
+  filter.connect(gain); gain.connect(ctx.destination);
+  osc.start(startTime); osc2.start(startTime);
   osc.stop(startTime + duration + 0.05);
   osc2.stop(startTime + duration + 0.05);
 };
 
-/**
- * Toca un "chime" metálico breve (final del aviso).
- */
+// ─── CHIME (compartido) ────────────────────────────────────────
 const playChime = (ctx, freq, startTime, duration = 0.6, volume = 0.06) => {
   const osc = ctx.createOscillator();
   osc.type = 'sine';
   osc.frequency.setValueAtTime(freq, startTime);
-
   const osc2 = ctx.createOscillator();
   osc2.type = 'sine';
-  osc2.frequency.setValueAtTime(freq * 2.01, startTime); // ligero detune para campana
-
+  osc2.frequency.setValueAtTime(freq * 2.01, startTime);
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(0, startTime);
   gain.gain.linearRampToValueAtTime(volume, startTime + 0.01);
   gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
-
   const gain2 = ctx.createGain();
   gain2.gain.setValueAtTime(0, startTime);
   gain2.gain.linearRampToValueAtTime(volume * 0.5, startTime + 0.01);
   gain2.gain.exponentialRampToValueAtTime(0.0001, startTime + duration * 0.8);
-
-  osc.connect(gain);
-  osc2.connect(gain2);
-  gain.connect(ctx.destination);
-  gain2.connect(ctx.destination);
-
-  osc.start(startTime);
-  osc2.start(startTime);
+  osc.connect(gain); osc2.connect(gain2);
+  gain.connect(ctx.destination); gain2.connect(ctx.destination);
+  osc.start(startTime); osc2.start(startTime);
   osc.stop(startTime + duration + 0.05);
   osc2.stop(startTime + duration + 0.05);
 };
 
-/**
- * Reproduce el sonido oficial de aviso de Chronos:
- * Cuerno de heraldo (Sol-Do en succesión) + chime final.
- */
-export const playChronosAlert = async () => {
-  try {
-    const ctx = getCtx();
-    if (!ctx) return;
-    // Algunos navegadores requieren reanudar el contexto tras una interacción
-    if (ctx.state === 'suspended') {
-      await ctx.resume();
-    }
-    const now = ctx.currentTime + 0.02;
-    // Fanfare: G3 (196 Hz) → C4 (261.63 Hz)
-    playHornNote(ctx, 196.0, now, 0.32, 0.16);
-    playHornNote(ctx, 261.63, now + 0.18, 0.45, 0.18);
-    // Chime: E5 (659.25 Hz) — campanilla histórica
-    playChime(ctx, 659.25, now + 0.55, 0.7, 0.08);
-  } catch (e) {
-    // Silencioso: si falla el audio no rompemos la app
-    console.warn('No se pudo reproducir aviso:', e);
+// ─── LIRA GRIEGA (pluck) ───────────────────────────────────────
+const playLiraNote = (ctx, freq, startTime, duration = 0.6, volume = 0.12) => {
+  // Sonido tipo cuerda pulsada: combinación seno + sawtooth con decay rápido
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(freq, startTime);
+  const osc2 = ctx.createOscillator();
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(freq * 2, startTime); // octava superior
+  const gain = ctx.createGain();
+  // Attack muy rápido + decay exponencial (pluck)
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(volume, startTime + 0.005);
+  gain.gain.exponentialRampToValueAtTime(volume * 0.3, startTime + 0.1);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(2500, startTime);
+  filter.frequency.exponentialRampToValueAtTime(800, startTime + duration);
+  filter.Q.value = 0.7;
+  osc.connect(filter); osc2.connect(filter);
+  filter.connect(gain); gain.connect(ctx.destination);
+  osc.start(startTime); osc2.start(startTime);
+  osc.stop(startTime + duration + 0.05);
+  osc2.stop(startTime + duration + 0.05);
+};
+
+// ─── CAMPANA DE MONASTERIO ─────────────────────────────────────
+const playMonasteryBell = (ctx, freq, startTime, duration = 2.5, volume = 0.18) => {
+  // Frecuencia fundamental + parciales no armónicos típicos de campana
+  const fundamentals = [
+    { mult: 1.0, vol: 1.0 },
+    { mult: 2.0, vol: 0.5 },
+    { mult: 2.4, vol: 0.4 },   // tierce minor (característica de campana)
+    { mult: 3.0, vol: 0.3 },
+    { mult: 4.5, vol: 0.2 }
+  ];
+  for (const p of fundamentals) {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq * p.mult, startTime);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(volume * p.vol, startTime + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration * (1 - p.mult * 0.05));
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.1);
   }
 };
 
-/**
- * Reproduce un sonido de prueba más corto (para preview).
- */
-export const playChronosTestChime = async () => {
+// ─── FANFARES POR TIPO ─────────────────────────────────────────
+const playCuerno = (ctx, now) => {
+  playHornNote(ctx, 196.0, now, 0.32, 0.16);
+  playHornNote(ctx, 261.63, now + 0.18, 0.45, 0.18);
+  playChime(ctx, 659.25, now + 0.55, 0.7, 0.08);
+};
+
+const playLira = (ctx, now) => {
+  // Arpegio Do mayor: C4-E4-G4-C5
+  playLiraNote(ctx, 261.63, now, 0.7, 0.13);          // C4
+  playLiraNote(ctx, 329.63, now + 0.12, 0.7, 0.12);   // E4
+  playLiraNote(ctx, 392.00, now + 0.24, 0.7, 0.11);   // G4
+  playLiraNote(ctx, 523.25, now + 0.36, 1.0, 0.13);   // C5
+};
+
+const playCampana = (ctx, now) => {
+  playMonasteryBell(ctx, 246.94, now, 2.5, 0.16); // B3 grave
+};
+
+// ─── API PÚBLICA ───────────────────────────────────────────────
+export const playChronosAlert = async (variante = 'cuerno') => {
   try {
+    if (variante === 'silencio') return;
     const ctx = getCtx();
     if (!ctx) return;
     if (ctx.state === 'suspended') await ctx.resume();
     const now = ctx.currentTime + 0.02;
-    playChime(ctx, 659.25, now, 0.5, 0.1);
+    if (variante === 'lira') return playLira(ctx, now);
+    if (variante === 'campana') return playCampana(ctx, now);
+    return playCuerno(ctx, now); // default
+  } catch (e) {
+    console.warn('No se pudo reproducir aviso:', e);
+  }
+};
+
+// Variante corta para "Probar sonido"
+export const playChronosTestChime = async (variante = 'cuerno') => {
+  try {
+    if (variante === 'silencio') return;
+    const ctx = getCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') await ctx.resume();
+    const now = ctx.currentTime + 0.02;
+    if (variante === 'lira') return playLiraNote(ctx, 392.0, now, 0.7, 0.14);
+    if (variante === 'campana') return playMonasteryBell(ctx, 392.0, now, 1.5, 0.15);
+    return playChime(ctx, 659.25, now, 0.5, 0.1);
   } catch (e) {
     console.warn('No se pudo reproducir test:', e);
   }
 };
 
-/**
- * Permite preinicializar el contexto tras una interacción (requerido por algunos navegadores).
- */
 export const primeAudio = () => {
   const ctx = getCtx();
   if (ctx && ctx.state === 'suspended') {

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { QuillInkIcon, CloseIcon } from './HistoricIcons';
+import { QuillInkIcon, CloseIcon, HornHeraldIcon } from './HistoricIcons';
+import PreferenciasModal from './PreferenciasModal';
 
 const TEMAS = [
   'Civilizaciones', 'Civilizaciones Antiguas', 'Roma imperial', 'Egipto antiguo',
@@ -19,6 +20,7 @@ const EditProfileModal = ({ isOpen, onClose, onSaved }) => {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [prefsOpen, setPrefsOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -123,6 +125,15 @@ const EditProfileModal = ({ isOpen, onClose, onSaved }) => {
             <button
               type="button"
               className="btn-secondary"
+              onClick={() => setPrefsOpen(true)}
+              data-testid="open-preferencias-btn"
+              style={{ marginRight: 'auto' }}
+            >
+              <HornHeraldIcon size={12} /> Sonido y privacidad
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
               onClick={onClose}
               data-testid="edit-profile-cancel"
             >Cancelar</button>
@@ -137,6 +148,7 @@ const EditProfileModal = ({ isOpen, onClose, onSaved }) => {
           </div>
         </form>
       </div>
+      <PreferenciasModal isOpen={prefsOpen} onClose={() => setPrefsOpen(false)} />
     </div>
   );
 };
