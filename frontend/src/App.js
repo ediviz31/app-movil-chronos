@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Feed from './pages/Feed';
 import { HourglassIcon } from './components/HistoricIcons';
 import './styles/archive.css';
+import './styles/social-refine.css';
 
 const LoadingScreen = () => (
   <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg-deep)' }}>

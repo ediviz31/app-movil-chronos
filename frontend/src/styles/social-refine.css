@@ -1,0 +1,677 @@
+/* =====================================================
+   CHRONOS - Refinamiento Red Social
+   Mantiene estética histórica + estructura social
+   ===================================================== */
+
+/* Layout más estrecho y vertical estilo red social */
+.main-area {
+  grid-template-columns: 1fr 340px !important;
+  max-width: 1340px !important;
+  padding: 24px 32px !important;
+  gap: 32px !important;
+}
+
+.archive-feed {
+  padding-left: 0 !important;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Quitar timeline rail vertical (era muy "museo") */
+.timeline-rail {
+  display: none;
+}
+
+.timeline-year {
+  position: relative !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: auto !important;
+  text-align: left !important;
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  background: rgba(212, 184, 120, 0.06);
+  border-left: 2px solid var(--gold);
+  border-radius: 0 3px 3px 0;
+}
+
+.timeline-year-num {
+  font-size: 16px !important;
+  margin: 0 !important;
+}
+
+.timeline-year-label {
+  margin: 0 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.timeline-dot {
+  display: none !important;
+}
+
+.timeline-marker {
+  margin-bottom: 20px !important;
+}
+
+/* ============ COMPOSER (Crear post) ============ */
+.social-composer {
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: 6px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+  transition: all 0.2s ease;
+}
+
+.social-composer:hover {
+  border-color: var(--border-mid);
+}
+
+.composer-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.composer-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px var(--gold-ghost);
+}
+
+.composer-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(0.2);
+}
+
+.composer-input {
+  flex: 1;
+  background: rgba(6, 13, 30, 0.5);
+  border: 1px solid var(--border-thin);
+  border-radius: 24px;
+  padding: 14px 20px;
+  color: var(--text-default);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.composer-input:hover {
+  background: rgba(6, 13, 30, 0.7);
+  border-color: var(--border-mid);
+}
+
+.composer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-thin);
+}
+
+.composer-quick-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.composer-quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.composer-quick-btn:hover {
+  background: var(--gold-ghost);
+  color: var(--gold);
+}
+
+.composer-publish-btn {
+  padding: 8px 22px;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  color: var(--bg-deep);
+  border-radius: 20px;
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.composer-publish-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px var(--gold-ghost);
+}
+
+/* ============ POST CARD ESTILO SOCIAL ============ */
+.social-post {
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: 6px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.social-post:hover {
+  border-color: var(--border-mid);
+}
+
+.social-post-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 20px 14px;
+}
+
+.social-post-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--gold-ghost);
+}
+
+.social-post-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(0.2);
+}
+
+.social-post-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.social-post-author {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-bright);
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.social-post-author .epoch-tag {
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  font-weight: 400;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  background: var(--gold-ghost);
+  border: 1px solid var(--border-thin);
+  border-radius: 12px;
+}
+
+.social-post-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.social-post-info .dot-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+
+.social-post-menu {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.social-post-menu:hover {
+  background: var(--gold-ghost);
+  color: var(--gold);
+}
+
+.social-post-body {
+  padding: 0 20px 16px;
+}
+
+.social-post-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-bright);
+  margin-bottom: 10px;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.social-post-title:hover {
+  color: var(--gold-bright);
+}
+
+.social-post-content {
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-default);
+  white-space: pre-wrap;
+}
+
+.social-post-image {
+  width: 100%;
+  max-height: 520px;
+  overflow: hidden;
+  background: var(--bg-deep);
+  border-top: 1px solid var(--border-thin);
+  border-bottom: 1px solid var(--border-thin);
+  cursor: pointer;
+}
+
+.social-post-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: sepia(0.15) contrast(1.05);
+  transition: transform 0.4s ease;
+}
+
+.social-post-image:hover img {
+  transform: scale(1.02);
+}
+
+.social-post-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-thin);
+}
+
+.social-post-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.social-post-stat strong {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.social-post-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: none;
+  background: transparent;
+  padding: 4px 8px;
+}
+
+.social-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: none;
+  border: none;
+  color: var(--text-default);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.social-action-btn:hover {
+  background: var(--gold-ghost);
+  color: var(--gold);
+}
+
+.social-action-btn.active {
+  color: var(--gold);
+}
+
+.social-action-btn svg {
+  flex-shrink: 0;
+}
+
+/* ============ COMMENTS SECTION ============ */
+.comments-section {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-thin);
+  background: rgba(6, 13, 30, 0.4);
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.comment-item {
+  display: flex;
+  gap: 10px;
+}
+
+.comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--gold);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.comment-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(0.2);
+}
+
+.comment-bubble {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+.comment-author {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+
+.comment-text {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--text-default);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.comment-date {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.comment-form {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.comment-form-input {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: 18px;
+  padding: 10px 16px;
+  color: var(--text-bright);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  transition: all 0.2s ease;
+  min-height: 38px;
+}
+
+.comment-form-input:focus {
+  border-color: var(--gold);
+  background: rgba(15, 26, 51, 0.9);
+}
+
+.comment-form-btn {
+  padding: 8px 18px;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  color: var(--bg-deep);
+  border-radius: 18px;
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+}
+
+/* ============ FEED HEAD ============ */
+.feed-greeting {
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: 6px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.feed-greeting::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, var(--gold-ghost), transparent 70%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.feed-greeting-kicker {
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.feed-greeting h1 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--text-bright);
+  margin-bottom: 6px;
+  line-height: 1.1;
+}
+
+.feed-greeting p {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ============ Tabs estilo red social ============ */
+.archive-tabs {
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: 6px;
+  padding: 6px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 4px;
+}
+
+.archive-tab {
+  flex: 1;
+  padding: 10px 14px;
+  text-align: center;
+  border-radius: 4px;
+  font-family: var(--font-elegant);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  background: transparent;
+}
+
+.archive-tab:hover {
+  color: var(--text-default);
+}
+
+.archive-tab.active {
+  background: var(--gold-ghost);
+  color: var(--gold-bright);
+}
+
+.archive-tab.active::after {
+  display: none;
+}
+
+/* Hide grid-related layout from chronicle hero, make it more inline */
+.chronicle-hero {
+  grid-template-columns: 1fr !important;
+  min-height: auto !important;
+}
+
+.chronicle-hero-image {
+  height: 320px;
+  order: -1;
+}
+
+.chronicle-hero-image::before {
+  display: none;
+}
+
+.chronicle-hero-content {
+  padding: 28px 30px !important;
+}
+
+.chronicle-hero h2 {
+  font-size: 34px !important;
+}
+
+.hero-seal {
+  width: 60px !important;
+  height: 60px !important;
+  bottom: 16px !important;
+  right: 16px !important;
+}
+
+/* Remove chronicles-grid - use vertical list */
+.chronicles-grid {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0 !important;
+}
+
+/* Hacer las tarjetas full-width vertical */
+.chronicle-card {
+  display: none; /* Las reemplazamos con SocialPost */
+}
+
+.chronicle-card.parchment {
+  display: block !important;
+  margin-bottom: 20px;
+}
+
+/* Hide side rail labels on smaller screens */
+@media (max-width: 1100px) {
+  .archive-sidebar {
+    display: none;
+  }
+  .main-area {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Refine sidebar widths */
+.archive-sidebar {
+  width: 340px;
+}
+
+.sidebar-section {
+  padding: 20px !important;
+}
+
+.sidebar-section-title {
+  font-size: 11px !important;
+}
+
+/* Floating action button para crear */
+.floating-create {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  color: var(--bg-deep);
+  border: none;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 0 4px rgba(212, 184, 120, 0.2);
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.floating-create:hover {
+  transform: scale(1.1) rotate(15deg);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 0 6px rgba(212, 184, 120, 0.3);
+}
