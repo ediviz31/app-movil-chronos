@@ -5,11 +5,18 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Feed from './pages/Feed';
 import Profile from './pages/Profile';
+import RelatoDetail from './pages/RelatoDetail';
+import CronicasPage from './pages/CronicasPage';
+import LegadosPage from './pages/LegadosPage';
+import DocumentosPage from './pages/DocumentosPage';
+import EpocasPage from './pages/EpocasPage';
+import EpocaDetailPage from './pages/EpocaDetailPage';
 import { HourglassIcon } from './components/HistoricIcons';
 import './styles/archive.css';
 import './styles/social-refine.css';
 import './styles/search.css';
 import './styles/profile.css';
+import './styles/pages.css';
 
 const LoadingScreen = () => (
   <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg-deep)' }}>
@@ -44,6 +51,12 @@ function App() {
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/registro" element={<PublicRoute><Register /></PublicRoute>} />
           <Route path="/" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+          <Route path="/cronicas" element={<ProtectedRoute><CronicasPage /></ProtectedRoute>} />
+          <Route path="/legados" element={<ProtectedRoute><LegadosPage /></ProtectedRoute>} />
+          <Route path="/documentos" element={<ProtectedRoute><DocumentosPage /></ProtectedRoute>} />
+          <Route path="/epocas" element={<ProtectedRoute><EpocasPage /></ProtectedRoute>} />
+          <Route path="/epocas/:nombre" element={<ProtectedRoute><EpocaDetailPage /></ProtectedRoute>} />
+          <Route path="/relato/:id" element={<ProtectedRoute><RelatoDetail /></ProtectedRoute>} />
           <Route path="/perfil/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

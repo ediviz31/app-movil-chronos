@@ -4,8 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import SearchBar from './SearchBar';
 import {
-  FeatherIcon, BellIcon, HourglassIcon,
-  OrnateStarIcon, ChronicleIcon, CommunitiesIcon, ScrollIcon
+  FeatherIcon, HourglassIcon,
+  OrnateStarIcon, ChronicleIcon, CommunitiesIcon, ScrollIcon,
+  HornHeraldIcon
 } from './HistoricIcons';
 
 const TopbarArchive = ({ onCreate }) => {
@@ -50,7 +51,7 @@ const TopbarArchive = ({ onCreate }) => {
                   data-testid={`nav-${item.label.toLowerCase().replace(' ', '-')}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    if (item.path === '/') window.history.pushState({}, '', '/');
+                    navigate(item.path);
                   }}
                 >
                   <Icon size={20} />
@@ -65,10 +66,15 @@ const TopbarArchive = ({ onCreate }) => {
         <div className="topbar-section-right">
           <div className="archive-topbar-actions">
             <button className="icon-btn" onClick={onCreate} data-testid="topbar-create-btn" title="Crear crónica">
-              <FeatherIcon size={18} />
+              <FeatherIcon size={20} />
             </button>
-            <button className="icon-btn" data-testid="topbar-notif-btn" title="Notificaciones">
-              <BellIcon size={18} />
+            <button
+              className="icon-btn"
+              data-testid="topbar-notif-btn"
+              title="Avisos del archivo"
+              onClick={() => navigate('/avisos')}
+            >
+              <HornHeraldIcon size={20} />
             </button>
             <div
               className="user-avatar-small"

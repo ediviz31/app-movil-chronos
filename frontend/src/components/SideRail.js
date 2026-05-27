@@ -5,7 +5,7 @@ import { getAvatarUrl } from '../utils/imageHelpers';
 import {
   HourglassIcon, OrnateStarIcon, TempleIcon, MapIcon,
   FeatherIcon, ChronicleIcon, LibraryIcon, CommunitiesIcon,
-  LogoutIcon
+  LogoutIcon, TelescopeIcon
 } from './HistoricIcons';
 
 const SideRail = ({ activeItem = 'inicio', onLogout }) => {
@@ -13,17 +13,17 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
   const navigate = useNavigate();
 
   const items = [
-    { id: 'inicio', label: 'Inicio', icon: OrnateStarIcon },
-    { id: 'epocas', label: 'Épocas', icon: TempleIcon },
-    { id: 'rutas', label: 'Rutas', icon: MapIcon },
-    { id: 'relatos', label: 'Relatos', icon: FeatherIcon },
-    { id: 'cronicas', label: 'Crónicas', icon: ChronicleIcon },
-    { id: 'biblioteca', label: 'Biblioteca', icon: LibraryIcon },
-    { id: 'comunidades', label: 'Legados', icon: CommunitiesIcon }
+    { id: 'inicio', label: 'Inicio', icon: OrnateStarIcon, path: '/' },
+    { id: 'epocas', label: 'Épocas', icon: TempleIcon, path: '/epocas' },
+    { id: 'rutas', label: 'Rutas', icon: MapIcon, path: '/rutas' },
+    { id: 'explorar', label: 'Explorar', icon: TelescopeIcon, path: '/explorar' },
+    { id: 'cronicas', label: 'Crónicas', icon: ChronicleIcon, path: '/cronicas' },
+    { id: 'biblioteca', label: 'Biblioteca', icon: LibraryIcon, path: '/documentos' },
+    { id: 'legados', label: 'Legados', icon: CommunitiesIcon, path: '/legados' }
   ];
 
-  const handleClick = (id) => {
-    if (id === 'inicio') navigate('/');
+  const handleClick = (item) => {
+    navigate(item.path);
   };
 
   return (
@@ -34,7 +34,7 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
           <button
             key={item.id}
             className={`rail-item ${activeItem === item.id ? 'active' : ''}`}
-            onClick={() => handleClick(item.id)}
+            onClick={() => handleClick(item)}
             data-testid={`rail-${item.id}`}
           >
             <IconComp size={26} />

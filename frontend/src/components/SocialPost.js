@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { getImageUrl, getAvatarUrl } from '../utils/imageHelpers';
-import { EchoIcon, ValueIcon, ShareIcon, PreserveIcon } from './HistoricIcons';
+import { CoinLaurelIcon, ParchmentIcon, DoveScrollIcon, ChestIcon, TabletDaggerIcon } from './HistoricIcons';
 
 const formatFechaRelativa = (fecha) => {
   const date = new Date(fecha);
@@ -120,20 +120,34 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
             className="social-post-menu"
             onClick={handleEliminar}
             data-testid={`btn-eliminar-${relato._id}`}
-            title="Eliminar"
-          >×</button>
+            title="Romper esta tablilla"
+          >
+            <TabletDaggerIcon size={18} />
+          </button>
         )}
       </div>
 
       {/* Body */}
       <div className="social-post-body">
-        <h3 className="social-post-title" data-testid={`title-${relato._id}`}>{relato.titulo}</h3>
+        <h3
+          className="social-post-title"
+          data-testid={`title-${relato._id}`}
+          onClick={() => navigate(`/relato/${relato._id}`)}
+          style={{ cursor: 'pointer' }}
+          title="Ver crónica completa"
+        >
+          {relato.titulo}
+        </h3>
         <p className="social-post-content">{relato.contenido}</p>
       </div>
 
       {/* Imagen */}
       {imagenSrc && (
-        <div className="social-post-image">
+        <div
+          className="social-post-image"
+          onClick={() => navigate(`/relato/${relato._id}`)}
+          style={{ cursor: 'pointer' }}
+        >
           <img src={imagenSrc} alt={relato.titulo} onError={(e) => { e.target.parentElement.style.display = 'none'; }} />
         </div>
       )}
@@ -148,45 +162,49 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
           )}
           {totalComentarios > 0 && (
             <span className="social-post-stat" onClick={toggleComments} style={{ cursor: 'pointer' }}>
-              <strong>{totalComentarios}</strong> valoraciones
+              <strong>{totalComentarios}</strong> comentarios
             </span>
           )}
         </div>
       )}
 
-      {/* Acciones */}
+      {/* Acciones - Iconografía oficial Chronos */}
       <div className="social-post-actions">
         <button
           onClick={handleEco}
           className={`social-action-btn ${dioEco ? 'active' : ''}`}
           data-testid={`btn-eco-${relato._id}`}
+          title="Dar eco a este relato"
         >
-          <EchoIcon size={16} />
+          <CoinLaurelIcon size={20} />
           <span>Eco</span>
         </button>
         <button
           onClick={toggleComments}
           className={`social-action-btn ${showComments ? 'active' : ''}`}
           data-testid={`btn-valorar-${relato._id}`}
+          title="Comentar"
         >
-          <ValueIcon size={16} />
-          <span>Valorar</span>
+          <ParchmentIcon size={20} />
+          <span>Comentar</span>
         </button>
         <button
           className="social-action-btn"
           data-testid={`btn-difundir-${relato._id}`}
           onClick={() => navigator.clipboard?.writeText(window.location.origin + '/relato/' + relato._id)}
+          title="Compartir crónica"
         >
-          <ShareIcon size={16} />
-          <span>Difundir</span>
+          <DoveScrollIcon size={20} />
+          <span>Compartir</span>
         </button>
         <button
           onClick={handleArchivar}
           className={`social-action-btn ${archivado ? 'active' : ''}`}
           data-testid={`btn-preservar-${relato._id}`}
+          title="Guardar en mi archivo"
         >
-          <PreserveIcon size={16} fill={archivado ? 'currentColor' : 'none'} />
-          <span>Preservar</span>
+          <ChestIcon size={20} />
+          <span>Archivar</span>
         </button>
       </div>
 

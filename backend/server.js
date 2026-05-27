@@ -285,6 +285,9 @@ app.post('/api/relatos', [auth, upload.single('imagen')], [
 // Obtener un relato específico
 app.get('/api/relatos/:id', auth, async (req, res) => {
   try {
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'ID inválido' });
+    }
     const relato = await Publicacion.findById(req.params.id)
       .populate('usuario_id', 'nombre usuario avatar tema_favorito bio');
 
@@ -755,6 +758,54 @@ app.get('/api/rutas/populares', auth, async (req, res) => {
   } catch (error) {
     console.error('Error al obtener rutas populares:', error);
     res.status(500).json({ error: 'Error al obtener rutas populares' });
+  }
+});
+
+// Obtener TODAS las épocas/categorías con conteo
+app.get('/api/epocas', auth, async (req, res) => {
+  try {
+    const epocas = await Publicacion.aggregate([
+      { $match: { categoria: { $exists: true, $ne: '' } } },
+      { $group: { _id: '$categoria', total: { $sum: 1 } } },
+      { $sort: { total: -1 } }
+    ]);
+    res.json(epocas.map(e => ({ categoria: e._id, total: e.total })));
+  } catch (error) {
+    console.error('Error al obtener épocas:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener épocas' });
+  }
+});
+
+// Listar relatos de una época / categoría específica
+app.get('/api/epocas/:nombre/relatos', auth, async (req, res) => {
+  try {
+    const nombre = decodeURIComponent(req.params.nombre);
+    const relatos = await Publicacion.find({ categoria: nombre })
+      .populate('usuario_id', 'nombre usuario avatar tema_favorito interes')
+      .sort({ creado_en: -1 });
+
+    const relatosConStats = await Promise.all(relatos.map(async (relato) => {
+      const [total_ecos, total_comentarios, total_archivos, usuario_dio_eco, usuario_archivado] = await Promise.all([
+        Eco.countDocuments({ publicacion_id: relato._id }),
+        Comentario.countDocuments({ publicacion_id: relato._id }),
+        Archivado.countDocuments({ publicacion_id: relato._id }),
+        Eco.countDocuments({ publicacion_id: relato._id, usuario_id: req.userId }),
+        Archivado.countDocuments({ publicacion_id: relato._id, usuario_id: req.userId })
+      ]);
+      return {
+        ...relato.toObject(),
+        total_ecos,
+        total_comentarios,
+        total_archivos,
+        usuario_dio_eco: usuario_dio_eco > 0,
+        usuario_archivado: usuario_archivado > 0
+      };
+    }));
+
+    res.json({ categoria: nombre, total: relatosConStats.length, relatos: relatosConStats });
+  } catch (error) {
+    console.error('Error al obtener relatos por época:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener relatos' });
   }
 });
 
