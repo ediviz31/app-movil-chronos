@@ -37,7 +37,7 @@ const TopbarArchive = ({ onCreate }) => {
             <SearchIcon size={16} style={{ color: 'var(--gold)' }} />
             <input
               type="text"
-              placeholder="Buscar personas, épocas, lugares o documentos..."
+              placeholder="Buscar"
             />
           </div>
         </div>
