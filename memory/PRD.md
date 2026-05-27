@@ -1,160 +1,117 @@
-# Chronos - Red Social Histórica
+# Chronos - Red Social Histórica (PRD)
 
 ## Problema original
-Migración de proyecto PHP/MySQL a stack moderno (React + Node.js + MongoDB) para crear una red social temática histórica llamada **Chronos**. Funcionalidad social estándar (feed, posts, comentarios, ecos, seguir) con estética muy personalizada tipo "archivo histórico / museo" (NO típico social network).
+Migración de proyecto PHP/MySQL a stack moderno (React + Node.js + MongoDB) para crear **Chronos**, una red social temática histórica. Funcionalidad social estándar + estética muy personalizada tipo "archivo histórico / museo" + **valor diferenciador**: vincular cronistas con sus antepasados (árbol genealógico integrado con épocas históricas).
 
 ## Stack
-- Frontend: React 18 + React Router v6, axios, custom CSS, Web Audio API
+- Frontend: React 18 + React Router v6, axios, custom CSS, **Web Audio API** para sonidos
 - Backend: Node.js + Express, JWT (httpOnly cookies), Multer (uploads), bcrypt
 - DB: MongoDB con Mongoose
-- Auth: cookie `chronos_token` httpOnly + sameSite=lax + secure=true
+- Auth: cookie `chronos_token` httpOnly, sameSite=lax, secure=true
 
 ## Estética
-- Paleta: dark navy + dorado + texto crema
-- Tipografía: Cormorant Garamond (display), Marcellus (elegant), Inter (body)
-- Iconos: SVG custom de iconografía oficial Chronos en `HistoricIcons.js`:
-  - **CoinLaurelIcon** (Eco) — moneda romana con laurel
-  - **ParchmentIcon** (Comentar) — pergamino desplegado
-  - **DoveScrollIcon** (Compartir) — paloma con pergamino sellado
-  - **ChestIcon** (Archivar) — cofre con cerradura dorada
-  - **TelescopeIcon** (Explorar) — catalejo sobre trípode
-  - **HornHeraldIcon** (Avisos) — cuerno de heraldo con estandarte
-  - **QuillInkIcon** (Editar) — pluma + tintero
-  - **TabletDaggerIcon** (Eliminar) — tablilla rota con daga
-- Layout: rail íconos IZQ (90px sticky) | feed centro | sidebar efemérides DER (340px sticky)
+- Paleta: dark navy + dorado + crema
+- Tipografía: Cormorant Garamond, Marcellus, Inter
+- Iconografía oficial Chronos: 8 SVG vectoriales custom (moneda+laurel, pergamino, paloma+pergamino, cofre, catalejo, cuerno, pluma+tintero, tablilla+daga)
+- Layout: rail íconos IZQ (90px sticky) | feed centro | sidebar efemérides DER (340px sticky sin scroll visible)
 
-## Funcionalidades implementadas
+## Fases completadas
 
-### MVP base
-- Auth (registro/login/me/logout) con cookies httpOnly
-- Crear/listar/eliminar relatos con upload de imagen (Multer)
-- Comentarios anidados (parent_id) con respuestas
-- Ecos (likes) y Archivados (guardados) con toggle
-- Seguir usuarios + sugeridos
+### MVP base (auth + relatos + interacciones)
+Auth httpOnly cookies, CRUD de relatos, comentarios anidados, ecos, archivados, seguir.
 
-### Sesión 27 Feb 2026 - Topbar + Búsqueda + Perfil
-- Topbar refinado con logo CHRONOS y nav central distribuido
-- Layout invertido (rail IZQ, sidebar efemérides DER sticky)
-- **Búsqueda avanzada** (`/api/buscar`): tipo Facebook, acento-insensible, avatares, highlight, recientes localStorage
-- **Página de Perfil** (`/perfil/:id`) con cover, avatar editable, badges, stats, tabs
-- **Avatar/Portada upload** (multipart)
+### Fase 0 — Búsqueda + Perfil + Topbar
+Búsqueda avanzada Facebook-style con avatares y highlight, página de perfil con cover/avatar editable, topbar refinado.
 
-### Sesión 27 Feb 2026 (parte 2) - Fase 1, 2 y 3
-**Fase 1 — Páginas + Detalle relato + Iconografía oficial**
-- 8 íconos SVG vectoriales custom referenciando el arte oficial
-- `/cronicas` - todas las crónicas con filtros (Recientes/Resonantes)
-- `/legados` - grid de cronistas con tarjetas + follow
-- `/documentos` - mis archivados (cofre personal)
-- `/epocas` - grid de épocas con conteo
-- `/epocas/:nombre` - detalle de época con sus relatos
-- `/relato/:id` - detalle completo con drop-cap, autor clickeable, 4 acciones grandes, **comentarios + respuestas anidadas con composer**
-- `PageShell` reutilizable + FAB flotante para crear crónica
+### Fase 1 — Páginas + Detalle de relato + Iconografía oficial
+8 íconos SVG vectoriales, páginas `/cronicas` `/legados` `/documentos` `/epocas` `/epocas/:nombre`, `/relato/:id` con drop-cap + comentarios + respuestas anidadas, `PageShell` reutilizable.
 
-**Fase 2 — Avisos con sonido custom + Editar perfil**
-- Modelo `Notificacion` (tipos: eco, comentario, respuesta, seguidor, archivo)
-- Sistema instrumentado: ecos, comentarios, respuestas y seguir crean avisos
-- `/api/avisos`, `/api/avisos/no-leidos/count`, `/api/avisos/marcar-leidos`, `/api/avisos/:id/leido`
-- `/avisos` - página con tabs (Todos/No leídos), auto-mark-as-read tras 1.5s
-- **AvisosBadge** en topbar con badge rojo pulsante + polling cada 25s + refresh al volver de tab
-- **Sonido custom de Chronos** (`utils/chronosSound.js`): cuerno de heraldo G3→C4 + chime E5 sintetizado con Web Audio API (no archivos externos)
-- Botón "Probar sonido" en /avisos
-- `EditProfileModal` con nombre/bio/interes/tema_favorito (select)
-- PUT /api/usuarios/perfil con validación de longitud + trim
+### Fase 2 — Avisos con sonido + Editar perfil
+Modelo Notificacion integrado con ecos/comentarios/respuestas/seguidores, página `/avisos` con badge pulsante + polling 25s, sonido sintetizado, EditProfileModal.
 
-**Fase 3 — Calendario histórico real**
-- Dataset curado de ~55 efemérides históricas reales (Julio César, Constantinopla, Bastilla, Pearl Harbor, etc.)
-- `/api/efemerides/hoy` con fallback a fecha más cercana
-- `/api/efemerides/fecha/:MM-DD`
-- `/api/efemerides/calendario/:year/:month`
-- `/efemerides` - **calendario navegable** mes a mes con puntos dorados en días con evento + panel de eventos del día seleccionado
-- ArchiveSidebar usa efemérides REALES (no mock) con tag "Fecha cercana" si aplica
-- Épocas del sidebar clickeables → /epocas/:nombre
+### Fase 3 — Calendario histórico real
+Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario navegable, ArchiveSidebar usa datos reales.
 
-## API Endpoints
+### Fase 4 — Árbol Genealógico + Sonidos custom configurables ⭐
+**Mi Legado Familiar** (`/mi-legado`):
+- Modelo `MiembroFamiliar` con 25 tipos de parentesco (bisabuelos por línea, etc.)
+- Árbol SVG visual con cameos dorados, posicionamiento automático por generación, fan-out horizontal para hermanos
+- CRUD completo + upload de foto + validación de owner
+- **Anécdotas inline** por familiar (historias cortas)
+- **GEDCOM Import**: parser básico que importa de Ancestry/MyHeritage/FamilySearch
+- **Capa de valor Chronos**: muestra época histórica del familiar + efemérides del día de su nacimiento
 
-### Auth
-- `POST /api/auth/registro`, `/login` `{correo, password}`, `/logout`, `GET /me`
+**Sonidos custom configurables** (Web Audio API, sin archivos externos):
+- Cuerno de heraldo (G3→C4 + chime)
+- Lira griega (arpegio C-E-G-C tipo cuerda pulsada)
+- Campana de monasterio (B3 con parciales armónicos)
+- Silencio total
 
-### Relatos
-- `GET /api/relatos?vista=todos|siguiendo` | `POST` (multipart `imagen`) | `GET/PUT/DELETE /:id`
-
-### Interacciones
-- `POST /api/ecos/:publicacionId` (toggle, **crea aviso**)
-- `POST /api/archivados/:publicacionId` (toggle)
-- `GET /api/comentarios/:publicacionId` (con respuestas anidadas)
-- `POST /api/comentarios` con parent_id (**crea aviso al autor o al padre**)
-- `POST /api/seguir/:usuarioId` (toggle, **crea aviso**)
-- `GET /api/seguidores/:id`, `/api/siguiendo/:id`, `/api/archivados`
-
-### Usuarios
-- `GET /api/usuarios/sugeridos`, `/:id`, `/:id/relatos`
-- `PUT /api/usuarios/perfil` (con validación)
-- `POST /api/usuarios/avatar`, `/portada` (multipart)
-
-### Exploración / Búsqueda
-- `GET /api/buscar?q=&tipo=todo|usuarios|relatos&limit=` (acento-insensible)
-- `GET /api/rutas/populares`
-- `GET /api/epocas`
-- `GET /api/epocas/:nombre/relatos`
-
-### Avisos (Fase 2)
-- `GET /api/avisos`
-- `GET /api/avisos/no-leidos/count`
-- `POST /api/avisos/marcar-leidos`
-- `POST /api/avisos/:id/leido`
-
-### Efemérides (Fase 3)
-- `GET /api/efemerides/hoy`
-- `GET /api/efemerides/fecha/:MM-DD`
-- `GET /api/efemerides/calendario/:year/:month`
+**Preferencias del cronista**:
+- Selector de sonido con preview al clic
+- Toggle de privacidad del árbol (privado/público)
 
 ## Rutas Frontend
-- `/` Feed principal
-- `/cronicas` Lista de crónicas con filtros
-- `/legados` Grid de cronistas
-- `/documentos` Mi archivo personal
-- `/epocas` Grid de épocas
-- `/epocas/:nombre` Detalle de época
-- `/relato/:id` Detalle de relato con comentarios
-- `/perfil/:id` Perfil de usuario
-- `/avisos` Notificaciones
-- `/efemerides` Calendario histórico
+- `/` Feed
+- `/cronicas`, `/legados`, `/documentos`
+- `/epocas`, `/epocas/:nombre`
+- `/efemerides`
+- `/avisos`
+- `/mi-legado` ← NUEVO
+- `/relato/:id`, `/perfil/:id`
 - `/login`, `/registro`
+
+## API Endpoints clave
+
+### Familiares (Fase 4)
+- `GET /api/familiares/mios`
+- `GET /api/familiares/usuario/:userId` (respeta privacidad)
+- `POST /api/familiares`, `PUT /api/familiares/:id`, `DELETE /api/familiares/:id`
+- `POST /api/familiares/:id/foto` (multipart)
+- `POST/DELETE /api/familiares/:id/historias`
+- `POST /api/familiares/importar-gedcom`
+
+### Preferencias
+- `PUT /api/usuarios/preferencias` con `{sonido_aviso, arbol_publico}`
+
+### Resto: ver iteraciones anteriores
 
 ## Backlog / Roadmap
 
 ### P1 - Próximas
-- 📱 Mobile responsive completo (algunas vistas necesitan refinamiento)
-- 🔍 Página de Explorar (`/explorar`) que combine búsqueda + descubrimiento curado
-- 📊 Trending real basado en ecos+comentarios+archivados últimos 7 días
-- 🏛️ Mensajería directa entre cronistas
-- 🏷️ Hashtags / tags en relatos con búsqueda
+- 📱 **Mobile responsive completo** (preparar para Capacitor/PWA)
+- 🔍 Página `/explorar` curada (mix de búsqueda + descubrimiento)
+- 📊 Trending real últimos 7 días
+- 💬 Mensajería directa entre cronistas
+- 🏷️ Hashtags / tags en relatos
 
 ### P2 - Mejoras
-- 📦 Export de crónicas a PDF (estilo pergamino)
+- 🔗 **FamilySearch API OAuth** (sincronización con árbol externo más grande del mundo)
+- 📤 Export GEDCOM del árbol Chronos
+- 📦 Export crónicas a PDF (estilo pergamino)
 - 🌗 Modo claro (paleta papel/sepia)
-- 📤 Open Graph custom para shares
-- 🔔 Sonido configurable (volumen/silencio) en preferencias
-- 📅 Más efemérides curadas (objetivo: 365 días cubiertos)
-- 🌍 Internacionalización (i18n)
+- 🌍 i18n (inglés)
+- 📅 Ampliar dataset efemérides a 365 días cubiertos
 
 ### P3 - Backlog
-- 📱 Empaquetado como app móvil con Capacitor/PWA
+- 📱 Empaquetado app móvil (Capacitor/PWA)
 - 🤝 Líneas de tiempo colaborativas
-- 💬 Reacciones múltiples (no sólo eco)
+- 💬 Reacciones múltiples
 - 📜 API pública / RSS
-- 🎵 Variantes de sonido por tipo de aviso
+- 👨‍👩‍👧 Compartir árbol con familiares por correo
+- 🌳 Vista cronológica del árbol (línea de tiempo)
 
-### Refactor crítico
-- **`server.js` 1122 líneas** → URGENTE partir en `routes/` (avisos, comentarios, usuarios, relatos, efemerides, buscar, auth)
-- Consolidar CSS: archive.css, social-refine.css, historic-refinements.css duplicados
-- Extraer `formatAnio` y `formatRel` a `utils/dateHelpers.js` (DRY)
-- CORS_ORIGINS=* → host específico antes de prod
-- Dataset efemérides ampliar a 200+ eventos
+### Deuda técnica (sugerencias del testing agent)
+- **🔴 server.js ~1390 líneas → URGENTE partir en `routes/`** (familiares, preferencias, comentarios, usuarios, relatos, efemerides, buscar, auth, avisos)
+- Helper `isOwner(doc, req)` para regla DRY de validación de propietario
+- Lista de parentescos duplicada en 3 lugares (modelo, server, parentescoMap.js) → extraer a constants compartido
+- Consolidar CSS: archive.css, social-refine.css, historic-refinements.css
+- CORS_ORIGINS específico antes de producción
 
 ## Tests
-- `/app/backend/tests/test_*.py` (pytest, 4 archivos)
-- Iteraciones: `/app/test_reports/iteration_{1..4}.json` — todas 100%
+- `/app/backend/tests/test_*.py` (pytest, 5+ archivos)
+- `test_phase4_legado.py` — 22 tests del árbol
+- Iteraciones: `/app/test_reports/iteration_{1..6}.json` — todas 100% (iter5 detectó 3 críticos + 2 minor, iter6 confirmó fix)
 
 ## Credenciales
 Ver `/app/memory/test_credentials.md`
