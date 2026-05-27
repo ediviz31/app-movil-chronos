@@ -3,10 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import SearchBar from './SearchBar';
+import AvisosBadge from './AvisosBadge';
 import {
   FeatherIcon, HourglassIcon,
-  OrnateStarIcon, ChronicleIcon, CommunitiesIcon, ScrollIcon,
-  HornHeraldIcon
+  OrnateStarIcon, ChronicleIcon, CommunitiesIcon, ScrollIcon
 } from './HistoricIcons';
 
 const TopbarArchive = ({ onCreate }) => {
@@ -68,14 +68,7 @@ const TopbarArchive = ({ onCreate }) => {
             <button className="icon-btn" onClick={onCreate} data-testid="topbar-create-btn" title="Crear crónica">
               <FeatherIcon size={20} />
             </button>
-            <button
-              className="icon-btn"
-              data-testid="topbar-notif-btn"
-              title="Avisos del archivo"
-              onClick={() => navigate('/avisos')}
-            >
-              <HornHeraldIcon size={20} />
-            </button>
+            <AvisosBadge />
             <div
               className="user-avatar-small"
               data-testid="topbar-user-avatar"

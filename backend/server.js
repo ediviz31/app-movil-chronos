@@ -14,6 +14,7 @@ const Eco = require('./models/Eco');
 const Comentario = require('./models/Comentario');
 const Archivado = require('./models/Archivado');
 const Seguidor = require('./models/Seguidor');
+const Notificacion = require('./models/Notificacion');
 
 // Middleware
 const auth = require('./middleware/auth');
@@ -71,6 +72,26 @@ const setAuthCookie = (res, token) => {
 const clearAuthCookie = (res) => {
   res.clearCookie('chronos_token');
 };
+
+// Helper: crea una notificación evitando self-notify
+async function crearAviso({ destinatario_id, actor_id, tipo, publicacion_id, comentario_id, resumen }) {
+  try {
+    // No notificar al usuario sobre sus propias acciones
+    if (destinatario_id?.toString() === actor_id?.toString()) return null;
+    const aviso = await Notificacion.create({
+      destinatario_id,
+      actor_id,
+      tipo,
+      publicacion_id: publicacion_id || undefined,
+      comentario_id: comentario_id || undefined,
+      resumen: resumen || ''
+    });
+    return aviso;
+  } catch (e) {
+    console.error('Error creando aviso:', e);
+    return null;
+  }
+}
 
 // ============================================
 // RUTAS DE AUTENTICACIÓN
@@ -400,6 +421,17 @@ app.post('/api/ecos/:publicacionId', auth, async (req, res) => {
         usuario_id: req.userId
       });
       await nuevoEco.save();
+      // Aviso al autor del relato
+      const relato = await Publicacion.findById(publicacionId).select('usuario_id titulo');
+      if (relato) {
+        await crearAviso({
+          destinatario_id: relato.usuario_id,
+          actor_id: req.userId,
+          tipo: 'eco',
+          publicacion_id: publicacionId,
+          resumen: relato.titulo
+        });
+      }
       return res.json({ mensaje: 'Eco dado', accion: 'creado' });
     }
   } catch (error) {
@@ -461,6 +493,39 @@ app.post('/api/comentarios', auth, [
     await nuevoComentario.save();
     const comentarioPopulado = await Comentario.findById(nuevoComentario._id)
       .populate('usuario_id', 'nombre usuario avatar');
+
+    // Avisos: al autor del relato (comentario raíz) o al autor del comentario padre (respuesta)
+    try {
+      if (parent_id) {
+        // Es una respuesta → avisar al dueño del comentario padre
+        const parentComment = await Comentario.findById(parent_id).select('usuario_id contenido');
+        if (parentComment) {
+          await crearAviso({
+            destinatario_id: parentComment.usuario_id,
+            actor_id: req.userId,
+            tipo: 'respuesta',
+            publicacion_id,
+            comentario_id: nuevoComentario._id,
+            resumen: (parentComment.contenido || '').slice(0, 80)
+          });
+        }
+      } else {
+        // Es comentario raíz → avisar al autor del relato
+        const relato = await Publicacion.findById(publicacion_id).select('usuario_id titulo');
+        if (relato) {
+          await crearAviso({
+            destinatario_id: relato.usuario_id,
+            actor_id: req.userId,
+            tipo: 'comentario',
+            publicacion_id,
+            comentario_id: nuevoComentario._id,
+            resumen: relato.titulo
+          });
+        }
+      }
+    } catch (avisoErr) {
+      console.error('Error creando aviso de comentario:', avisoErr);
+    }
 
     res.status(201).json({
       mensaje: 'Comentario creado',
@@ -548,6 +613,12 @@ app.post('/api/seguir/:usuarioId', auth, async (req, res) => {
         seguido_id: usuarioId
       });
       await nuevoSeguidor.save();
+      // Aviso al usuario seguido
+      await crearAviso({
+        destinatario_id: usuarioId,
+        actor_id: req.userId,
+        tipo: 'seguidor'
+      });
       return res.json({ mensaje: 'Ahora sigues a este usuario', accion: 'seguir' });
     }
   } catch (error) {
@@ -892,6 +963,71 @@ app.get('/api/buscar', auth, async (req, res) => {
   } catch (error) {
     console.error('Error en búsqueda:', error);
     res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al buscar' });
+  }
+});
+
+// ============================================
+// RUTAS DE AVISOS (NOTIFICACIONES)
+// ============================================
+
+// Listar mis avisos (más recientes primero)
+app.get('/api/avisos', auth, async (req, res) => {
+  try {
+    const { limit = 30 } = req.query;
+    const avisos = await Notificacion.find({ destinatario_id: req.userId })
+      .populate('actor_id', 'nombre usuario avatar')
+      .populate('publicacion_id', 'titulo categoria')
+      .sort({ creado_en: -1 })
+      .limit(Math.min(parseInt(limit) || 30, 100));
+    res.json(avisos);
+  } catch (error) {
+    console.error('Error al obtener avisos:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener avisos' });
+  }
+});
+
+// Contar no leídos
+app.get('/api/avisos/no-leidos/count', auth, async (req, res) => {
+  try {
+    const total = await Notificacion.countDocuments({
+      destinatario_id: req.userId,
+      leida: false
+    });
+    res.json({ total });
+  } catch (error) {
+    console.error('Error contando no leídos:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al contar' });
+  }
+});
+
+// Marcar todos como leídos
+app.post('/api/avisos/marcar-leidos', auth, async (req, res) => {
+  try {
+    await Notificacion.updateMany(
+      { destinatario_id: req.userId, leida: false },
+      { $set: { leida: true } }
+    );
+    res.json({ mensaje: 'Avisos marcados como leídos' });
+  } catch (error) {
+    console.error('Error marcando leídos:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al marcar' });
+  }
+});
+
+// Marcar un aviso específico como leído
+app.post('/api/avisos/:id/leido', auth, async (req, res) => {
+  try {
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'ID inválido' });
+    }
+    await Notificacion.updateOne(
+      { _id: req.params.id, destinatario_id: req.userId },
+      { $set: { leida: true } }
+    );
+    res.json({ mensaje: 'Aviso marcado como leído' });
+  } catch (error) {
+    console.error('Error marcando aviso:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al marcar' });
   }
 });
 

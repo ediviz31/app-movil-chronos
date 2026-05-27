@@ -7,9 +7,11 @@ import TopbarArchive from '../components/TopbarArchive';
 import SideRail from '../components/SideRail';
 import SocialPost from '../components/SocialPost';
 import CreateChronicleModal from '../components/CreateChronicleModal';
+import EditProfileModal from '../components/EditProfileModal';
 import {
   HourglassIcon, FeatherIcon, OrnateStarIcon, ChronicleIcon,
-  CommunitiesIcon, CalendarIcon, PlusOrnateIcon, ArrowRightIcon
+  CommunitiesIcon, CalendarIcon, PlusOrnateIcon, ArrowRightIcon,
+  QuillInkIcon
 } from '../components/HistoricIcons';
 
 const Profile = () => {
@@ -27,6 +29,7 @@ const Profile = () => {
   const [uploadingPortada, setUploadingPortada] = useState(false);
   const [activeTab, setActiveTab] = useState('relatos');
   const [modalOpen, setModalOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const isMyProfile = perfil && currentUser && (perfil._id === (currentUser._id || currentUser.id));
 
@@ -228,13 +231,22 @@ const Profile = () => {
                 </div>
                 <div className="profile-actions">
                   {isMyProfile ? (
-                    <button
-                      className="profile-action-btn primary"
-                      onClick={() => setModalOpen(true)}
-                      data-testid="profile-create-btn"
-                    >
-                      <FeatherIcon size={14} /> Nueva crónica
-                    </button>
+                    <>
+                      <button
+                        className="profile-action-btn secondary"
+                        onClick={() => setEditOpen(true)}
+                        data-testid="profile-edit-btn"
+                      >
+                        <QuillInkIcon size={14} /> Editar legado
+                      </button>
+                      <button
+                        className="profile-action-btn primary"
+                        onClick={() => setModalOpen(true)}
+                        data-testid="profile-create-btn"
+                      >
+                        <FeatherIcon size={14} /> Nueva crónica
+                      </button>
+                    </>
                   ) : (
                     <button
                       onClick={toggleFollow}
@@ -348,6 +360,12 @@ const Profile = () => {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSuccess={handleNewRelato}
+      />
+
+      <EditProfileModal
+        isOpen={editOpen}
+        onClose={() => setEditOpen(false)}
+        onSaved={(u) => setPerfil(p => ({ ...p, ...u }))}
       />
     </div>
   );
