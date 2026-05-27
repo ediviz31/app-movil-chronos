@@ -28,6 +28,7 @@ import './styles/efemerides.css';
 import './styles/legado.css';
 import './styles/extras.css';
 import './styles/misivas.css';
+import './styles/public.css';
 
 const LoadingScreen = () => (
   <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg-deep)' }}>
@@ -51,7 +52,12 @@ const ProtectedRoute = ({ children }) => {
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return <LoadingScreen />;
-  return !isAuthenticated ? children : <Navigate to="/" replace />;
+  if (isAuthenticated) {
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get('redirect') || '/';
+    return <Navigate to={redirect} replace />;
+  }
+  return children;
 };
 
 function App() {
@@ -75,7 +81,7 @@ function App() {
           <Route path="/misivas" element={<ProtectedRoute><MisivasPage /></ProtectedRoute>} />
           <Route path="/misivas/abrir/:userIdToOpen" element={<ProtectedRoute><MisivasPage /></ProtectedRoute>} />
           <Route path="/misivas/:conversacionId" element={<ProtectedRoute><MisivasPage /></ProtectedRoute>} />
-          <Route path="/relato/:id" element={<ProtectedRoute><RelatoDetail /></ProtectedRoute>} />
+          <Route path="/relato/:id" element={<RelatoDetail />} />
           <Route path="/perfil/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

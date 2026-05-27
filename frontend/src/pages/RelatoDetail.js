@@ -4,10 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getAvatarUrl, getImageUrl } from '../utils/imageHelpers';
 import PageShell from '../components/PageShell';
+import PublicShell from '../components/PublicShell';
 import HashtagText from '../components/HashtagText';
 import {
   HourglassIcon, ArrowRightIcon, OrnateStarIcon,
-  CoinLaurelIcon, ParchmentIcon, DoveScrollIcon, ChestIcon, TabletDaggerIcon
+  CoinLaurelIcon, ParchmentIcon, DoveScrollIcon, ChestIcon, TabletDaggerIcon,
+  FeatherIcon
 } from '../components/HistoricIcons';
 
 const formatFechaCompleta = (fecha) => {
@@ -28,7 +30,7 @@ const formatRel = (fecha) => {
 const RelatoDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   const [relato, setRelato] = useState(null);
   const [comments, setComments] = useState([]);
@@ -39,6 +41,14 @@ const RelatoDetail = () => {
   const [replyText, setReplyText] = useState('');
 
   const currentUserId = user?._id || user?.id;
+  // Helper para gating: si no está autenticado, redirige a registro
+  const requireAuth = () => {
+    if (!isAuthenticated) {
+      navigate('/registro?redirect=' + encodeURIComponent(`/relato/${id}`));
+      return true;
+    }
+    return false;
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -60,7 +70,7 @@ const RelatoDetail = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleEco = async () => {
-    if (!relato) return;
+    if (!relato || requireAuth()) return;
     try {
       const res = await api.post(`/ecos/${relato._id}`);
       setRelato(r => ({
@@ -72,7 +82,7 @@ const RelatoDetail = () => {
   };
 
   const handleArchivar = async () => {
-    if (!relato) return;
+    if (!relato || requireAuth()) return;
     try {
       const res = await api.post(`/archivados/${relato._id}`);
       setRelato(r => ({
@@ -85,7 +95,7 @@ const RelatoDetail = () => {
 
   const handleCompartir = async () => {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/relato/${relato._id}`);
+      await navigator.clipboard.writeText(`${window.location.origin}/api/og/relato/${relato._id}`);
       alert('Enlace al relato copiado al portapapeles');
     } catch { /* ignore */ }
   };
@@ -100,7 +110,7 @@ const RelatoDetail = () => {
 
   const submitComment = async (e) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || requireAuth()) return;
     setPosting(true);
     try {
       const res = await api.post('/comentarios', { publicacion_id: relato._id, contenido: newComment });
@@ -111,7 +121,7 @@ const RelatoDetail = () => {
   };
 
   const submitReply = async (parentId) => {
-    if (!replyText.trim()) return;
+    if (!replyText.trim() || requireAuth()) return;
     setPosting(true);
     try {
       const res = await api.post('/comentarios', {
@@ -131,8 +141,9 @@ const RelatoDetail = () => {
   };
 
   if (loading) {
+    const LoadingShell = isAuthenticated ? PageShell : PublicShell;
     return (
-      <PageShell activeRail="">
+      <LoadingShell activeRail="">
         <div style={{ padding: 60, textAlign: 'center', color: 'var(--text-muted)', width: '100%' }}>
           <div className="spin" style={{ display: 'inline-block', color: 'var(--gold)' }}>
             <HourglassIcon size={36} />
@@ -141,7 +152,7 @@ const RelatoDetail = () => {
             Desenrollando el pergamino...
           </p>
         </div>
-      </PageShell>
+      </LoadingShell>
     );
   }
 
@@ -150,15 +161,18 @@ const RelatoDetail = () => {
   const autor = relato.usuario_id;
   const imagenSrc = getImageUrl(relato.imagen);
   const esMio = currentUserId && autor?._id === currentUserId;
+  const Shell = isAuthenticated ? PageShell : PublicShell;
 
   return (
-    <PageShell activeRail="">
+    <Shell activeRail="">
       <main className="relato-detail-page" data-testid="relato-detail-page">
-        {/* Breadcrumb / volver */}
-        <button className="relato-back-link" onClick={() => navigate(-1)} data-testid="relato-back">
-          <ArrowRightIcon size={14} style={{ transform: 'rotate(180deg)' }} />
-          Volver al archivo
-        </button>
+        {/* Volver — solo si está autenticado */}
+        {isAuthenticated && (
+          <button className="relato-back-link" onClick={() => navigate(-1)} data-testid="relato-back">
+            <ArrowRightIcon size={14} style={{ transform: 'rotate(180deg)' }} />
+            Volver al archivo
+          </button>
+        )}
 
         <article className="relato-article">
           {/* Kicker / categoria */}
@@ -254,6 +268,38 @@ const RelatoDetail = () => {
           </div>
         </article>
 
+        {/* CTA "Únete a Chronos" para visitantes anónimos */}
+        {!isAuthenticated && (
+          <aside className="relato-join-cta" data-testid="relato-join-cta">
+            <div className="relato-join-cta-icon">
+              <FeatherIcon size={28} />
+            </div>
+            <div className="relato-join-cta-text">
+              <h3>¿Te resonó esta crónica?</h3>
+              <p>
+                Únete a Chronos para dar tu eco, comentar, guardarla en tu archivo,
+                escribir tus propias crónicas y conectar con tu legado familiar.
+              </p>
+            </div>
+            <div className="relato-join-cta-actions">
+              <button
+                className="public-cta-btn"
+                onClick={() => navigate('/registro?redirect=' + encodeURIComponent(`/relato/${id}`))}
+                data-testid="cta-registro-btn"
+              >
+                <FeatherIcon size={14} /> Únete a Chronos
+              </button>
+              <button
+                className="public-link-btn"
+                onClick={() => navigate('/login?redirect=' + encodeURIComponent(`/relato/${id}`))}
+                data-testid="cta-login-btn"
+              >
+                Ya soy cronista · Entrar
+              </button>
+            </div>
+          </aside>
+        )}
+
         {/* COMENTARIOS */}
         <section className="relato-comments-section" data-testid="comments-section">
           <h2 className="relato-comments-title">
@@ -261,32 +307,42 @@ const RelatoDetail = () => {
             Comentarios del archivo ({relato.total_comentarios})
           </h2>
 
-          {/* Composer */}
-          <form className="relato-comment-composer" onSubmit={submitComment}>
-            <div className="comment-composer-avatar">
-              <img src={getAvatarUrl(user)} alt={user?.nombre} />
-            </div>
-            <div className="comment-composer-body">
-              <textarea
-                className="comment-composer-input"
-                placeholder="Comparte tu valoración sobre este relato..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                rows={3}
-                data-testid="comment-composer-input"
-              />
-              <div className="comment-composer-actions">
-                <button
-                  type="submit"
-                  className="comment-composer-submit"
-                  disabled={posting || !newComment.trim()}
-                  data-testid="comment-submit-btn"
-                >
-                  {posting ? 'Enviando...' : 'Comentar'}
-                </button>
+          {/* Composer — solo si autenticado */}
+          {isAuthenticated ? (
+            <form className="relato-comment-composer" onSubmit={submitComment}>
+              <div className="comment-composer-avatar">
+                <img src={getAvatarUrl(user)} alt={user?.nombre} />
               </div>
-            </div>
-          </form>
+              <div className="comment-composer-body">
+                <textarea
+                  className="comment-composer-input"
+                  placeholder="Comparte tu valoración sobre este relato..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  rows={3}
+                  data-testid="comment-composer-input"
+                />
+                <div className="comment-composer-actions">
+                  <button
+                    type="submit"
+                    className="comment-composer-submit"
+                    disabled={posting || !newComment.trim()}
+                    data-testid="comment-submit-btn"
+                  >
+                    {posting ? 'Enviando...' : 'Comentar'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          ) : (
+            <button
+              className="relato-comment-locked"
+              onClick={() => navigate('/registro?redirect=' + encodeURIComponent(`/relato/${id}`))}
+              data-testid="comment-locked-cta"
+            >
+              <FeatherIcon size={14} /> Únete a Chronos para comentar
+            </button>
+          )}
 
           {/* Lista comentarios */}
           {comments.length === 0 ? (
@@ -320,7 +376,13 @@ const RelatoDetail = () => {
                       <div className="comment-actions">
                         <button
                           className="comment-action-link"
-                          onClick={() => setReplyTo(replyTo === c._id ? null : c._id)}
+                          onClick={() => {
+                            if (!isAuthenticated) {
+                              navigate('/registro?redirect=' + encodeURIComponent(`/relato/${id}`));
+                              return;
+                            }
+                            setReplyTo(replyTo === c._id ? null : c._id);
+                          }}
                           data-testid={`reply-btn-${c._id}`}
                         >
                           Responder
@@ -396,7 +458,7 @@ const RelatoDetail = () => {
           )}
         </section>
       </main>
-    </PageShell>
+    </Shell>
   );
 };
 

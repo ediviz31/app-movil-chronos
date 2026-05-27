@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { HourglassIcon } from '../components/HistoricIcons';
 
@@ -12,6 +12,8 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/';
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -20,7 +22,7 @@ const Register = () => {
     setError(''); setLoading(true);
     try {
       await register(formData);
-      navigate('/');
+      navigate(redirect);
     } catch (err) {
       setError(err.response?.data?.error || 'Error al registrarse');
     } finally {
@@ -73,7 +75,7 @@ const Register = () => {
         </form>
 
         <p className="auth-link">
-          ¿Ya eres cronista? <Link to="/login" data-testid="link-login">Entra al archivo</Link>
+          ¿Ya eres cronista? <Link to={`/login${redirect !== '/' ? '?redirect=' + encodeURIComponent(redirect) : ''}`} data-testid="link-login">Entra al archivo</Link>
         </p>
       </div>
     </div>

@@ -25,6 +25,7 @@ const { Resvg } = require('@resvg/resvg-js');
 
 // Middleware
 const auth = require('./middleware/auth');
+const authOptional = require('./middleware/authOptional');
 const upload = require('./middleware/upload');
 
 const app = express();
@@ -311,7 +312,7 @@ app.post('/api/relatos', [auth, upload.single('imagen')], [
 });
 
 // Obtener un relato específico
-app.get('/api/relatos/:id', auth, async (req, res) => {
+app.get('/api/relatos/:id', authOptional, async (req, res) => {
   try {
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'ID inválido' });
@@ -323,14 +324,19 @@ app.get('/api/relatos/:id', auth, async (req, res) => {
       return res.status(404).json({ error: 'Relato no encontrado' });
     }
 
-    // Obtener estadísticas
-    const [total_ecos, total_comentarios, total_archivos, usuario_dio_eco, usuario_archivado] = await Promise.all([
+    // Stats públicos siempre. Estado personal (mi eco/archivado) solo si autenticado.
+    const baseStatsPromises = [
       Eco.countDocuments({ publicacion_id: relato._id }),
       Comentario.countDocuments({ publicacion_id: relato._id }),
-      Archivado.countDocuments({ publicacion_id: relato._id }),
+      Archivado.countDocuments({ publicacion_id: relato._id })
+    ];
+    const personalStatsPromises = req.userId ? [
       Eco.countDocuments({ publicacion_id: relato._id, usuario_id: req.userId }),
       Archivado.countDocuments({ publicacion_id: relato._id, usuario_id: req.userId })
-    ]);
+    ] : [Promise.resolve(0), Promise.resolve(0)];
+
+    const [total_ecos, total_comentarios, total_archivos, usuario_dio_eco, usuario_archivado] =
+      await Promise.all([...baseStatsPromises, ...personalStatsPromises]);
 
     res.json({
       ...relato.toObject(),
@@ -338,7 +344,8 @@ app.get('/api/relatos/:id', auth, async (req, res) => {
       total_comentarios,
       total_archivos,
       usuario_dio_eco: usuario_dio_eco > 0,
-      usuario_archivado: usuario_archivado > 0
+      usuario_archivado: usuario_archivado > 0,
+      es_publico: !req.userId // hint para que el frontend sepa que el lector es anónimo
     });
   } catch (error) {
     console.error('Error al obtener relato:', error);
@@ -456,7 +463,7 @@ app.post('/api/ecos/:publicacionId', auth, async (req, res) => {
 // ============================================
 
 // Obtener comentarios de un relato
-app.get('/api/comentarios/:publicacionId', auth, async (req, res) => {
+app.get('/api/comentarios/:publicacionId', authOptional, async (req, res) => {
   try {
     const comentarios = await Comentario.find({ publicacion_id: req.params.publicacionId, parent_id: null })
       .populate('usuario_id', 'nombre usuario avatar')
@@ -1945,7 +1952,7 @@ ${esBot ? '' : `<meta http-equiv="refresh" content="0;url=${urlRelato}">`}
 <body style="background:#0a1228;color:#d4b878;font-family:serif;text-align:center;padding:60px 20px;">
 <p style="font-style:italic;">Abriendo el archivo…</p>
 <p><a href="${urlRelato}" style="color:#d4b878;">Continuar a la crónica</a></p>
-<script>setTimeout(function(){location.href='${urlRelato}'},50);</script>
+${esBot ? '' : `<script>setTimeout(function(){location.href='${urlRelato}'},50);</script>`}
 </body>
 </html>`);
   } catch (error) {

@@ -120,6 +120,16 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - Composer se pre-rellena con plantilla editable: `título + autor + fragmento (180 chars) + enlace`
 - Usuario puede editar antes de enviar (preserva intimidad, no spam automático)
 
+### Fase 9 — Open Graph cards para viralidad externa 🌐
+**Backend:**
+- `GET /api/og/relato/:id` (público, sin auth) — HTML con meta tags `og:*` y `twitter:*` completas; detección de bots por User-Agent para servir o no el meta refresh hacia `/relato/:id`
+- `GET /api/og/relato/:id/imagen` (público) — PNG dinámico 1200×630 generado vía `@resvg/resvg-js` con título, autor, época, fragmento (100 chars), reloj de arena monograma y marco ornamentado dorado
+- Cache-Control 600s (HTML) / 3600s (imagen)
+- Detecta: WhatsApp, FacebookExternalHit, Twitterbot, Discord, Telegram, Slackbot, SkypeURIPreview + patrones genéricos (bot|crawl|spider|preview|embed)
+
+**Frontend:**
+- `ShareChronicleModal` y `MisivasPage` ahora usan `/api/og/relato/:id` como enlace público — al pegar en WhatsApp/Twitter/Discord aparece la preview elegante (vista previa con título + autor + época + sello dorado)
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
 - `/explorar` ← Fase 5
@@ -158,6 +168,10 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - `POST /api/misivas/:conversacionId/mensajes`
 - `POST /api/misivas/:conversacionId/leer`
 
+### Open Graph (Fase 9 — sin auth, públicos)
+- `GET /api/og/relato/:id` → HTML con meta og:*/twitter:* + redirect humanos
+- `GET /api/og/relato/:id/imagen` → PNG 1200×630 dinámico
+
 ### Preferencias
 - `PUT /api/usuarios/preferencias` con `{sonido_aviso, arbol_publico}`
 
@@ -166,10 +180,10 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 ## Backlog / Roadmap
 
 ### P1 - Próximas
+- 📱 PWA (manifest + service worker + ícono + push web) — paso 1 para móvil
 - 🏛️ Detalle de Época funcional (relatos por era histórica)
 - 📨 Newsletter semanal por email con Resend (reutilizando WeeklyHighlight)
-- 🔗 Compartir relato a redes externas (Open Graph cards)
-- 📱 Probar el responsive en Capacitor/PWA real
+- 💳 Stripe + Plan Cronista Premium (árbol ilimitado, export PDF, sonidos exclusivos)
 
 ### P2 - Mejoras
 - 🔗 **FamilySearch API OAuth** (sincronización con árbol externo más grande del mundo)
@@ -197,10 +211,11 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 ## Tests
 - `/app/backend/tests/test_*.py` (pytest, 6 archivos)
 - `test_phase4_legado.py` — 22 tests del árbol
-- Iteraciones: `/app/test_reports/iteration_{1..10}.json` — todas 100%
+- Iteraciones: `/app/test_reports/iteration_{1..11}.json` — todas 100%
 - `test_phase5_explorar.py` — 12 tests
 - `test_misivas.py` — 16 tests (DM 1-on-1)
 - `test_share_chronicle.py` — 8 tests (compartir crónica por misiva)
+- `test_og_cards.py` — 21 tests (Open Graph cards)
 
 ## Credenciales
 Ver `/app/memory/test_credentials.md`

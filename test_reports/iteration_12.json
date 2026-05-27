@@ -1,0 +1,71 @@
+{
+  "summary": "Testing de lectura pública de relatos (Chronos). Backend 10/10 PASS. Frontend: PublicShell, CTAs y comment-locked-cta funcionan. Detecté DOS bugs críticos: (1) interceptor de axios redirigía a /login en cualquier 401 — bloqueaba la lectura pública; lo arreglé excluyendo /relato/* y /auth/me. (2) Tras submit en /login?redirect=/relato/X el usuario aterriza en / en lugar del relato. Este bug sigue presente y requiere main agent.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Login.js (handleSubmit)",
+        "issue": "Tras login exitoso con ?redirect=/relato/<id>, la app navega a '/' (Feed) en lugar de la URL del redirect. Probable race condition: setUser() en AuthContext provoca re-render que monta PublicRoute con isAuthenticated=true, pero searchParams ya no está disponible o navigate(redirect) ocurre antes con valor incorrecto. PublicRoute con auth previa SÍ honra ?redirect correctamente (reload manual). Sólo falla el flujo post-submit.",
+        "selector": "button[type='submit'] en /login?redirect=/relato/...",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Funnel de adquisición: anónimo en /relato/X → click 'Únete'/CTA → /registro?redirect=/relato/X → submit registro/login → DEBE volver al relato. Hoy vuelve al Feed '/'.",
+        "affected_selectors": ["button[type='submit']", "[data-testid='public-login-btn']", "[data-testid='public-register-btn']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_public_relato.py",
+    "/app/test_reports/pytest/test_public_relato.xml"
+  ],
+  "action_items": [
+    "Arreglar Login.js / Register.js: el navigate(redirect) tras submit no se respeta — probable conflicto con PublicRoute que se re-monta cuando isAuthenticated cambia y lee window.location.search desactualizado. Sugerencia: en handleSubmit usar `window.location.replace(redirect)` o capturar el redirect en un ref antes del await, o hacer que PublicRoute use useSearchParams() (reactivo) en vez de window.location.search.",
+    "Revisar el fix aplicado a src/services/api.js: el interceptor ahora no redirige si la ruta actual empieza con /relato/ o el endpoint es /auth/me. Validar que esta política sea suficientemente amplia (¿qué pasa con futuras rutas públicas?). Considerar inversión: exigir un flag explícito en error.config para disparar redirect, no aplicarlo por defecto.",
+    "Sin el fix de api.js la feature de lectura pública NO funciona — verificar que el approach del fix sea aceptado o reemplazado por uno equivalente."
+  ],
+  "critical_code_review_comments": [
+    "src/services/api.js: el interceptor que hace window.location.href='/login' ante cualquier 401 es un anti-patrón global que ya rompió la nueva ruta pública. Es frágil y se romperá de nuevo cuando se agreguen más rutas públicas.",
+    "AuthContext.checkAuth() siempre llama /auth/me incluso para visitantes anónimos en rutas públicas → genera ruido en console.error y un 401 esperado por cada visita anónima. Considerar suprimir el log o marcar el call como 'silent'.",
+    "PublicRoute lee window.location.search en vez de useSearchParams → no es reactivo y puede leer un valor stale dependiendo del orden de render.",
+    "RelatoDetail.js > 466 líneas: cumple la guía de tamaño pero está cerca del límite; el branching auth/anon (PublicShell vs PageShell, gating de cada acción) hace el componente complejo. Sugerencia: extraer hooks (useRelatoData, useRelatoActions) y componentes (AnonCTA, CommentLockedCTA) a archivos separados.",
+    "GET /api/relatos/:id devuelve `relato.toObject()` directamente → verificar que el _id de Mongo se serialice como string (toObject por defecto lo deja como ObjectId; en el JSON termina como string vía JSON.stringify, pero conviene auditarlo).",
+    "Backend authOptional.js correcto: usa try/catch silencioso y no expone 401 al anon — buen patrón."
+  ],
+  "updated_files": [
+    "/app/frontend/src/services/api.js (fix mínimo: interceptor no redirige en rutas públicas ni en /auth/me)",
+    "/app/backend/tests/test_public_relato.py (NUEVO: 10 tests para lectura pública y gating)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "85%"},
+  "test_credentials": "keilin@chronos.com / chronos123 (campo 'correo')",
+  "seed_data_creation": "Ninguna. Usé relato 6a162ecd24dbda262c859563 (César y el Rubicón) ya existente.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend (10/10) y la mayoría del frontend público funcionan. PublicShell, relato-join-cta, comment-locked-cta, redirección anon→/registro?redirect=, vista autenticada con PageShell, y PublicRoute-con-auth-previa-honra-redirect → todos PASS. ÚNICO bug abierto: Login.js handleSubmit no respeta ?redirect tras submit exitoso (termina en /). Mismo riesgo aplica a Register.js (no se testeó submit, pero la lógica es idéntica). Cuando se arregle, retestear con un usuario nuevo registrándose desde /registro?redirect=/relato/<id>.",
+  "rca of the issue": {
+    "bug_1_interceptor_redirect": {
+      "reproduce": "Abrir /relato/6a162ecd24dbda262c859563 en navegador sin sesión.",
+      "expected": "Renderiza el relato con PublicShell.",
+      "observed_before_fix": "Redirigido inmediatamente a /login.",
+      "root_cause": "AuthContext.checkAuth() llama GET /api/auth/me al montar la app. Sin cookie → 401. El interceptor global en src/services/api.js disparaba window.location.href='/login' para todo 401 excepto /login y /registro. La ruta /relato/:id no estaba en la lista de excepciones → la app salía de /relato a /login antes de poder renderizar.",
+      "fix_applied": "src/services/api.js: añadidas excepciones para currentPath.startsWith('/relato/') y para failedUrl.includes('/auth/me'). Confirmé que con esto el relato carga correctamente para anónimos."
+    },
+    "bug_2_login_redirect_param_ignored": {
+      "reproduce": "1) Abrir /login?redirect=/relato/6a162ecd24dbda262c859563 sin sesión. 2) Rellenar keilin@chronos.com / chronos123. 3) Click 'Entrar al archivo'.",
+      "expected": "Tras login, navega a /relato/6a162ecd24dbda262c859563.",
+      "observed": "Tras login, navega a / (Feed).",
+      "root_cause_hypothesis": "Race condition entre setUser() en AuthContext (que dispara rerender → PublicRoute monta <Navigate>) y navigate(redirect) síncrono en handleSubmit. PublicRoute lee window.location.search vía new URLSearchParams pero algo lo lee como vacío o la navegación a / sobrescribe la del relato. Notar que cuando ya estás autenticado y entras a /login?redirect=/relato/... SÍ funciona (caso testeado, PASS).",
+      "mitigation_options": [
+        "En handleSubmit capturar `const target = redirect;` antes del await y luego `window.location.replace(target)` para forzar navegación dura.",
+        "Hacer que PublicRoute use useSearchParams() en lugar de window.location.search para que sea reactivo y consistente con Login.",
+        "Mover el redirect a un useEffect que dispare cuando isAuthenticated && redirect && pathname==='/login'."
+      ]
+    }
+  }
+}

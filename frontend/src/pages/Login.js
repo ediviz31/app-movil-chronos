@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { HourglassIcon } from '../components/HistoricIcons';
 
@@ -10,13 +10,15 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); setLoading(true);
     try {
       await login(correo, password);
-      navigate('/');
+      navigate(redirect);
     } catch (err) {
       setError(err.response?.data?.error || 'Credenciales inválidas');
     } finally {
@@ -66,7 +68,7 @@ const Login = () => {
         </form>
 
         <p className="auth-link">
-          ¿Aún no eres cronista? <Link to="/registro" data-testid="link-registro">Únete a Chronos</Link>
+          ¿Aún no eres cronista? <Link to={`/registro${redirect !== '/' ? '?redirect=' + encodeURIComponent(redirect) : ''}`} data-testid="link-registro">Únete a Chronos</Link>
         </p>
       </div>
     </div>

@@ -26,10 +26,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === HTTP_STATUS.UNAUTHORIZED) {
-      // Solo redirigir si NO estamos ya en una página pública (login/registro)
-      const publicPaths = ['/login', '/registro'];
+      // No redirigir si estamos en una ruta pública (login/registro/relato público)
+      // ni si el endpoint que falló es /auth/me (verificación pasiva al cargar)
       const currentPath = window.location.pathname;
-      if (!publicPaths.includes(currentPath)) {
+      const isPublicPath =
+        currentPath === '/login' ||
+        currentPath === '/registro' ||
+        currentPath.startsWith('/relato/');
+      const failedUrl = error.config?.url || '';
+      const isAuthMeCheck = failedUrl.includes('/auth/me');
+      if (!isPublicPath && !isAuthMeCheck) {
         window.location.href = '/login';
       }
     }
