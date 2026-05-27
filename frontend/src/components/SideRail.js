@@ -28,12 +28,6 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
 
   return (
     <aside className="side-rail" data-testid="side-rail">
-      <div className="rail-logo" data-testid="rail-logo" onClick={() => navigate('/')}>
-        <HourglassIcon size={42} />
-      </div>
-      <div className="rail-sublabel">ARCHIVO VIVO</div>
-      <div className="rail-divider"></div>
-
       {items.map(item => {
         const IconComp = item.icon;
         return (

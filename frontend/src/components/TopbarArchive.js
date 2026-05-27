@@ -12,58 +12,67 @@ const TopbarArchive = ({ onCreate }) => {
   const navItems = [
     { path: '/', label: 'Para ti', icon: '✦' },
     { path: '/cronicas', label: 'Crónicas', icon: '◈' },
-    { path: '/legados', label: 'Legados', icon: '⊙' },
-    { path: '/documentos', label: 'Documentos', icon: '⬚' }
+    { path: '/legados', label: 'Legados', icon: '⊙' }
   ];
 
   return (
     <header className="archive-topbar" data-testid="archive-topbar">
-      {/* Logo CHRONOS */}
-      <div className="topbar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} data-testid="topbar-brand">
-        <div className="topbar-brand-icon">
-          <HourglassIcon size={26} />
+      <div className="topbar-inner">
+        {/* IZQUIERDA: Logo (alineado con sidebar) */}
+        <div className="topbar-section-left">
+          <div className="topbar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} data-testid="topbar-brand">
+            <div className="topbar-brand-icon">
+              <HourglassIcon size={26} />
+            </div>
+            <div className="topbar-brand-text">
+              <span className="brand-name">CHRONOS</span>
+              <span className="brand-tag">ARCHIVO VIVO</span>
+            </div>
+          </div>
         </div>
-        <div className="topbar-brand-text">
-          <span className="brand-name">CHRONOS</span>
-          <span className="brand-tag">ARCHIVO VIVO</span>
+
+        {/* CENTRO: Búsqueda (alineada con feed) */}
+        <div className="topbar-section-center">
+          <div className="archive-search" data-testid="archive-search">
+            <SearchIcon size={16} style={{ color: 'var(--gold)' }} />
+            <input
+              type="text"
+              placeholder="Buscar personas, épocas, lugares o documentos..."
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="archive-search" data-testid="archive-search">
-        <SearchIcon size={16} style={{ color: 'var(--gold)' }} />
-        <input
-          type="text"
-          placeholder="Buscar personas, épocas, lugares o documentos..."
-        />
-      </div>
+        {/* DERECHA: Nav + Acciones (alineadas con sidebar derecho) */}
+        <div className="topbar-section-right">
+          <nav className="archive-nav">
+            {navItems.map(item => (
+              <a
+                key={item.path}
+                href={item.path}
+                className={location.pathname === item.path ? 'active' : ''}
+                data-testid={`nav-${item.label.toLowerCase().replace(' ', '-')}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (item.path === '/') window.history.pushState({}, '', '/');
+                }}
+              >
+                <span style={{ fontSize: 9, color: 'var(--gold)' }}>{item.icon}</span>
+                {item.label}
+              </a>
+            ))}
+          </nav>
 
-      <nav className="archive-nav">
-        {navItems.map(item => (
-          <a
-            key={item.path}
-            href={item.path}
-            className={location.pathname === item.path ? 'active' : ''}
-            data-testid={`nav-${item.label.toLowerCase().replace(' ', '-')}`}
-            onClick={(e) => {
-              e.preventDefault();
-              if (item.path === '/') window.history.pushState({}, '', '/');
-            }}
-          >
-            <span style={{ fontSize: 9, color: 'var(--gold)' }}>{item.icon}</span>
-            {item.label}
-          </a>
-        ))}
-      </nav>
-
-      <div className="archive-topbar-actions">
-        <button className="icon-btn" onClick={onCreate} data-testid="topbar-create-btn" title="Crear crónica">
-          <FeatherIcon size={18} />
-        </button>
-        <button className="icon-btn" data-testid="topbar-notif-btn" title="Notificaciones">
-          <BellIcon size={18} />
-        </button>
-        <div className="user-avatar-small" data-testid="topbar-user-avatar">
-          <img src={getAvatarUrl(user)} alt={user?.nombre} />
+          <div className="archive-topbar-actions">
+            <button className="icon-btn" onClick={onCreate} data-testid="topbar-create-btn" title="Crear crónica">
+              <FeatherIcon size={18} />
+            </button>
+            <button className="icon-btn" data-testid="topbar-notif-btn" title="Notificaciones">
+              <BellIcon size={18} />
+            </button>
+            <div className="user-avatar-small" data-testid="topbar-user-avatar">
+              <img src={getAvatarUrl(user)} alt={user?.nombre} />
+            </div>
+          </div>
         </div>
       </div>
     </header>
