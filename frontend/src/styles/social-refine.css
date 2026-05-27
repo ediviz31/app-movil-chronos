@@ -6,7 +6,7 @@
 /* Layout más estrecho y vertical estilo red social */
 .main-area {
   grid-area: main;
-  grid-template-columns: 1fr 340px !important;
+  grid-template-columns: 340px 1fr !important;
   max-width: 1180px !important;
   margin: 0 auto !important;
   padding: 28px 32px !important;
@@ -19,6 +19,11 @@
   max-width: 100%;
   width: 100%;
   margin: 0;
+  order: 2;
+}
+
+.archive-sidebar {
+  order: 1;
 }
 
 /* Quitar timeline rail vertical (era muy "museo") */

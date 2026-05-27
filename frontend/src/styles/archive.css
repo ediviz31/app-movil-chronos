@@ -92,23 +92,24 @@ button {
 .archive-layout {
   display: grid;
   grid-template-rows: 64px 1fr;
-  grid-template-columns: 90px 1fr;
+  grid-template-columns: 1fr 90px;
   grid-template-areas:
     "topbar topbar"
-    "rail main";
+    "main rail";
   min-height: 100vh;
   position: relative;
   z-index: 1;
 }
 
-/* ===== SIDEBAR LATERAL ANGOSTA ===== */
+/* ===== SIDEBAR LATERAL ANGOSTA (DERECHA) ===== */
 .side-rail {
   grid-area: rail;
   position: sticky;
   top: 64px;
   height: calc(100vh - 64px);
   background: linear-gradient(180deg, var(--bg-deep), rgba(6, 13, 30, 0.6));
-  border-right: 1px solid var(--border-thin);
+  border-left: 1px solid var(--border-thin);
+  border-right: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -261,14 +262,14 @@ button {
   position: relative;
 }
 
-/* Logo: izquierda fija */
+/* Acciones + Nav: izquierda */
 .topbar-section-left {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
   height: 100%;
-  width: 240px;
-  padding-left: 24px;
-  border-right: 1px solid var(--border-thin);
+  padding-left: 28px;
   flex-shrink: 0;
 }
 
@@ -298,14 +299,15 @@ button {
   transition: all 0.25s ease;
 }
 
-/* Nav + acciones: derecha */
+/* Logo CHRONOS: derecha (alineado con sidebar de iconos) */
 .topbar-section-right {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 16px;
   height: 100%;
-  padding-right: 28px;
+  width: 280px;
+  padding-right: 24px;
+  border-left: 1px solid var(--border-thin);
   flex-shrink: 0;
 }
 

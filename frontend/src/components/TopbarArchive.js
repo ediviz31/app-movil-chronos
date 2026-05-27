@@ -18,32 +18,8 @@ const TopbarArchive = ({ onCreate }) => {
   return (
     <header className="archive-topbar" data-testid="archive-topbar">
       <div className="topbar-inner">
-        {/* IZQUIERDA: Logo (alineado con sidebar) */}
+        {/* IZQUIERDA: Nav + Acciones */}
         <div className="topbar-section-left">
-          <div className="topbar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} data-testid="topbar-brand">
-            <div className="topbar-brand-icon">
-              <HourglassIcon size={26} />
-            </div>
-            <div className="topbar-brand-text">
-              <span className="brand-name">CHRONOS</span>
-              <span className="brand-tag">ARCHIVO VIVO</span>
-            </div>
-          </div>
-        </div>
-
-        {/* CENTRO: Búsqueda (alineada con feed) */}
-        <div className="topbar-section-center">
-          <div className="archive-search" data-testid="archive-search">
-            <SearchIcon size={16} style={{ color: 'var(--gold)' }} />
-            <input
-              type="text"
-              placeholder="Buscar"
-            />
-          </div>
-        </div>
-
-        {/* DERECHA: Nav + Acciones (alineadas con sidebar derecho) */}
-        <div className="topbar-section-right">
           <nav className="archive-nav">
             {navItems.map(item => (
               <a
@@ -71,6 +47,30 @@ const TopbarArchive = ({ onCreate }) => {
             </button>
             <div className="user-avatar-small" data-testid="topbar-user-avatar">
               <img src={getAvatarUrl(user)} alt={user?.nombre} />
+            </div>
+          </div>
+        </div>
+
+        {/* CENTRO: Búsqueda */}
+        <div className="topbar-section-center">
+          <div className="archive-search" data-testid="archive-search">
+            <SearchIcon size={16} style={{ color: 'var(--gold)' }} />
+            <input
+              type="text"
+              placeholder="Buscar"
+            />
+          </div>
+        </div>
+
+        {/* DERECHA: Logo CHRONOS (alineado con sidebar de iconos) */}
+        <div className="topbar-section-right">
+          <div className="topbar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} data-testid="topbar-brand">
+            <div className="topbar-brand-text" style={{ textAlign: 'right' }}>
+              <span className="brand-name">CHRONOS</span>
+              <span className="brand-tag">ARCHIVO VIVO</span>
+            </div>
+            <div className="topbar-brand-icon">
+              <HourglassIcon size={26} />
             </div>
           </div>
         </div>
