@@ -130,6 +130,25 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 **Frontend:**
 - `ShareChronicleModal` y `MisivasPage` ahora usan `/api/og/relato/:id` como enlace público — al pegar en WhatsApp/Twitter/Discord aparece la preview elegante (vista previa con título + autor + época + sello dorado)
 
+### Fase 10 — Lectura pública de relatos 🔓 (funnel de adquisición)
+**Backend:**
+- Nuevo middleware `authOptional.js` — adjunta `req.user` si hay cookie válida, si no continúa como anónimo
+- `GET /api/relatos/:id` ahora usa `authOptional`; devuelve `es_publico` flag y `usuario_dio_eco/usuario_archivado=false` para anónimos
+- `GET /api/comentarios/:publicacionId` ahora usa `authOptional`
+- Acciones de escritura (POST ecos/comentarios/archivados) SIGUEN requiriendo auth estricto (401 sin cookie)
+
+**Frontend:**
+- `/relato/:id` ya NO está en `ProtectedRoute` — es público
+- `<PublicShell>` (nuevo) — topbar minimal con branding + "Entrar / Únete a Chronos"
+- `RelatoDetail` usa Shell condicional: `PageShell` si autenticado, `PublicShell` si anónimo
+- `<RelatoJoinCTA>` banner dorado ornamentado entre contenido y comentarios
+- Comentarios solo en lectura para anónimos; en lugar del composer aparece "Únete a Chronos para comentar"
+- Cada acción de escritura (eco, comentar, archivar, responder) verifica `isAuthenticated`; si no, redirige a `/registro?redirect=/relato/:id`
+- `Login.js` y `Register.js` leen query `?redirect` y honran la URL de destino tras autenticarse
+- `PublicRoute` reactivo (con `useSearchParams`) hace el redirect declarativamente cuando `isAuthenticated` cambia, evitando race conditions
+- Interceptor de `api.js` actualizado: no redirige a `/login` desde rutas públicas (login/registro/relato/) ni para checks pasivos `/auth/me`
+- `AuthContext.checkAuth` suprime `console.error` para 401 esperado en anónimos
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
 - `/explorar` ← Fase 5
@@ -180,7 +199,7 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 ## Backlog / Roadmap
 
 ### P1 - Próximas
-- 📱 PWA (manifest + service worker + ícono + push web) — paso 1 para móvil
+- 📱 PWA (manifest + service worker + ícono + push web) — paso 2 de la roadmap progresiva
 - 🏛️ Detalle de Época funcional (relatos por era histórica)
 - 📨 Newsletter semanal por email con Resend (reutilizando WeeklyHighlight)
 - 💳 Stripe + Plan Cronista Premium (árbol ilimitado, export PDF, sonidos exclusivos)
