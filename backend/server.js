@@ -22,6 +22,58 @@ const Mensaje = require('./models/Mensaje');
 const { getEfemeridesPorFecha, getEfemerideCercana, getCalendarioDelMes } = require('./data/efemerides');
 const { parseGedcomToFamiliares } = require('./utils/gedcomParser');
 const { Resvg } = require('@resvg/resvg-js');
+const webpush = require('web-push');
+const PushSubscription = require('./models/PushSubscription');
+
+// Configurar Web Push (VAPID)
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT || 'mailto:admin@chronos.app',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+} else {
+  console.warn('⚠️  VAPID keys no configuradas — web push deshabilitado');
+}
+
+/**
+ * Envía una notificación push a TODOS los dispositivos suscritos
+ * de un usuario. Limpia subscripciones inválidas (410 Gone).
+ *
+ * payload: { title, body, url, tag }
+ */
+async function enviarPushAUsuario(usuarioId, payload) {
+  try {
+    const subs = await PushSubscription.find({ usuario_id: usuarioId });
+    if (subs.length === 0) return;
+    const data = JSON.stringify({
+      title: payload.title || 'Chronos',
+      body: payload.body || '',
+      url: payload.url || '/',
+      tag: payload.tag || 'chronos-' + Date.now(),
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png'
+    });
+    const resultados = await Promise.allSettled(subs.map(s =>
+      webpush.sendNotification({
+        endpoint: s.endpoint,
+        keys: s.keys
+      }, data)
+    ));
+    // Borrar suscripciones que devolvieron 410/404 (expiradas)
+    for (let i = 0; i < resultados.length; i++) {
+      const r = resultados[i];
+      if (r.status === 'rejected') {
+        const status = r.reason?.statusCode;
+        if (status === 410 || status === 404) {
+          await PushSubscription.deleteOne({ _id: subs[i]._id });
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error enviando push:', err.message);
+  }
+}
 
 // Middleware
 const auth = require('./middleware/auth');
@@ -94,6 +146,26 @@ async function crearAviso({ destinatario_id, actor_id, tipo, publicacion_id, com
       publicacion_id: publicacion_id || undefined,
       comentario_id: comentario_id || undefined,
       resumen: resumen || ''
+    });
+    // Disparar push notification en segundo plano (no bloquea)
+    setImmediate(async () => {
+      try {
+        const titulos = {
+          eco: 'Resuena un eco en tu crónica',
+          comentario: 'Nuevo comentario en tu crónica',
+          seguidor: 'Tienes un nuevo legado',
+          mencion: 'Te mencionaron en una crónica'
+        };
+        const url = publicacion_id
+          ? `/relato/${publicacion_id}`
+          : (tipo === 'seguidor' ? `/perfil/${actor_id}` : '/avisos');
+        await enviarPushAUsuario(destinatario_id, {
+          title: titulos[tipo] || 'Aviso del archivo',
+          body: resumen || 'Visita Chronos para ver el detalle',
+          url,
+          tag: `chronos-${tipo}-${publicacion_id || actor_id}`
+        });
+      } catch (_) { /* silencioso */ }
     });
     return aviso;
   } catch (e) {
@@ -1728,6 +1800,17 @@ app.post('/api/misivas/:conversacionId/mensajes',
       // Marcar como leído para el remitente
       conv.leido_por.set(String(req.userId), msg.creado_en);
       await conv.save();
+
+      // Push notification al otro participante
+      const otroId = conv.participantes.find(p => String(p) !== String(req.userId));
+      const remitente = await User.findById(req.userId).select('nombre');
+      setImmediate(() => enviarPushAUsuario(otroId, {
+        title: `Misiva de ${remitente?.nombre || 'un cronista'}`,
+        body: contenido.slice(0, 120),
+        url: `/misivas/${conv._id}`,
+        tag: `chronos-misiva-${conv._id}`
+      }).catch(() => {}));
+
       res.status(HTTP_STATUS.CREATED).json(msg);
     } catch (error) {
       console.error('Error enviando misiva:', error);
@@ -1750,6 +1833,67 @@ app.post('/api/misivas/:conversacionId/leer', auth, async (req, res) => {
   } catch (error) {
     console.error('Error marcando leído:', error);
     res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al marcar leído' });
+  }
+});
+
+// ============================================
+// PUSH NOTIFICATIONS (VAPID Web Push)
+// ============================================
+
+// GET /api/push/public-key — clave pública VAPID para el frontend
+app.get('/api/push/public-key', (req, res) => {
+  res.json({ key: process.env.VAPID_PUBLIC_KEY || '' });
+});
+
+// POST /api/push/suscribir — guarda la subscripción del navegador del usuario
+app.post('/api/push/suscribir', auth, async (req, res) => {
+  try {
+    const { endpoint, keys } = req.body;
+    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Subscripción inválida' });
+    }
+    // Upsert: si ya existía esa endpoint, actualizamos el usuario_id (por si cambió)
+    await PushSubscription.findOneAndUpdate(
+      { endpoint },
+      {
+        usuario_id: req.userId,
+        endpoint,
+        keys,
+        user_agent: req.headers['user-agent'] || ''
+      },
+      { upsert: true, new: true }
+    );
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error suscribir push:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al suscribir' });
+  }
+});
+
+// POST /api/push/desuscribir — borra una subscripción por endpoint
+app.post('/api/push/desuscribir', auth, async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+    if (!endpoint) return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Endpoint requerido' });
+    await PushSubscription.deleteOne({ endpoint, usuario_id: req.userId });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error desuscribir push:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al desuscribir' });
+  }
+});
+
+// POST /api/push/test — el usuario se envía un push de prueba a sí mismo
+app.post('/api/push/test', auth, async (req, res) => {
+  try {
+    await enviarPushAUsuario(req.userId, {
+      title: 'Chronos',
+      body: 'Tu archivo de notificaciones está activo. Recibirás avisos cuando otros cronistas resuenen con tus crónicas.',
+      url: '/avisos'
+    });
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al enviar prueba' });
   }
 });
 

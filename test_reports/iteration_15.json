@@ -1,0 +1,40 @@
+{
+  "summary": "PWA + Web Push: 8/8 backend tests PASS (public-key, suscribir validations, idempotencia, desuscribir, eco/misiva push background no bloquea, /push/test). Regression 63/63 (visitas, misivas, public_relato, share_chronicle, og_cards). Static frontend assets OK (manifest.json, sw.js, icon-192/256/384/512.png, apple-touch-icon.png). PWA metas en index.html correctos (theme-color #0a1228, apple-mobile-web-app-capable, manifest link). SW se registra correctamente en HTTPS preview (navigator.serviceWorker.ready resuelve con scope correcto). Regression de rutas autenticadas (/misivas, /explorar, /mi-legado, /efemerides) renderiza sin errores. NO se pudo verificar visualmente el banner push-opt-in en headless Playwright (ver detalle abajo).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "PushOptInBanner aparece tras 25s",
+        "issue": "En Playwright headless el banner no llega a renderizarse aún cuando se forzan las 3 condiciones (Notification.permission='default' vía Object.defineProperty, PushManager.prototype.getSubscription patched a null, localStorage limpio antes de navegar). Esperamos hasta 32s tras login y locator count=0. Estado final dentro del navegador justo después de login: perm=default, sub_null=True, ls=None. El código del componente y de pushClient se ve correcto; sospechamos un quirk de timing/cleanup del useEffect bajo Playwright o que el override de Notification.permission no es visible para el closure del setTimeout. NO es un bug bloqueante: en navegador real con permission='default' el banner debería aparecer. Recomendado validar manualmente en Chrome desktop.",
+        "affected_selectors": ["[data-testid=\"push-opt-in\"]", "[data-testid=\"push-opt-in-dismiss\"]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_push.py",
+    "/app/test_reports/pytest/test_push.xml"
+  ],
+  "action_items": [
+    "Verificar manualmente en Chrome (no headless) que tras login → 25s aparece [data-testid='push-opt-in'] y que el dismiss persiste vía localStorage chronos_push_dismissed_v1. Backend y wiring están sólidos; solo queda la confirmación visual del banner."
+  ],
+  "critical_code_review_comments": [
+    "Banner: el setTimeout de 25s usa una closure `cancelled` que es cancelada por la limpieza del useEffect. Si AuthContext fluctúa (re-render con isAuthenticated cambiando) el timer se reinicia desde cero — puede causar que en algunas sesiones el banner nunca aparezca si hay re-renders cíclicos. Considerar usar un ref para no resetear el timer o usar un timestamp absoluto para 'mostrar después de X tras login'.",
+    "pushClient.subscribeToPush: si Notification.requestPermission devuelve algo distinto a 'granted' no se hace cleanup ni feedback al usuario. OK como MVP, pero se podría loggear / mostrar toast.",
+    "enviarPushAUsuario: confirmar manualmente que en producción el manejo de error 410 (gone) borra la PushSubscription expirada de Mongo (cubierto por código pero no testeable contra push servers reales en E2E)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_push.py (nuevo)"
+  ],
+  "success_rate": {"backend": "100% (8/8 push + 63/63 regresión)", "frontend": "static assets + SW registration + PWA metas + nav regression OK; banner visual no verificable en headless"},
+  "test_credentials": "keilin@chronos.com / chronos123, legado@chronos.com / chronos123",
+  "seed_data_creation": "Crea/desuscribe PushSubscriptions fake idempotentemente; relato con eco efímero entre keilin/legado (limpiado en el flujo); 1 mensaje en misivas (no afecta funcionalidad).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend /api/push/{public-key,suscribir,desuscribir,test} probados (8 tests en /app/backend/tests/test_push.py). Endpoint feed real es /api/relatos (no /api/publicaciones); autor en GET /api/relatos viene como usuario_id, no autor_id ni autor.{_id}. En Playwright headless Notification.permission='denied' por defecto; override vía add_init_script funciona pero el banner aún no llegó a renderizar — recomendable testear manualmente o investigar un quirk del useEffect.",
+  "rca of the issue": "N/A — no se encontró bug crítico. La no-aparición del banner en headless es muy probablemente una limitación del entorno de testing automatizado, no un defecto del producto."
+}

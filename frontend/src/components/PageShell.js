@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import TopbarArchive from './TopbarArchive';
 import SideRail from './SideRail';
 import CreateChronicleModal from './CreateChronicleModal';
+import PushOptInBanner from './PushOptInBanner';
 import { FeatherIcon } from './HistoricIcons';
 
 /**
@@ -47,6 +48,8 @@ const PageShell = ({ activeRail = '', children, onChronicleCreated, showFab = tr
           onChronicleCreated && onChronicleCreated(nuevo);
         }}
       />
+
+      <PushOptInBanner />
     </div>
   );
 };
