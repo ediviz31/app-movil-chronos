@@ -91,61 +91,48 @@ button {
 /* ===== LAYOUT PRINCIPAL ===== */
 .archive-layout {
   display: grid;
+  grid-template-rows: 64px 1fr;
   grid-template-columns: 90px 1fr;
+  grid-template-areas:
+    "topbar topbar"
+    "rail main";
   min-height: 100vh;
   position: relative;
   z-index: 1;
 }
 
-.archive-layout > .main-area-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 0;
-}
-
 /* ===== SIDEBAR LATERAL ANGOSTA ===== */
 .side-rail {
+  grid-area: rail;
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: 64px;
+  height: calc(100vh - 64px);
   background: linear-gradient(180deg, var(--bg-deep), rgba(6, 13, 30, 0.6));
   border-right: 1px solid var(--border-thin);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 28px 0 20px;
-  gap: 8px;
+  padding: 20px 0;
+  gap: 6px;
   z-index: 50;
 }
 
 .rail-logo {
-  width: 50px;
-  height: 60px;
+  width: 44px;
+  height: 50px;
   display: grid;
   place-items: center;
   color: var(--gold);
-  margin-bottom: 32px;
+  margin-bottom: 8px;
   position: relative;
 }
 
 .rail-logo::after {
-  content: "CHRONOS";
-  position: absolute;
-  bottom: -22px;
-  font-family: var(--font-elegant);
-  font-size: 9px;
-  letter-spacing: 0.25em;
-  color: var(--gold);
+  display: none;
 }
 
-.rail-logo + .rail-sublabel {
-  font-family: var(--font-elegant);
-  font-size: 7px;
-  letter-spacing: 0.3em;
-  color: var(--text-muted);
-  margin-bottom: 36px;
-  margin-top: 4px;
+.rail-sublabel {
+  display: none;
 }
 
 .rail-divider {
@@ -230,6 +217,7 @@ button {
 
 /* ===== ÁREA PRINCIPAL ===== */
 .main-area {
+  grid-area: main;
   display: grid;
   grid-template-columns: 1fr 360px;
   gap: 40px;
@@ -237,33 +225,89 @@ button {
   max-width: 1600px;
 }
 
-/* ===== TOPBAR DENTRO DEL MAIN ===== */
+/* ===== TOPBAR FULL WIDTH ===== */
 .archive-topbar {
-  grid-column: 1 / -1;
+  grid-area: topbar;
   display: flex;
   align-items: center;
-  gap: 24px;
-  margin-bottom: 28px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--border-thin);
+  gap: 20px;
+  padding: 0 32px;
+  height: 64px;
+  background: linear-gradient(180deg, #04091A 0%, #060D1E 100%);
+  border-bottom: 1px solid rgba(212, 184, 120, 0.3);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  margin-bottom: 0;
+}
+
+.archive-topbar::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-soft), transparent);
+  pointer-events: none;
+}
+
+/* Logo CHRONOS en topbar */
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 24px;
+  border-right: 1px solid var(--border-thin);
+  margin-right: 8px;
+  height: 100%;
+}
+
+.topbar-brand-icon {
+  color: var(--gold);
+  display: grid;
+  place-items: center;
+}
+
+.topbar-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.topbar-brand-text .brand-name {
+  font-family: var(--font-elegant);
+  font-size: 14px;
+  letter-spacing: 0.25em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.topbar-brand-text .brand-tag {
+  font-family: var(--font-elegant);
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  color: var(--text-muted);
+  margin-top: 3px;
 }
 
 .archive-search {
   flex: 1;
-  max-width: 480px;
+  max-width: 420px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 18px;
+  gap: 10px;
+  padding: 8px 16px;
   border: 1px solid var(--border-thin);
-  border-radius: 24px;
-  background: rgba(15, 26, 51, 0.6);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
   transition: all 0.25s ease;
 }
 
 .archive-search:focus-within {
   border-color: var(--gold);
-  background: rgba(15, 26, 51, 0.9);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .archive-search input {
@@ -274,7 +318,7 @@ button {
   color: var(--text-bright);
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .archive-search input::placeholder {
@@ -283,20 +327,24 @@ button {
 
 .archive-nav {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   align-items: center;
+  height: 100%;
 }
 
 .archive-nav a {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
+  padding: 8px 14px;
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: 15px;
   color: var(--text-muted);
   position: relative;
   transition: color 0.2s ease;
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
 
 .archive-nav a:hover {
@@ -310,23 +358,24 @@ button {
 .archive-nav a.active::after {
   content: "";
   position: absolute;
-  bottom: -25px;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 24px;
-  height: 1px;
+  height: 2px;
   background: var(--gold);
+  border-radius: 2px 2px 0 0;
 }
 
 .archive-topbar-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 
 .icon-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 1px solid var(--border-thin);
   display: grid;
@@ -334,6 +383,7 @@ button {
   color: var(--gold);
   cursor: pointer;
   transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .icon-btn:hover {
@@ -342,8 +392,8 @@ button {
 }
 
 .user-avatar-small {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 2px solid var(--gold);
   overflow: hidden;

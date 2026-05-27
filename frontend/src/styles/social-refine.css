@@ -5,10 +5,11 @@
 
 /* Layout más estrecho y vertical estilo red social */
 .main-area {
+  grid-area: main;
   grid-template-columns: 1fr 340px !important;
   max-width: 1180px !important;
   margin: 0 auto !important;
-  padding: 24px 32px !important;
+  padding: 28px 32px !important;
   gap: 32px !important;
   width: 100%;
 }

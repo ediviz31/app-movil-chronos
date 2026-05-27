@@ -49,10 +49,10 @@ const Feed = () => {
 
   return (
     <div className="archive-layout">
+      <TopbarArchive onCreate={() => setModalOpen(true)} />
       <SideRail activeItem="inicio" onLogout={logout} />
 
       <div className="main-area">
-        <TopbarArchive onCreate={() => setModalOpen(true)} />
 
         <main className="archive-feed" data-testid="archive-feed">
 
