@@ -1,0 +1,487 @@
+/* =====================================================
+   CHRONOS - Native mobile app feel
+   Solo se aplica en pantallas pequeñas para emular UX nativo
+   ===================================================== */
+
+/* ---- Safe area insets (iPhone con notch) ---- */
+@supports (padding: env(safe-area-inset-top)) {
+  @media (max-width: 900px) {
+    .archive-topbar {
+      padding-top: env(safe-area-inset-top);
+      height: calc(56px + env(safe-area-inset-top));
+    }
+    .archive-layout {
+      grid-template-rows: calc(56px + env(safe-area-inset-top)) 1fr calc(64px + env(safe-area-inset-bottom));
+    }
+    .side-rail {
+      padding-bottom: env(safe-area-inset-bottom);
+      height: calc(64px + env(safe-area-inset-bottom));
+    }
+    .floating-create {
+      bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+    }
+    .push-opt-in {
+      bottom: calc(84px + env(safe-area-inset-bottom));
+    }
+    /* Modals: respetar inset bottom (botones no quedan tapados) */
+    .modal-content { padding-bottom: env(safe-area-inset-bottom); }
+    /* Public shell */
+    .public-topbar {
+      padding-top: env(safe-area-inset-top);
+    }
+  }
+}
+
+/* ---- Tipografía táctil y prevención de zoom iOS ---- */
+@media (max-width: 900px) {
+  html {
+    /* Evita el ajuste automático de tipografía al rotar */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    /* Cuerpo sin selección textual accidental al hacer long-press en navegación */
+    -webkit-tap-highlight-color: transparent;
+    /* Mejor scroll con momentum en iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Disable pull-to-refresh accidental dentro de la app */
+    overscroll-behavior-y: contain;
+  }
+  /* Permitir selección sólo en contenido leíble */
+  .relato-content, .relato-title, .social-post-content, .social-post-title,
+  .misiva-carta-contenido, .comment-text, .auth-input, input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-tap-highlight-color: rgba(212, 184, 120, 0.15);
+  }
+
+  /* Inputs táctiles cómodos */
+  input, textarea, select, button {
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 4px;
+  }
+  /* Minimum touch target 44x44 */
+  button, .clickable, a.btn, [role="button"] {
+    min-height: 44px;
+  }
+  /* Excepciones: iconos pequeños no necesitan 44px */
+  .social-action-btn, .icon-btn, .topbar-action-btn,
+  .relato-action, .rail-item, .misivas-send-btn,
+  .public-cta-btn, .public-link-btn { min-height: auto; }
+}
+
+/* ---- Touch feedback (active states tipo iOS) ---- */
+@media (max-width: 900px) {
+  .social-action-btn:active,
+  .relato-action:active,
+  .chronicle-card:active,
+  .social-post:active,
+  .misivas-thread:active,
+  .share-chronicle-row:active,
+  .weekly-highlight-relato:active,
+  .weekly-highlight-cronista:active {
+    transform: scale(0.98);
+    opacity: 0.85;
+    transition: transform 0.06s ease, opacity 0.06s ease;
+  }
+  .rail-item:active,
+  .icon-btn:active,
+  .topbar-brand:active {
+    background: rgba(212, 184, 120, 0.12);
+    transition: background 0.06s ease;
+  }
+}
+
+/* ---- Bottom rail: indicador activo tipo iOS tab bar ---- */
+@media (max-width: 900px) {
+  .side-rail .rail-item {
+    position: relative;
+    color: var(--text-muted);
+    transition: color 0.15s ease;
+  }
+  .side-rail .rail-item.active {
+    color: var(--gold-bright);
+  }
+  .side-rail .rail-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 2px;
+    background: var(--gold);
+    border-radius: 0 0 2px 2px;
+    box-shadow: 0 0 8px rgba(212, 184, 120, 0.5);
+  }
+  /* Badge dot para items con notif (avisos/misivas) */
+  .side-rail .rail-item .rail-badge {
+    position: absolute;
+    top: 6px;
+    right: calc(50% - 18px);
+    min-width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 6px rgba(212, 184, 120, 0.7);
+    padding: 0;
+  }
+}
+
+/* ---- Topbar nativa: simplificada y centrada ---- */
+@media (max-width: 900px) {
+  .archive-topbar {
+    background: linear-gradient(180deg, rgba(10, 18, 38, 0.98), rgba(10, 18, 38, 0.92));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-thin);
+  }
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .topbar-brand-icon { width: 28px; height: 28px; }
+  /* Mostrar nombre Chronos pequeñito junto al icono en lugar de ocultar todo */
+  .topbar-brand-text {
+    display: flex !important;
+    flex-direction: column;
+    line-height: 1.05;
+  }
+  .topbar-brand-text .brand-name {
+    font-size: 14px !important;
+    letter-spacing: 0.18em !important;
+  }
+  .topbar-brand-text .brand-tag { display: none; }
+}
+
+/* ---- Modals tipo "sheet" móvil (sube desde abajo) ---- */
+@media (max-width: 900px) {
+  .modal-backdrop {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+  .modal-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 92vh !important;
+    animation: sheetUp 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes sheetUp {
+    from { transform: translateY(100%); opacity: 0.4; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+  /* "Asa" superior estilo iOS */
+  .modal-content::before {
+    content: '';
+    position: sticky;
+    top: 0;
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: 8px auto 4px;
+    background: var(--gold-soft);
+    border-radius: 2px;
+    opacity: 0.45;
+  }
+}
+
+/* ---- FAB (botón Crear): círculo dorado con sombra ---- */
+@media (max-width: 900px) {
+  .floating-create {
+    border-radius: 50% !important;
+    box-shadow:
+      0 0 0 1px var(--gold-soft),
+      0 8px 22px rgba(0, 0, 0, 0.55),
+      0 4px 12px rgba(212, 184, 120, 0.25);
+  }
+  .floating-create:active {
+    transform: scale(0.94) !important;
+  }
+}
+
+/* ---- Eliminar el badge Emergent en móvil (cubre el rail bottom) ---- */
+@media (max-width: 900px) {
+  #emergent-badge {
+    bottom: 80px !important;
+    right: 12px !important;
+    transform: scale(0.78);
+    transform-origin: bottom right;
+    opacity: 0.75;
+  }
+}
+
+/* ---- Scroll suave + sin barra visible (más nativo) ---- */
+@media (max-width: 900px) {
+  body, .main-area, .misivas-hilo, .misivas-thread-list, .share-chronicle-list {
+    scroll-behavior: smooth;
+  }
+  /* Esconder scrollbars verticales en móvil (mantener funcionalidad) */
+  .main-area::-webkit-scrollbar,
+  body::-webkit-scrollbar { width: 0; height: 0; }
+}
+
+/* ---- Saludo del feed más cálido y compacto en mobile ---- */
+@media (max-width: 900px) {
+  .feed-greeting {
+    border-bottom: 1px solid var(--border-thin);
+    margin-bottom: 12px;
+  }
+  /* Cards sin borde lateral, edge-to-edge */
+  .social-post, .weekly-highlight, .relato-join-cta {
+    margin-left: -12px;
+    margin-right: -12px;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+}
+
+/* ---- App instalada (display-mode: standalone) ---- */
+@media (display-mode: standalone) {
+  /* Esconder banner "Made with Emergent" cuando ya está instalada */
+  #emergent-badge { display: none !important; }
+  /* Permitir que el contenido toque el borde superior si no hay safe-area */
+  body { background: var(--bg-deep); }
+}
+
+/* ---- Mobile-only / Desktop-only helpers ---- */
+.mobile-only-icon { display: none; }
+.desktop-only-inline { display: inline-flex; }
+@media (max-width: 900px) {
+  .mobile-only-icon { display: inline-flex !important; }
+  .desktop-only-inline { display: none !important; }
+}
+
+/* ===== MOBILE DRAWER ("Más" en topbar) ===== */
+.mobile-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1500;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: flex-end;
+}
+.mobile-drawer {
+  width: min(86vw, 360px);
+  max-width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(15, 24, 50, 0.98), rgba(8, 14, 30, 0.99));
+  border-left: 1px solid var(--gold-soft);
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  animation: drawerSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.6);
+}
+@keyframes drawerSlideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.mobile-drawer-handle {
+  width: 4px;
+  height: 36px;
+  background: var(--gold-soft);
+  border-radius: 2px;
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  transform: translateY(-50%);
+  opacity: 0.5;
+}
+
+.mobile-drawer-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--border-thin);
+}
+.mobile-drawer-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  cursor: pointer;
+  padding: 6px;
+  margin: -6px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+.mobile-drawer-user:active { background: rgba(212, 184, 120, 0.1); }
+.mobile-drawer-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-soft);
+  object-fit: cover;
+}
+.mobile-drawer-user div {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+  flex: 1;
+}
+.mobile-drawer-user strong {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--gold-bright);
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mobile-drawer-user span {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.mobile-drawer-user-chevron {
+  color: var(--gold);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.mobile-drawer-close {
+  background: transparent;
+  border: 1px solid var(--border-thin);
+  color: var(--text-muted);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.mobile-drawer-close:active { color: var(--gold); border-color: var(--gold-soft); }
+
+.mobile-drawer-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 18px 12px;
+  padding: 10px 14px;
+  background: rgba(6, 13, 30, 0.6);
+  border: 1px solid var(--border-thin);
+  border-radius: 6px;
+  color: var(--gold);
+}
+.mobile-drawer-search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-default);
+  font-family: var(--font-display);
+  font-size: 14px;
+  min-height: auto;
+}
+.mobile-drawer-search input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.mobile-drawer-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 22px 6px;
+  font-family: var(--font-elegant);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.mobile-drawer-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 0 8px;
+  flex: 1;
+  overflow-y: auto;
+}
+.mobile-drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-default);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.15s ease;
+}
+.mobile-drawer-item:active { background: rgba(212, 184, 120, 0.08); }
+.mobile-drawer-item svg { color: var(--gold); flex-shrink: 0; }
+.mobile-drawer-item-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  flex: 1;
+  min-width: 0;
+}
+.mobile-drawer-item-text strong {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--gold-bright);
+  font-size: 15px;
+}
+.mobile-drawer-item-text span {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.mobile-drawer-item-arrow {
+  color: var(--gold);
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
+.mobile-drawer-footer {
+  padding: 14px 18px 18px;
+  border-top: 1px solid var(--border-thin);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+.mobile-drawer-logout {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border-thin);
+  color: var(--text-muted);
+  padding: 12px;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-style: italic;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.mobile-drawer-logout:active {
+  border-color: var(--gold-soft);
+  color: var(--gold);
+}
+.mobile-drawer-version {
+  font-family: var(--font-elegant);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  opacity: 0.5;
+}

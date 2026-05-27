@@ -30,6 +30,7 @@ import './styles/extras.css';
 import './styles/misivas.css';
 import './styles/public.css';
 import './styles/pwa.css';
+import './styles/mobile-app.css';
 
 const LoadingScreen = () => (
   <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg-deep)' }}>

@@ -1,19 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import SearchBar from './SearchBar';
 import AvisosBadge from './AvisosBadge';
 import MisivasBadge from './MisivasBadge';
+import MobileMoreDrawer from './MobileMoreDrawer';
 import {
-  FeatherIcon, HourglassIcon,
+  FeatherIcon, HourglassIcon, MenuIcon,
   OrnateStarIcon, ChronicleIcon, CommunitiesIcon, ScrollIcon
 } from './HistoricIcons';
 
 const TopbarArchive = ({ onCreate }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const navItems = [
     { path: '/', label: 'Para ti', Icon: OrnateStarIcon },
@@ -36,7 +38,9 @@ const TopbarArchive = ({ onCreate }) => {
               <span className="brand-tag">Archivo Vivo</span>
             </div>
           </div>
-          <SearchBar />
+          <div className="topbar-search-wrap">
+            <SearchBar />
+          </div>
         </div>
 
         {/* CENTRO: Navegación */}
@@ -71,8 +75,16 @@ const TopbarArchive = ({ onCreate }) => {
             </button>
             <AvisosBadge />
             <MisivasBadge />
+            <button
+              className="icon-btn mobile-only-icon"
+              onClick={() => setDrawerOpen(true)}
+              data-testid="topbar-more-btn"
+              aria-label="Más opciones"
+            >
+              <MenuIcon size={20} />
+            </button>
             <div
-              className="user-avatar-small"
+              className="user-avatar-small desktop-only-inline"
               data-testid="topbar-user-avatar"
               onClick={() => user && navigate(`/perfil/${user._id || user.id}`)}
               style={{ cursor: 'pointer' }}
@@ -83,6 +95,11 @@ const TopbarArchive = ({ onCreate }) => {
           </div>
         </div>
       </div>
+      <MobileMoreDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onLogout={logout}
+      />
     </header>
   );
 };

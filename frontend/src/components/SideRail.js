@@ -13,15 +13,15 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
   const navigate = useNavigate();
 
   const items = [
-    { id: 'inicio', label: 'Inicio', icon: OrnateStarIcon, path: '/' },
+    { id: 'inicio', label: 'Inicio', icon: OrnateStarIcon, path: '/', mobile: true },
+    { id: 'explorar', label: 'Explorar', icon: TelescopeIcon, path: '/explorar', mobile: true },
     { id: 'epocas', label: 'Épocas', icon: TempleIcon, path: '/epocas' },
     { id: 'efemerides', label: 'Efemérides', icon: MapIcon, path: '/efemerides' },
-    { id: 'explorar', label: 'Explorar', icon: TelescopeIcon, path: '/explorar' },
     { id: 'cronicas', label: 'Crónicas', icon: ChronicleIcon, path: '/cronicas' },
     { id: 'biblioteca', label: 'Biblioteca', icon: LibraryIcon, path: '/documentos' },
     { id: 'legados', label: 'Legados', icon: CommunitiesIcon, path: '/legados' },
-    { id: 'mi-legado', label: 'Mi Legado', icon: FeatherIcon, path: '/mi-legado' },
-    { id: 'misivas', label: 'Misivas', icon: DoveScrollIcon, path: '/misivas' }
+    { id: 'misivas', label: 'Misivas', icon: DoveScrollIcon, path: '/misivas', mobile: true },
+    { id: 'mi-legado', label: 'Mi Legado', icon: FeatherIcon, path: '/mi-legado', mobile: true }
   ];
 
   const handleClick = (item) => {
@@ -35,7 +35,7 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
         return (
           <button
             key={item.id}
-            className={`rail-item ${activeItem === item.id ? 'active' : ''}`}
+            className={`rail-item ${activeItem === item.id ? 'active' : ''} ${item.mobile ? 'mobile-tab' : 'desktop-only'}`}
             onClick={() => handleClick(item)}
             data-testid={`rail-${item.id}`}
           >
@@ -50,7 +50,7 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
       <div className="rail-divider"></div>
 
       <button
-        className="rail-item"
+        className="rail-item desktop-only"
         onClick={onLogout}
         data-testid="rail-logout"
         title="Cerrar sesión"

@@ -304,6 +304,18 @@ export const SearchIcon = ({ size = 18, ...props }) => (
   </svg>
 );
 
+// Menú móvil (tres líneas con ornamento de barra dorada)
+export const MenuIcon = ({ size = 22, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...baseIcon} {...props}>
+    <line x1="4" y1="7" x2="20" y2="7"/>
+    <line x1="4" y1="12" x2="20" y2="12"/>
+    <line x1="4" y1="17" x2="20" y2="17"/>
+    <circle cx="4" cy="12" r="0.8" fill="currentColor" stroke="none"/>
+    <circle cx="20" cy="12" r="0.8" fill="currentColor" stroke="none"/>
+  </svg>
+);
+
+
 // Más / Plus ornamental
 export const PlusOrnateIcon = ({ size = 20, ...props }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" {...baseIcon} {...props}>
