@@ -60,6 +60,19 @@ const userSchema = new mongoose.Schema({
   },
   codigo_legado_aceptado_en: {
     type: Date
+  },
+
+  // Preferencias de Chronos (sonido de avisos + privacidad del árbol)
+  preferencias: {
+    sonido_aviso: {
+      type: String,
+      enum: ['cuerno', 'lira', 'campana', 'silencio'],
+      default: 'cuerno'
+    },
+    arbol_publico: {
+      type: Boolean,
+      default: false  // Privado por defecto
+    }
   }
 }, {
   timestamps: { createdAt: 'creado_en', updatedAt: 'actualizado_en' }
