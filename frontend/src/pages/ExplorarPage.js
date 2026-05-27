@@ -5,7 +5,7 @@ import PageShell from '../components/PageShell';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import {
-  TelescopeIcon, HourglassIcon, ArrowRightIcon, OrnateStarIcon,
+  TelescopeIcon, HourglassIcon, ArrowRightIcon,
   TempleIcon, CoinLaurelIcon, FeatherIcon, CommunitiesIcon
 } from '../components/HistoricIcons';
 

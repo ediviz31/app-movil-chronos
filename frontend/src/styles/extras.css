@@ -530,6 +530,19 @@
   border: 1px dashed var(--border-thin);
 }
 
+.timeline-empty-hint {
+  margin-top: 14px;
+  padding: 12px 18px;
+  background: rgba(212, 184, 120, 0.06);
+  border: 1px dashed var(--gold-soft);
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 13px;
+}
+
 /* ===== MOBILE RESPONSIVE (sweep general) ===== */
 @media (max-width: 1100px) {
   .archive-layout {

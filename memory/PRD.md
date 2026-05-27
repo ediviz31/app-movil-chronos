@@ -51,13 +51,38 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - Selector de sonido con preview al clic
 - Toggle de privacidad del árbol (privado/público)
 
-## Rutas Frontend
+### Fase 5 — Explorar + Hashtags + Timeline (Bloque 2)
+**Hashtags auto-extraídos**:
+- Modelo `Publicacion.extractTags(text)` con regex Unicode (`\p{L}\p{N}_`) — soporta acentos y minimiza a 2-30 chars
+- POST/PUT `/api/relatos` re-extrae tags al crear o cambiar título/contenido
+- Componente `<HashtagText>` parsea contenido de relatos y convierte `#palabra` en spans clickeables → navega a `/tags/:tag`
+
+**Página Explorar** (`/explorar`):
+- 4 secciones: trending semanal (por score = ecos+comentarios 7d), cronistas para seguir, hashtags populares, épocas con más actividad
+- Endpoint único `GET /api/explorar` (combinado)
+- Entrada en SideRail con `TelescopeIcon`
+
+**Página Tag** (`/tags/:tag`):
+- Lista de relatos con un hashtag dado, header con back, total de relatos, render con `SocialPost`
+
+**Vista Línea cronológica del árbol** (`/mi-legado`):
+- Toggle Árbol ↔ Línea cronológica (componente `TimelineView`)
+- Eje vertical = años, izquierda = familiares, derecha = ~19 hitos universales (1492 Colón → 2020 COVID)
+- Espina dorsal dorada con marcas de décadas, cameo "Hoy" del usuario al final
+- Empty state mejorado: línea + hitos + cameo TÚ siempre visibles, hint "agrega fechas..." como overlay si no hay familiares con `fecha_nacimiento`
+
+**Mobile responsive sweep (Bloque 3 base)**:
+- Media queries `@max-width: 1100px` (sidebar oculta, rail comprimido) y `@max-width: 700px` (rail bottom nav, topbar simplificada, timeline compactada)
+
+## Rutas Frontend (actualizadas)
 - `/` Feed
+- `/explorar` ← NUEVO Fase 5
+- `/tags/:tag` ← NUEVO Fase 5
 - `/cronicas`, `/legados`, `/documentos`
 - `/epocas`, `/epocas/:nombre`
 - `/efemerides`
 - `/avisos`
-- `/mi-legado` ← NUEVO
+- `/mi-legado` (con toggle vista)
 - `/relato/:id`, `/perfil/:id`
 - `/login`, `/registro`
 
@@ -71,6 +96,12 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - `POST/DELETE /api/familiares/:id/historias`
 - `POST /api/familiares/importar-gedcom`
 
+### Explorar / Tags (Fase 5)
+- `GET /api/explorar` → `{trending, tags_populares, cronistas, epocas}`
+- `GET /api/trending` → `{dias:7, relatos:[...]}`
+- `GET /api/tags/populares`
+- `GET /api/tags/:tag/relatos` → `{tag, total, relatos}`
+
 ### Preferencias
 - `PUT /api/usuarios/preferencias` con `{sonido_aviso, arbol_publico}`
 
@@ -79,11 +110,9 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 ## Backlog / Roadmap
 
 ### P1 - Próximas
-- 📱 **Mobile responsive completo** (preparar para Capacitor/PWA)
-- 🔍 Página `/explorar` curada (mix de búsqueda + descubrimiento)
-- 📊 Trending real últimos 7 días
-- 💬 Mensajería directa entre cronistas
-- 🏷️ Hashtags / tags en relatos
+- 📱 **Mobile responsive sweep avanzado** (probar en Capacitor/PWA real)
+- 💬 Mensajería directa entre cronistas (estilo carta/pergamino)
+- 🏛️ Detalle de Época funcional (relatos por era histórica)
 
 ### P2 - Mejoras
 - 🔗 **FamilySearch API OAuth** (sincronización con árbol externo más grande del mundo)
@@ -109,9 +138,10 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - CORS_ORIGINS específico antes de producción
 
 ## Tests
-- `/app/backend/tests/test_*.py` (pytest, 5+ archivos)
+- `/app/backend/tests/test_*.py` (pytest, 6 archivos)
 - `test_phase4_legado.py` — 22 tests del árbol
-- Iteraciones: `/app/test_reports/iteration_{1..6}.json` — todas 100% (iter5 detectó 3 críticos + 2 minor, iter6 confirmó fix)
+- `test_phase5_explorar.py` — 12 tests de Explorar/Tags/Hashtags
+- Iteraciones: `/app/test_reports/iteration_{1..7}.json` — todas 100% (iter7 confirmó Bloque 2 estable: 89/89 backend + frontend OK)
 
 ## Credenciales
 Ver `/app/memory/test_credentials.md`

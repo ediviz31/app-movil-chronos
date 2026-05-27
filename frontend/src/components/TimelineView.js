@@ -53,20 +53,12 @@ const TimelineView = ({ familiares, currentUser, onSelectFamiliar }) => {
     [familiares]
   );
 
-  if (conAnio.length === 0) {
-    return (
-      <div className="timeline-empty">
-        <p>
-          Agrega fechas de nacimiento a tus familiares para ver la línea
-          cronológica del legado.
-        </p>
-      </div>
-    );
-  }
-
-  // Rango: el año más antiguo, hasta el actual
-  const minYear = Math.min(...conAnio.map(f => f._anio)) - 5;
+  // Rango: si no hay familiares con fecha, usamos el rango de hitos históricos
+  // para que la línea (espina + hitos + TÚ) siempre se renderice.
   const maxYear = new Date().getFullYear();
+  const minYear = conAnio.length > 0
+    ? Math.min(...conAnio.map(f => f._anio)) - 5
+    : Math.min(...HITOS_HISTORICOS.map(h => h.anio)) - 5;
   const range = maxYear - minYear;
 
   // Filtrar hitos al rango
@@ -155,6 +147,12 @@ const TimelineView = ({ familiares, currentUser, onSelectFamiliar }) => {
           </div>
         </div>
       </div>
+      {conAnio.length === 0 && (
+        <div className="timeline-empty-hint" data-testid="timeline-empty-hint">
+          Agrega fecha de nacimiento a tus familiares para verlos aparecer
+          junto a los hitos del mundo.
+        </div>
+      )}
     </div>
   );
 };
