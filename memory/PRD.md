@@ -82,15 +82,42 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - Empty state: silent hide si la API falla o no hay datos; secciones individuales también se ocultan independientemente
 - Mobile responsive: a ≤700px se reorganiza a 1 columna
 
+### Fase 7 — Misivas (Mensajería directa estilo carta) 💌
+**Modelos backend:**
+- `Conversacion`: participantes [2] (normalizados ordenando IDs), ultimo_mensaje_en, ultimo_mensaje_resumen, ultimo_remitente_id, leido_por (Map<userId, Date>)
+- `Mensaje`: conversacion_id, remitente_id, contenido (1-4000 chars)
+
+**API endpoints (`/api/misivas`):**
+- `POST /abrir/:userId` — abre o reutiliza conversación 1-on-1 (idempotente)
+- `GET /` — lista de conversaciones con `{otro, ultimo_mensaje_en, ultimo_mensaje_resumen, no_leido}`
+- `GET /no-leidas` — count para badge en topbar
+- `GET /:conversacionId/mensajes` — historial cronológico
+- `POST /:conversacionId/mensajes` — enviar
+- `POST /:conversacionId/leer` — marcar leído
+
+**Frontend (`/misivas`, `/misivas/abrir/:userId`, `/misivas/:conversacionId`):**
+- Layout 2 columnas: lista de hilos (izq) + hilo activo (der)
+- Cada mensaje renderiza como **carta de pergamino**: esquinas ornamentadas, sello dorado, alineación izquierda/derecha según remitente
+- Polling 10s en el hilo activo + lista
+- Optimistic append al enviar
+- Atajos: Ctrl/Cmd+Enter envía
+- Mobile responsive a ≤900px (sidebar arriba, hilo abajo, botón "back")
+
+**Integraciones UI:**
+- `<MisivasBadge>` en topbar con polling 20s
+- Botón "Enviar misiva" en perfil ajeno
+- Entrada "Misivas" en SideRail (DoveScrollIcon)
+
 ## Rutas Frontend (actualizadas)
-- `/` Feed
-- `/explorar` ← NUEVO Fase 5
-- `/tags/:tag` ← NUEVO Fase 5
+- `/` Feed (con `<WeeklyHighlight>` semanal)
+- `/explorar` ← Fase 5
+- `/tags/:tag` ← Fase 5
+- `/misivas` · `/misivas/abrir/:userId` · `/misivas/:conversacionId` ← Fase 7
 - `/cronicas`, `/legados`, `/documentos`
 - `/epocas`, `/epocas/:nombre`
 - `/efemerides`
 - `/avisos`
-- `/mi-legado` (con toggle vista)
+- `/mi-legado` (con toggle vista árbol/timeline)
 - `/relato/:id`, `/perfil/:id`
 - `/login`, `/registro`
 
@@ -110,6 +137,14 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - `GET /api/tags/populares`
 - `GET /api/tags/:tag/relatos` → `{tag, total, relatos}`
 
+### Misivas (Fase 7)
+- `POST /api/misivas/abrir/:userId`
+- `GET /api/misivas`
+- `GET /api/misivas/no-leidas`
+- `GET /api/misivas/:conversacionId/mensajes`
+- `POST /api/misivas/:conversacionId/mensajes`
+- `POST /api/misivas/:conversacionId/leer`
+
 ### Preferencias
 - `PUT /api/usuarios/preferencias` con `{sonido_aviso, arbol_publico}`
 
@@ -118,9 +153,10 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 ## Backlog / Roadmap
 
 ### P1 - Próximas
-- 📱 **Mobile responsive sweep avanzado** (probar en Capacitor/PWA real)
-- 💬 Mensajería directa entre cronistas (estilo carta/pergamino)
 - 🏛️ Detalle de Época funcional (relatos por era histórica)
+- 📨 Newsletter semanal por email con Resend (reutilizando WeeklyHighlight)
+- 🔗 Compartir relato a redes externas (Open Graph cards)
+- 📱 Probar el responsive en Capacitor/PWA real
 
 ### P2 - Mejoras
 - 🔗 **FamilySearch API OAuth** (sincronización con árbol externo más grande del mundo)
@@ -148,8 +184,9 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 ## Tests
 - `/app/backend/tests/test_*.py` (pytest, 6 archivos)
 - `test_phase4_legado.py` — 22 tests del árbol
-- `test_phase5_explorar.py` — 12 tests de Explorar/Tags/Hashtags
-- Iteraciones: `/app/test_reports/iteration_{1..7}.json` — todas 100% (iter7 confirmó Bloque 2 estable: 89/89 backend + frontend OK)
+- Iteraciones: `/app/test_reports/iteration_{1..9}.json` — todas 100%
+- `test_phase5_explorar.py` — 12 tests
+- `test_misivas.py` — 16 tests (DM 1-on-1)
 
 ## Credenciales
 Ver `/app/memory/test_credentials.md`
