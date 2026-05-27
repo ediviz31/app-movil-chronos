@@ -2,7 +2,10 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
-import { SearchIcon, FeatherIcon, BellIcon, HourglassIcon } from './HistoricIcons';
+import {
+  SearchIcon, FeatherIcon, BellIcon, HourglassIcon,
+  OrnateStarIcon, ChronicleIcon, CommunitiesIcon, ScrollIcon
+} from './HistoricIcons';
 
 const TopbarArchive = ({ onCreate }) => {
   const { user } = useAuth();
@@ -10,56 +13,56 @@ const TopbarArchive = ({ onCreate }) => {
   const navigate = useNavigate();
 
   const navItems = [
-    { path: '/', label: 'Para ti', icon: '✦' },
-    { path: '/cronicas', label: 'Crónicas', icon: '◈' },
-    { path: '/legados', label: 'Legados', icon: '⊙' },
-    { path: '/documentos', label: 'Documentos', icon: '⬚' }
+    { path: '/', label: 'Para ti', Icon: OrnateStarIcon },
+    { path: '/cronicas', label: 'Crónicas', Icon: ChronicleIcon },
+    { path: '/legados', label: 'Legados', Icon: CommunitiesIcon },
+    { path: '/documentos', label: 'Documentos', Icon: ScrollIcon }
   ];
 
   return (
     <header className="archive-topbar" data-testid="archive-topbar">
       <div className="topbar-inner">
-        {/* IZQUIERDA: Buscador */}
+        {/* IZQUIERDA: Logo + Buscador (estilo Facebook) */}
         <div className="topbar-section-left">
+          <div className="topbar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} data-testid="topbar-brand">
+            <div className="topbar-brand-icon">
+              <HourglassIcon size={28} />
+            </div>
+            <div className="topbar-brand-text">
+              <span className="brand-name">CHRONOS</span>
+              <span className="brand-tag">Archivo Vivo</span>
+            </div>
+          </div>
           <div className="archive-search" data-testid="archive-search">
             <SearchIcon size={16} style={{ color: 'var(--gold)' }} />
             <input
               type="text"
-              placeholder="Buscar"
+              placeholder="Buscar en Chronos"
             />
           </div>
         </div>
 
-        {/* CENTRO: Logo + Nav */}
+        {/* CENTRO: Navegación */}
         <div className="topbar-section-center">
-          <div className="topbar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} data-testid="topbar-brand">
-            <div className="topbar-brand-icon">
-              <HourglassIcon size={26} />
-            </div>
-            <div className="topbar-brand-text">
-              <span className="brand-name">CHRONOS</span>
-              <span className="brand-tag">ARCHIVO VIVO</span>
-            </div>
-          </div>
-
-          <div className="topbar-brand-divider"></div>
-
           <nav className="archive-nav">
-            {navItems.map(item => (
-              <a
-                key={item.path}
-                href={item.path}
-                className={location.pathname === item.path ? 'active' : ''}
-                data-testid={`nav-${item.label.toLowerCase().replace(' ', '-')}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (item.path === '/') window.history.pushState({}, '', '/');
-                }}
-              >
-                <span style={{ fontSize: 9, color: 'var(--gold)' }}>{item.icon}</span>
-                {item.label}
-              </a>
-            ))}
+            {navItems.map(item => {
+              const Icon = item.Icon;
+              return (
+                <a
+                  key={item.path}
+                  href={item.path}
+                  className={location.pathname === item.path ? 'active' : ''}
+                  data-testid={`nav-${item.label.toLowerCase().replace(' ', '-')}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (item.path === '/') window.history.pushState({}, '', '/');
+                  }}
+                >
+                  <Icon size={20} />
+                  <span className="nav-label">{item.label}</span>
+                </a>
+              );
+            })}
           </nav>
         </div>
 
