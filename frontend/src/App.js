@@ -14,6 +14,8 @@ import EpocaDetailPage from './pages/EpocaDetailPage';
 import AvisosPage from './pages/AvisosPage';
 import EfemeridesPage from './pages/EfemeridesPage';
 import MiLegado from './pages/MiLegado';
+import ExplorarPage from './pages/ExplorarPage';
+import TagPage from './pages/TagPage';
 import { HourglassIcon } from './components/HistoricIcons';
 import './styles/archive.css';
 import './styles/social-refine.css';
@@ -23,6 +25,7 @@ import './styles/pages.css';
 import './styles/avisos.css';
 import './styles/efemerides.css';
 import './styles/legado.css';
+import './styles/extras.css';
 
 const LoadingScreen = () => (
   <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg-deep)' }}>
@@ -65,6 +68,8 @@ function App() {
           <Route path="/avisos" element={<ProtectedRoute><AvisosPage /></ProtectedRoute>} />
           <Route path="/efemerides" element={<ProtectedRoute><EfemeridesPage /></ProtectedRoute>} />
           <Route path="/mi-legado" element={<ProtectedRoute><MiLegado /></ProtectedRoute>} />
+          <Route path="/explorar" element={<ProtectedRoute><ExplorarPage /></ProtectedRoute>} />
+          <Route path="/tags/:tag" element={<ProtectedRoute><TagPage /></ProtectedRoute>} />
           <Route path="/relato/:id" element={<ProtectedRoute><RelatoDetail /></ProtectedRoute>} />
           <Route path="/perfil/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />

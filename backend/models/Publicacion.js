@@ -23,6 +23,12 @@ const publicacionSchema = new mongoose.Schema({
   imagen: {
     type: String,
     default: null
+  },
+  // Hashtags extraídos del contenido (#palabra) — útiles para búsqueda
+  tags: {
+    type: [String],
+    default: [],
+    index: true
   }
 }, {
   timestamps: { createdAt: 'creado_en', updatedAt: 'actualizado_en' }
@@ -31,5 +37,14 @@ const publicacionSchema = new mongoose.Schema({
 // Índices para mejor rendimiento
 publicacionSchema.index({ usuario_id: 1, creado_en: -1 });
 publicacionSchema.index({ categoria: 1 });
+publicacionSchema.index({ tags: 1, creado_en: -1 });
+
+// Helper estático: extrae #hashtags de un texto
+publicacionSchema.statics.extractTags = function(texto) {
+  if (!texto) return [];
+  const matches = String(texto).match(/#([\p{L}\p{N}_]{2,30})/gu) || [];
+  // Quitar # y deduplicar en minúsculas
+  return [...new Set(matches.map(m => m.slice(1).toLowerCase()))];
+};
 
 module.exports = mongoose.model('Publicacion', publicacionSchema);

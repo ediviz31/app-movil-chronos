@@ -282,13 +282,15 @@ app.post('/api/relatos', [auth, upload.single('imagen')], [
 
     const { titulo, categoria, contenido } = req.body;
     const imagen = req.file ? `/api/uploads/relatos/${req.file.filename}` : null;
+    const tags = Publicacion.extractTags(`${titulo} ${contenido}`);
 
     const nuevoRelato = new Publicacion({
       usuario_id: req.userId,
       titulo,
       categoria,
       contenido,
-      imagen
+      imagen,
+      tags
     });
 
     await nuevoRelato.save();
@@ -359,6 +361,10 @@ app.put('/api/relatos/:id', auth, async (req, res) => {
     if (titulo) relato.titulo = titulo;
     if (categoria) relato.categoria = categoria;
     if (contenido) relato.contenido = contenido;
+    // Re-extraer tags si cambia el contenido o título
+    if (titulo || contenido) {
+      relato.tags = Publicacion.extractTags(`${relato.titulo} ${relato.contenido}`);
+    }
 
     await relato.save();
     res.json({ mensaje: 'Relato actualizado', relato });
@@ -1351,6 +1357,203 @@ app.post('/api/familiares/importar-gedcom', auth, async (req, res) => {
   } catch (error) {
     console.error('Error importando GEDCOM:', error);
     res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al importar GEDCOM' });
+  }
+});
+
+// ============================================
+// RUTAS DE TAGS / HASHTAGS
+// ============================================
+
+// Tags más populares (agregado)
+app.get('/api/tags/populares', auth, async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 20, 50);
+    const populares = await Publicacion.aggregate([
+      { $match: { tags: { $exists: true, $ne: [] } } },
+      { $unwind: '$tags' },
+      { $group: { _id: '$tags', total: { $sum: 1 } } },
+      { $sort: { total: -1 } },
+      { $limit: limit }
+    ]);
+    res.json(populares.map(t => ({ tag: t._id, total: t.total })));
+  } catch (error) {
+    console.error('Error tags populares:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener tags populares' });
+  }
+});
+
+// Relatos por tag
+app.get('/api/tags/:tag/relatos', auth, async (req, res) => {
+  try {
+    const tag = String(req.params.tag).toLowerCase().slice(0, 30);
+    const relatos = await Publicacion.find({ tags: tag })
+      .populate('usuario_id', 'nombre usuario avatar tema_favorito interes')
+      .sort({ creado_en: -1 });
+
+    const relatosConStats = await Promise.all(relatos.map(async (relato) => {
+      const [total_ecos, total_comentarios, total_archivos, usuario_dio_eco, usuario_archivado] = await Promise.all([
+        Eco.countDocuments({ publicacion_id: relato._id }),
+        Comentario.countDocuments({ publicacion_id: relato._id }),
+        Archivado.countDocuments({ publicacion_id: relato._id }),
+        Eco.countDocuments({ publicacion_id: relato._id, usuario_id: req.userId }),
+        Archivado.countDocuments({ publicacion_id: relato._id, usuario_id: req.userId })
+      ]);
+      return {
+        ...relato.toObject(),
+        total_ecos, total_comentarios, total_archivos,
+        usuario_dio_eco: usuario_dio_eco > 0,
+        usuario_archivado: usuario_archivado > 0
+      };
+    }));
+    res.json({ tag, total: relatosConStats.length, relatos: relatosConStats });
+  } catch (error) {
+    console.error('Error relatos por tag:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al obtener relatos' });
+  }
+});
+
+// ============================================
+// RUTA DE TRENDING REAL (últimos 7 días)
+// ============================================
+app.get('/api/trending', auth, async (req, res) => {
+  try {
+    const dias = Math.min(parseInt(req.query.dias) || 7, 30);
+    const desde = new Date(Date.now() - dias * 24 * 60 * 60 * 1000);
+
+    // Agregar score = ecos*2 + comentarios*3 + archivados*4 (últimos N días)
+    const ecos = await Eco.aggregate([
+      { $match: { creado_en: { $gte: desde } } },
+      { $group: { _id: '$publicacion_id', total: { $sum: 1 } } }
+    ]);
+    const coms = await Comentario.aggregate([
+      { $match: { creado_en: { $gte: desde } } },
+      { $group: { _id: '$publicacion_id', total: { $sum: 1 } } }
+    ]);
+    const archs = await Archivado.aggregate([
+      { $match: { creado_en: { $gte: desde } } },
+      { $group: { _id: '$publicacion_id', total: { $sum: 1 } } }
+    ]);
+
+    const scoreMap = {};
+    ecos.forEach(e => { scoreMap[e._id] = (scoreMap[e._id] || 0) + e.total * 2; });
+    coms.forEach(c => { scoreMap[c._id] = (scoreMap[c._id] || 0) + c.total * 3; });
+    archs.forEach(a => { scoreMap[a._id] = (scoreMap[a._id] || 0) + a.total * 4; });
+
+    const ids = Object.keys(scoreMap)
+      .sort((a, b) => scoreMap[b] - scoreMap[a])
+      .slice(0, Math.min(parseInt(req.query.limit) || 10, 30));
+
+    if (ids.length === 0) return res.json({ dias, relatos: [] });
+
+    const relatos = await Publicacion.find({ _id: { $in: ids } })
+      .populate('usuario_id', 'nombre usuario avatar tema_favorito');
+
+    const relatosConStats = await Promise.all(relatos.map(async (relato) => {
+      const [total_ecos, total_comentarios, total_archivos, usuario_dio_eco, usuario_archivado] = await Promise.all([
+        Eco.countDocuments({ publicacion_id: relato._id }),
+        Comentario.countDocuments({ publicacion_id: relato._id }),
+        Archivado.countDocuments({ publicacion_id: relato._id }),
+        Eco.countDocuments({ publicacion_id: relato._id, usuario_id: req.userId }),
+        Archivado.countDocuments({ publicacion_id: relato._id, usuario_id: req.userId })
+      ]);
+      return {
+        ...relato.toObject(),
+        total_ecos, total_comentarios, total_archivos,
+        score: scoreMap[relato._id.toString()] || 0,
+        usuario_dio_eco: usuario_dio_eco > 0,
+        usuario_archivado: usuario_archivado > 0
+      };
+    }));
+    // Reordenar por score
+    relatosConStats.sort((a, b) => b.score - a.score);
+    res.json({ dias, relatos: relatosConStats });
+  } catch (error) {
+    console.error('Error trending:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al calcular trending' });
+  }
+});
+
+// ============================================
+// RUTA DE EXPLORAR (combinado: trending + tags + sugerencias)
+// ============================================
+app.get('/api/explorar', auth, async (req, res) => {
+  try {
+    const desde = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    // Trending top 5
+    const ecos = await Eco.aggregate([
+      { $match: { creado_en: { $gte: desde } } },
+      { $group: { _id: '$publicacion_id', total: { $sum: 1 } } }
+    ]);
+    const coms = await Comentario.aggregate([
+      { $match: { creado_en: { $gte: desde } } },
+      { $group: { _id: '$publicacion_id', total: { $sum: 1 } } }
+    ]);
+    const archs = await Archivado.aggregate([
+      { $match: { creado_en: { $gte: desde } } },
+      { $group: { _id: '$publicacion_id', total: { $sum: 1 } } }
+    ]);
+    const scoreMap = {};
+    ecos.forEach(e => { scoreMap[e._id] = (scoreMap[e._id] || 0) + e.total * 2; });
+    coms.forEach(c => { scoreMap[c._id] = (scoreMap[c._id] || 0) + c.total * 3; });
+    archs.forEach(a => { scoreMap[a._id] = (scoreMap[a._id] || 0) + a.total * 4; });
+    const topIds = Object.keys(scoreMap)
+      .sort((a, b) => scoreMap[b] - scoreMap[a]).slice(0, 5);
+
+    let trending = [];
+    if (topIds.length > 0) {
+      const t = await Publicacion.find({ _id: { $in: topIds } })
+        .populate('usuario_id', 'nombre usuario avatar tema_favorito');
+      trending = t.map(r => ({ ...r.toObject(), score: scoreMap[r._id.toString()] || 0 }));
+      trending.sort((a, b) => b.score - a.score);
+    }
+
+    // Tags populares top 10
+    const tagsPopulares = await Publicacion.aggregate([
+      { $match: { tags: { $exists: true, $ne: [] } } },
+      { $unwind: '$tags' },
+      { $group: { _id: '$tags', total: { $sum: 1 } } },
+      { $sort: { total: -1 } },
+      { $limit: 10 }
+    ]);
+
+    // Cronistas sugeridos (que aún no sigues, ordenados por nº de relatos)
+    const yaSigo = await Seguidor.find({ seguidor_id: req.userId }).select('seguido_id');
+    const yaSigoIds = yaSigo.map(s => s.seguido_id);
+    const cronistasSugeridos = await User.aggregate([
+      { $match: { _id: { $nin: [...yaSigoIds, new mongoose.Types.ObjectId(req.userId)] } } },
+      {
+        $lookup: {
+          from: 'publicacions',
+          localField: '_id',
+          foreignField: 'usuario_id',
+          as: 'relatos'
+        }
+      },
+      { $addFields: { total_relatos: { $size: '$relatos' } } },
+      { $match: { total_relatos: { $gt: 0 } } },
+      { $sort: { total_relatos: -1 } },
+      { $limit: 6 },
+      { $project: { nombre: 1, usuario: 1, avatar: 1, bio: 1, tema_favorito: 1, total_relatos: 1 } }
+    ]);
+
+    // Épocas con más actividad
+    const epocas = await Publicacion.aggregate([
+      { $match: { categoria: { $exists: true, $ne: '' } } },
+      { $group: { _id: '$categoria', total: { $sum: 1 } } },
+      { $sort: { total: -1 } },
+      { $limit: 6 }
+    ]);
+
+    res.json({
+      trending,
+      tags_populares: tagsPopulares.map(t => ({ tag: t._id, total: t.total })),
+      cronistas: cronistasSugeridos,
+      epocas: epocas.map(e => ({ categoria: e._id, total: e.total }))
+    });
+  } catch (error) {
+    console.error('Error explorar:', error);
+    res.status(HTTP_STATUS.SERVER_ERROR).json({ error: 'Error al cargar exploración' });
   }
 });
 

@@ -6,8 +6,9 @@ import AddFamiliarModal from '../components/AddFamiliarModal';
 import FamiliarDetailModal from '../components/FamiliarDetailModal';
 import {
   HourglassIcon, PlusOrnateIcon, CommunitiesIcon, FeatherIcon,
-  CalendarIcon, ChestIcon, ArrowRightIcon, OrnateStarIcon
+  CalendarIcon, ChestIcon, ArrowRightIcon, OrnateStarIcon, TempleIcon
 } from '../components/HistoricIcons';
+import TimelineView from '../components/TimelineView';
 import { PARENTESCO_POSICION, getParentescoLabel, formatFechaCorta } from '../utils/parentescoMap';
 
 // Calcula posición {x, y} en el SVG dado el parentesco, considerando duplicados.
@@ -111,6 +112,7 @@ const MiLegado = () => {
   const [selected, setSelected] = useState(null);
   const [importOpen, setImportOpen] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [viewMode, setViewMode] = useState('tree'); // 'tree' | 'timeline'
   const importInputRef = useRef(null);
 
   const fetchFamiliares = useCallback(async () => {
@@ -227,7 +229,33 @@ const MiLegado = () => {
             </button>
           </div>
         ) : (
-          <div className="tree-canvas-wrap" data-testid="tree-canvas">
+          <>
+            {/* Toggle vista: árbol / línea cronológica */}
+            <div className="archive-tabs" style={{ marginBottom: 18 }} data-testid="legado-view-toggle">
+              <button
+                className={`archive-tab ${viewMode === 'tree' ? 'active' : ''}`}
+                onClick={() => setViewMode('tree')}
+                data-testid="view-tree-btn"
+              >
+                <CommunitiesIcon size={12} style={{ marginRight: 4 }} /> Árbol
+              </button>
+              <button
+                className={`archive-tab ${viewMode === 'timeline' ? 'active' : ''}`}
+                onClick={() => setViewMode('timeline')}
+                data-testid="view-timeline-btn"
+              >
+                <CalendarIcon size={12} style={{ marginRight: 4 }} /> Línea cronológica
+              </button>
+            </div>
+
+            {viewMode === 'timeline' ? (
+              <TimelineView
+                familiares={familiares}
+                currentUser={user}
+                onSelectFamiliar={setSelected}
+              />
+            ) : (
+              <div className="tree-canvas-wrap" data-testid="tree-canvas">
             <svg viewBox="0 0 1200 1280" className="tree-canvas" preserveAspectRatio="xMidYMin meet">
               {/* Líneas de conexión sutiles */}
               {items.map(f => (
@@ -269,6 +297,8 @@ const MiLegado = () => {
               <div className="tree-legend-hint">Haz clic en cualquier cameo para ver detalles</div>
             </div>
           </div>
+            )}
+          </>
         )}
       </main>
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { getImageUrl, getAvatarUrl } from '../utils/imageHelpers';
 import { CoinLaurelIcon, ParchmentIcon, DoveScrollIcon, ChestIcon, TabletDaggerIcon } from './HistoricIcons';
+import HashtagText from './HashtagText';
 
 const formatFechaRelativa = (fecha) => {
   const date = new Date(fecha);
@@ -138,7 +139,9 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
         >
           {relato.titulo}
         </h3>
-        <p className="social-post-content">{relato.contenido}</p>
+        <p className="social-post-content">
+          <HashtagText text={relato.contenido} />
+        </p>
       </div>
 
       {/* Imagen */}

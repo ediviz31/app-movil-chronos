@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getAvatarUrl, getImageUrl } from '../utils/imageHelpers';
 import PageShell from '../components/PageShell';
+import HashtagText from '../components/HashtagText';
 import {
   HourglassIcon, ArrowRightIcon, OrnateStarIcon,
   CoinLaurelIcon, ParchmentIcon, DoveScrollIcon, ChestIcon, TabletDaggerIcon
@@ -217,7 +218,7 @@ const RelatoDetail = () => {
           {/* Contenido */}
           <div className="relato-content" data-testid="relato-content">
             {relato.contenido.split(/\n\n+/).map((p, i) => (
-              <p key={i}>{p}</p>
+              <p key={i}><HashtagText text={p} /></p>
             ))}
           </div>
 
