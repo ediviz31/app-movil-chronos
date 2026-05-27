@@ -30,17 +30,8 @@
   top: 84px;
   align-self: start;
   max-height: calc(100vh - 100px);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  padding-right: 4px;
-}
-
-.archive-sidebar::-webkit-scrollbar {
-  width: 4px;
-}
-.archive-sidebar::-webkit-scrollbar-thumb {
-  background: var(--gold-deep);
-  border-radius: 2px;
+  overflow-y: visible;
+  padding-right: 0;
 }
 
 /* Quitar timeline rail vertical (era muy "museo") */
