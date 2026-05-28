@@ -33,14 +33,26 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
   const [totalComentarios, setTotalComentarios] = useState(relato.total_comentarios || 0);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [ecoBurst, setEcoBurst] = useState(false);
 
   const handleEco = async () => {
+    const willActivate = !dioEco;
+    // Optimistic UI + animación al instante
+    setDioEco(willActivate);
+    setTotalEcos(prev => willActivate ? prev + 1 : prev - 1);
+    if (willActivate) {
+      setEcoBurst(true);
+      setTimeout(() => setEcoBurst(false), 900);
+    }
+    haptic.light();
     try {
       await api.post(`/ecos/${relato._id}`);
-      haptic.light();   // ✨ vibración al hacer eco
-      setDioEco(!dioEco);
-      setTotalEcos(dioEco ? totalEcos - 1 : totalEcos + 1);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      // Revertir si falla
+      setDioEco(!willActivate);
+      setTotalEcos(prev => willActivate ? prev - 1 : prev + 1);
+      console.error(e);
+    }
   };
 
   const handleArchivar = async () => {
@@ -165,12 +177,22 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
       <div className="social-post-actions">
         <button
           onClick={handleEco}
-          className={`social-action-btn ${dioEco ? 'active' : ''}`}
+          className={`social-action-btn ${dioEco ? 'active' : ''} ${ecoBurst ? 'eco-burst' : ''}`}
           data-testid={`btn-eco-${relato._id}`}
           title="Dar eco a este relato"
         >
           <CoinLaurelIcon size={20} />
           <span>Eco</span>
+          {ecoBurst && (
+            <span className="eco-stars" aria-hidden="true">
+              <span className="eco-star eco-star-1">✦</span>
+              <span className="eco-star eco-star-2">✧</span>
+              <span className="eco-star eco-star-3">✦</span>
+              <span className="eco-star eco-star-4">✧</span>
+              <span className="eco-star eco-star-5">✦</span>
+              <span className="eco-star eco-star-6">✧</span>
+            </span>
+          )}
         </button>
         <button
           onClick={toggleComments}
@@ -179,7 +201,7 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
           title="Comentar"
         >
           <ParchmentIcon size={20} />
-          <span>Comentar</span>
+          <span>Aportar</span>
         </button>
         <button
           className="social-action-btn"
@@ -188,7 +210,7 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
           title="Compartir crónica"
         >
           <DoveScrollIcon size={20} />
-          <span>Compartir</span>
+          <span>Difundir</span>
         </button>
         <button
           onClick={handleArchivar}

@@ -45,9 +45,9 @@ const Feed = () => {
   const userAvatar = getAvatarUrl(user);
   const greeting = (() => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Buen día';
-    if (hour < 19) return 'Buena tarde';
-    return 'Buena noche';
+    if (hour < 12) return 'Buenos días';
+    if (hour < 19) return 'Buenas tardes';
+    return 'Buenas noches';
   })();
 
   return (

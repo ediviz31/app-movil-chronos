@@ -101,7 +101,7 @@ const Rightbar = () => {
                 disabled={loadingFollow[usuario._id]}
                 data-testid={`btn-seguir-${usuario._id}`}
               >
-                {loadingFollow[usuario._id] ? '...' : 'Seguir'}
+                {loadingFollow[usuario._id] ? '...' : 'Seguir legado'}
               </button>
             </div>
           ))

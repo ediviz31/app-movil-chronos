@@ -304,6 +304,48 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - `SocialPost.js` ahora abre el sheet en lugar de mostrar comentarios inline. Toggle desde botón "Comentar" del post.
 - `data-testid`s nuevos: `comments-sheet`, `comments-sheet-backdrop`, `comments-sheet-input`, `comments-sheet-send`, `comments-sheet-close`, `comment-{id}`
 
+### Fase 16 — Acciones Chronos, badges visibles, auto-hide topbar, eco burst ⭐ (Feb 28, 2026)
+
+**🏷️ Renombrado de acciones con lenguaje propio Chronos:**
+- "Comentar" → **"Aportar"**
+- "Compartir" → **"Difundir"**
+- "Seguir" → **"Seguir legado"** (en Rightbar y LegadosPage)
+- "..." de carga → **"Sellando…"** (en LegadosPage)
+- Estado siguiendo → **"✓ Siguiendo"**
+- Saludos corregidos: "Buen día/tarde/noche" → "Buenos días/Buenas tardes/Buenas noches"
+
+**🔔 Badges visibles en topbar mobile:**
+- AvisosBadge y MisivasBadge ahora se muestran con contador dorado pulsante (animación `badgePulse` 2.4s)
+- Layout flex space-between: logo izquierda, badges + avatar derecha
+- Topbar compacto: oculta el subtítulo "Archivo Vivo" en mobile para dar espacio
+- Avatar circular dorado con halo
+
+**📜 Auto-hide topbar + subbar (estilo Twitter/Instagram):**
+- `useScrollDirection` hook (`/app/frontend/src/utils/useScrollDirection.js`)
+- Threshold 8px anti-jitter, fuerza visibilidad cuando scrollY < 60
+- Transición translateY suave 320ms cubic-bezier
+- Topbar y subbar se ocultan al scroll-down, reaparecen al scroll-up
+- Crea más espacio vertical de lectura en feed
+
+**⭐ Eco burst — animación al dar eco:**
+- Botón Eco con 6 estrellas SVG `✦/✧` que explotan radialmente desde el icono
+- Cada estrella sigue trayectoria personalizada con delays escalonados (CSS vars `--tx, --ty, --sz`)
+- Halo radial dorado expansivo desde el centro
+- Icono pulsa con scale 1.35 y color gold-bright
+- Optimistic UI: contador se actualiza al instante (revierte si API falla)
+- haptic.light() durante el burst
+
+**Bug fix:**
+- `LegadosPage` botón "Seguir" se quedaba con "..." si fallaba la API. Ahora siempre resetea a 'no' en catch + `e.preventDefault()`.
+
+**Archivos clave:**
+- `/app/frontend/src/utils/useScrollDirection.js` (nuevo)
+- `/app/frontend/src/components/SocialPost.js` — eco optimista + burst + iconografía
+- `/app/frontend/src/components/TopbarArchive.js` + `MobileSubBar.js` — auto-hide
+- `/app/frontend/src/components/Rightbar.js` + `LegadosPage.js` — "Seguir legado"
+- `/app/frontend/src/pages/Feed.js` — saludos plurales correctos
+- `/app/frontend/src/styles/mobile-app.css` — eco burst keyframes, badges pulsantes, layout flex
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
 - `/explorar` ← Fase 5

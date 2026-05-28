@@ -1,4 +1,9 @@
 /* =====================================================
+/* spin animation utility */
+.spin { animation: spin 1.5s linear infinite; }
+@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+
    CHRONOS - Native mobile app feel
    Solo se aplica en pantallas pequeñas para emular UX nativo
    ===================================================== */
@@ -468,29 +473,29 @@
 /* ---- Topbar y SubBar mobile (logo centrado + search pill + tabs) ---- */
 @media (max-width: 900px) {
   .topbar-inner {
-    padding: 0 14px !important;
+    padding: 0 14px 0 12px !important;
     gap: 0 !important;
-    display: grid !important;
-    grid-template-columns: 40px 1fr 80px;
+    display: flex !important;
     align-items: center;
+    justify-content: space-between;
+    max-width: 100%;
   }
   .topbar-section-left {
-    grid-column: 2 !important;
-    justify-content: center !important;
-    flex: unset !important;
+    justify-content: flex-start !important;
+    flex: 0 0 auto !important;
     gap: 0 !important;
   }
   .topbar-section-center { display: none !important; }
   .topbar-section-right {
-    grid-column: 3 !important;
     justify-content: flex-end !important;
+    flex: 0 0 auto !important;
   }
-  /* En mobile: badges compactos sin label, sólo iconos, espaciados */
+  /* Espaciado generoso entre los iconos */
   .archive-topbar-actions {
-    gap: 8px !important;
+    gap: 10px !important;
     align-items: center;
   }
-  /* Branding centrado */
+  /* Branding más compacto */
   .topbar-brand {
     flex-direction: row !important;
     align-items: center;
@@ -507,33 +512,65 @@
     align-items: flex-start;
   }
   .topbar-brand-text .brand-name {
-    font-size: 16px !important;
-    letter-spacing: 0.24em !important;
+    font-size: 15px !important;
+    letter-spacing: 0.22em !important;
     line-height: 1 !important;
     color: var(--gold-bright);
   }
+  /* Ocultar el subtítulo en mobile para dar más espacio a los badges */
   .topbar-brand-text .brand-tag {
-    display: block !important;
-    font-size: 8px !important;
-    letter-spacing: 0.28em !important;
-    color: var(--gold);
-    opacity: 0.7;
-    margin-top: 1px;
+    display: none !important;
   }
   /* Ocultar buscador inline y botones secundarios en mobile (avatar es entry-point al menú) */
   .topbar-search-mobile-btn { display: none !important; }
   .archive-topbar-actions [data-testid="topbar-create-btn"] { display: none; }
   .archive-topbar-actions [data-testid="topbar-more-btn"] { display: none !important; }
-  /* Avisos y Misivas badges: en mobile se acceden desde el drawer; ocultar del topbar */
+  /* Avisos y Misivas badges: VISIBLES en mobile topbar (icon compacto) */
   .archive-topbar-actions [data-testid="topbar-notif-btn"],
-  .archive-topbar-actions [data-testid="topbar-misivas-btn"] { display: none !important; }
-  /* Avatar grande y prominente */
+  .archive-topbar-actions [data-testid="topbar-misivas-btn"] {
+    display: inline-flex !important;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .archive-topbar-actions [data-testid="topbar-notif-btn"] svg,
+  .archive-topbar-actions [data-testid="topbar-misivas-btn"] svg {
+    color: var(--gold);
+  }
+  /* Badge contador dorado pulsante */
+  .archive-topbar-actions .avisos-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+    color: var(--bg-deep);
+    font-family: var(--font-elegant);
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 16px;
+    text-align: center;
+    padding: 0 4px;
+    box-shadow: 0 0 0 1.5px var(--bg-deep), 0 0 8px rgba(212, 184, 120, 0.6);
+    letter-spacing: 0;
+    animation: badgePulse 2.4s ease-in-out infinite;
+  }
+  @keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 1.5px var(--bg-deep), 0 0 6px rgba(212, 184, 120, 0.4); }
+    50%      { box-shadow: 0 0 0 1.5px var(--bg-deep), 0 0 14px rgba(212, 184, 120, 0.85); }
+  }
+  /* Avatar grande y prominente con separación clara de los badges */
   .archive-topbar-actions .user-avatar-small {
     display: inline-flex !important;
     width: 34px !important;
     height: 34px !important;
     border: 1.5px solid var(--gold) !important;
-    margin-left: 2px;
+    margin-left: 6px;
     box-shadow: 0 0 0 2px rgba(212, 184, 120, 0.18);
   }
 }
@@ -1098,9 +1135,79 @@
   font-size: 11px;
 }
 
-/* spin animation if not exists */
-.spin { animation: spin 1.5s linear infinite; }
-@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+/* ===== ECO BURST: explosión de estrellas al dar eco ===== */
+.social-action-btn {
+  position: relative;
+}
+.social-action-btn.eco-burst > svg,
+.social-action-btn.eco-burst > span:not(.eco-stars) {
+  animation: ecoBumpIcon 0.55s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+@keyframes ecoBumpIcon {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.35); color: var(--gold-bright); }
+  100% { transform: scale(1); }
+}
+
+.eco-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: block;
+}
+.eco-star {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-family: serif;
+  font-size: 12px;
+  color: var(--gold-bright);
+  text-shadow: 0 0 6px rgba(212, 184, 120, 0.8);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: ecoStarFly 0.85s ease-out forwards;
+}
+/* 6 estrellas en distintas direcciones */
+.eco-star-1 { --tx: -28px; --ty: -22px; --sz: 0.9; animation-delay: 0s; }
+.eco-star-2 { --tx:   0px; --ty: -32px; --sz: 1.1; animation-delay: 0.04s; }
+.eco-star-3 { --tx:  28px; --ty: -22px; --sz: 0.9; animation-delay: 0.08s; }
+.eco-star-4 { --tx:  32px; --ty:   6px; --sz: 0.8; animation-delay: 0.06s; }
+.eco-star-5 { --tx: -32px; --ty:   6px; --sz: 0.8; animation-delay: 0.10s; }
+.eco-star-6 { --tx:   0px; --ty:  22px; --sz: 0.7; animation-delay: 0.12s; }
+
+@keyframes ecoStarFly {
+  0%   {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+  }
+  20%  {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(calc(var(--sz, 1) * 0.6)) rotate(45deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(var(--sz, 1)) rotate(220deg);
+  }
+}
+
+/* Halo sutil dorado que se expande */
+.social-action-btn.eco-burst::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 184, 120, 0.6) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  animation: ecoHalo 0.7s ease-out;
+  pointer-events: none;
+}
+@keyframes ecoHalo {
+  0%   { width: 8px; height: 8px; opacity: 0.9; }
+  100% { width: 80px; height: 80px; opacity: 0; }
+}
 
 /* ===== PULL TO REFRESH (estilo iOS/Twitter) ===== */
 .pull-to-refresh-wrap {

@@ -1535,6 +1535,23 @@ button {
 }
 
 @media (max-width: 900px) {
+  /* === AUTO-HIDE topbar + subbar al scroll-down === */
+  .archive-topbar {
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+  }
+  .archive-topbar.topbar-auto-hide {
+    transform: translateY(-100%);
+  }
+  .mobile-subbar {
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+  }
+  .mobile-subbar.subbar-auto-hide {
+    /* Se desliza hacia arriba lo suficiente para esconderse tras el topbar también */
+    transform: translateY(calc(-100% - 56px));
+  }
+
   /* === LAYOUT: bottom rail nav en lugar de side rail === */
   .archive-layout {
     grid-template-rows: 56px 1fr;

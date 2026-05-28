@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import SearchBar from './SearchBar';
+import useScrollDirection from '../utils/useScrollDirection';
 import {
   OrnateStarIcon, ChronicleIcon, CommunitiesIcon, ScrollIcon
 } from './HistoricIcons';
@@ -13,6 +14,8 @@ import {
 const MobileSubBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const scrollDir = useScrollDirection();
+  const isHidden = scrollDir === 'down';
 
   const tabs = [
     { path: '/',           label: 'Para ti',    Icon: OrnateStarIcon },
@@ -22,7 +25,10 @@ const MobileSubBar = () => {
   ];
 
   return (
-    <div className="mobile-subbar" data-testid="mobile-subbar">
+    <div
+      className={`mobile-subbar ${isHidden ? 'subbar-auto-hide' : ''}`}
+      data-testid="mobile-subbar"
+    >
       <SearchBar />
       <nav className="mobile-tabs-nav" data-testid="mobile-tabs-nav">
         {tabs.map(t => {

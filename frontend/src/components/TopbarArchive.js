@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import haptic from '../utils/haptic';
+import useScrollDirection from '../utils/useScrollDirection';
 import SearchBar from './SearchBar';
 import AvisosBadge from './AvisosBadge';
 import MisivasBadge from './MisivasBadge';
@@ -17,6 +18,8 @@ const TopbarArchive = ({ onCreate }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const scrollDir = useScrollDirection();
+  const isHidden = scrollDir === 'down';
 
   const navItems = [
     { path: '/', label: 'Para ti', Icon: OrnateStarIcon },
@@ -70,7 +73,10 @@ const TopbarArchive = ({ onCreate }) => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
 
   return (
-    <header className="archive-topbar" data-testid="archive-topbar">
+    <header
+      className={`archive-topbar ${isHidden ? 'topbar-auto-hide' : ''}`}
+      data-testid="archive-topbar"
+    >
       <div className="topbar-inner">
         {/* IZQUIERDA (desktop): Logo + Buscador */}
         <div className="topbar-section-left">

@@ -39,12 +39,18 @@ const LegadosPage = () => {
 
   const toggleFollow = async (id, e) => {
     e.stopPropagation();
+    e.preventDefault();
     setFollowingState(prev => ({ ...prev, [id]: 'loading' }));
     try {
       const res = await api.post(`/seguir/${id}`);
-      setFollowingState(prev => ({ ...prev, [id]: res.data.accion === 'seguir' ? 'siguiendo' : 'no' }));
+      const accion = res?.data?.accion;
+      setFollowingState(prev => ({
+        ...prev,
+        [id]: accion === 'seguir' ? 'siguiendo' : 'no'
+      }));
     } catch (err) {
-      console.error(err);
+      console.error('Error al seguir:', err);
+      // Nunca dejar el botón en loading si falla
       setFollowingState(prev => ({ ...prev, [id]: 'no' }));
     }
   };
@@ -112,7 +118,7 @@ const LegadosPage = () => {
                         disabled={state === 'loading'}
                         data-testid={`follow-btn-${u._id}`}
                       >
-                        {state === 'loading' ? '...' : state === 'siguiendo' ? 'Siguiendo' : 'Seguir'}
+                        {state === 'loading' ? 'Sellando…' : state === 'siguiendo' ? '✓ Siguiendo' : 'Seguir legado'}
                       </button>
                     </div>
                   </div>
