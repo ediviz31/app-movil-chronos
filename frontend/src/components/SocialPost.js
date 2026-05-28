@@ -261,6 +261,7 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
         onCommentAdded={handleCommentAdded}
         currentUserAvatar={getAvatarUrl(user)}
         currentUserName={user?.nombre || 'Cronista'}
+        currentUserId={currentUserId}
       />
 
       <ShareChronicleModal

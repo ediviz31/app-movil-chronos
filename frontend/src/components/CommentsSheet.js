@@ -31,7 +31,7 @@ const formatFechaRelativa = (fecha) => {
  * - Cada comentario aparece desde arriba, secuencialmente
  * - Indicador "en línea" con pulso animado junto al nombre
  */
-const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAvatar, currentUserName }) => {
+const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAvatar, currentUserName, currentUserId }) => {
   const navigate = useNavigate();
   const { isOnline } = usePresence();
   const [comments, setComments] = useState([]);
@@ -246,12 +246,12 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
                     <div className="pergamino-entry-head">
                       <button
                         className="pergamino-entry-avatar"
-                        onClick={() => u?._id && u._id !== 'me' && navigate(`/perfil/${u._id}`)}
+                        onClick={() => u?._id && !isSelf && navigate(`/perfil/${u._id}`)}
                         aria-label={u?.nombre}
                         type="button"
                       >
                         <img src={getAvatarUrl(u)} alt={u?.nombre} />
-                        {u?._id && u._id !== 'me' && <PresenceBadge userId={u._id} variant="dot" />}
+                        {!isSelf && u?._id && <PresenceBadge userId={u._id} variant="dot" />}
                       </button>
                       <div className="pergamino-entry-meta">
                         <strong className="pergamino-entry-name">
@@ -310,6 +310,14 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
             <circle cx="386" cy="14" r="13" fill="#6b4a18" stroke="#e8c97e" strokeWidth="1.5" />
             <circle cx="386" cy="14" r="5" fill="#3d2a0e" />
           </svg>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+export default CommentsSheet;
         </div>
       </div>
     </div>,

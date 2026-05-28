@@ -72,6 +72,9 @@ const ArchiveSidebar = () => {
 
   return (
     <aside className="archive-sidebar" data-testid="archive-sidebar">
+      {/* CRONISTAS ACTIVOS AHORA (solo aparece si hay 1+ activo) */}
+      <ActivosAhora />
+
       {/* EFEMÉRIDE DEL DÍA */}
       <section className="sidebar-section" data-testid="efemeride-section">
         <div className="sidebar-section-head">
