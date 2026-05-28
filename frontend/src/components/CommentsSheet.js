@@ -5,7 +5,8 @@ import api from '../services/api';
 import haptic from '../utils/haptic';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import PresenceBadge from './PresenceBadge';
-import { CloseIcon, FeatherIcon, FleurDivider, ParchmentIcon } from './HistoricIcons';
+import { usePresence } from '../context/PresenceContext';
+import { CloseIcon, FeatherIcon, ParchmentIcon } from './HistoricIcons';
 
 const formatFechaRelativa = (fecha) => {
   const date = new Date(fecha);
@@ -22,25 +23,25 @@ const formatFechaRelativa = (fecha) => {
 };
 
 /**
- * Bottom-sheet de comentarios (Resonancias) estilo TikTok pero con estética Chronos.
- *  - Sube desde abajo con drag handle dorado
- *  - Backdrop translúcido (cierra al tap fuera)
- *  - Lista scrollable con avatares grandes, padding generoso, separación visible
- *  - Input sticky inferior con avatar pequeño + placeholder serif
- *  - Botón Enviar dorado pill, deshabilitado si vacío
- *  - Swipe-down sobre la cabecera cierra el sheet
+ * Resonancias en formato PERGAMINO que se despliega.
+ * - Rodillos dorados arriba y abajo (SVG)
+ * - Fondo papel envejecido con grano y manchas de tinta
+ * - Ornamentos en las 4 esquinas
+ * - Tinta sepia, tipografía serif elegante
+ * - Cada comentario aparece desde arriba, secuencialmente
+ * - Indicador "en línea" con pulso animado junto al nombre
  */
 const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAvatar, currentUserName }) => {
   const navigate = useNavigate();
+  const { isOnline } = usePresence();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [posting, setPosting] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [typing, setTyping] = useState([]); // [{_id, nombre}]
+  const [typing, setTyping] = useState([]);
   const listRef = useRef(null);
   const inputRef = useRef(null);
   const sheetRef = useRef(null);
-  const typingTimerRef = useRef(null);
   const lastTypingPingRef = useRef(0);
 
   const fetchComments = useCallback(async () => {
@@ -52,12 +53,10 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
     finally { setLoading(false); }
   }, [relato._id]);
 
-  // Cargar al abrir + bloquear scroll del body + polling de typing y comments
   useEffect(() => {
     if (!isOpen) return;
     fetchComments();
     document.body.style.overflow = 'hidden';
-    // Polling de typing cada 3s + recarga de comentarios cada 8s
     const pollTyping = async () => {
       try {
         const r = await api.get(`/presencia/escribiendo/${relato._id}`);
@@ -74,7 +73,6 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
     };
   }, [isOpen, fetchComments, relato._id]);
 
-  // Notificar al backend "escribiendo..." (throttled cada 2.5s)
   const handleInputChange = (e) => {
     setNewComment(e.target.value);
     const now = Date.now();
@@ -84,43 +82,11 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
     }
   };
 
-  // Swipe-to-close sobre el header
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleEl = sheetRef.current?.querySelector('.comments-sheet-handle-area');
-    if (!handleEl) return;
-    let startY = 0;
-    let tracking = false;
-    const onStart = (e) => { startY = e.touches[0].clientY; tracking = true; sheetRef.current.style.transition = 'none'; };
-    const onMove = (e) => {
-      if (!tracking) return;
-      const dy = e.touches[0].clientY - startY;
-      if (dy > 0) sheetRef.current.style.transform = `translateY(${dy}px)`;
-    };
-    const onEnd = (e) => {
-      if (!tracking) return;
-      tracking = false;
-      sheetRef.current.style.transition = '';
-      const dy = e.changedTouches[0].clientY - startY;
-      if (dy > 100) { onClose(); }
-      sheetRef.current.style.transform = '';
-    };
-    handleEl.addEventListener('touchstart', onStart, { passive: true });
-    handleEl.addEventListener('touchmove', onMove, { passive: true });
-    handleEl.addEventListener('touchend', onEnd);
-    return () => {
-      handleEl.removeEventListener('touchstart', onStart);
-      handleEl.removeEventListener('touchmove', onMove);
-      handleEl.removeEventListener('touchend', onEnd);
-    };
-  }, [isOpen, onClose]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const text = newComment.trim();
     if (!text || posting) return;
     setPosting(true);
-    // Optimistic
     const tempId = `tmp-${Date.now()}`;
     const optimistic = {
       _id: tempId,
@@ -135,12 +101,10 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
       haptic.light();
       onCommentAdded && onCommentAdded();
       fetchComments();
-      // Scroll al final
       setTimeout(() => {
-        listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
+        listRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       }, 100);
     } catch (err) {
-      // Revertir optimistic
       setComments(prev => prev.filter(c => c._id !== tempId));
       setNewComment(text);
     } finally {
@@ -150,112 +114,203 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
 
   if (!isOpen) return null;
 
+  // Comentarios en orden cronológico: más recientes ARRIBA (estilo pergamino)
+  const sortedComments = [...comments].sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en));
+
   return createPortal(
-    <div className="comments-sheet-backdrop" onClick={onClose} data-testid="comments-sheet-backdrop">
+    <div className="pergamino-backdrop" onClick={onClose} data-testid="comments-sheet-backdrop">
       <div
         ref={sheetRef}
-        className="comments-sheet"
+        className="pergamino-wrap"
         onClick={(e) => e.stopPropagation()}
         data-testid="comments-sheet"
       >
-        {/* Cabecera con drag handle */}
-        <div className="comments-sheet-handle-area">
-          <div className="comments-sheet-handle" />
-          <header className="comments-sheet-head">
-            <span className="comments-sheet-kicker">
-              <ParchmentIcon size={12} /> Sala Chronos
+        {/* Rodillo superior */}
+        <div className="pergamino-roller pergamino-roller-top" aria-hidden="true">
+          <svg viewBox="0 0 400 28" preserveAspectRatio="none" width="100%" height="100%">
+            <defs>
+              <linearGradient id="rollerGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#8a6628" />
+                <stop offset="40%" stopColor="#e8c97e" />
+                <stop offset="60%" stopColor="#d4b878" />
+                <stop offset="100%" stopColor="#6b4a18" />
+              </linearGradient>
+            </defs>
+            <rect x="0" y="6" width="400" height="16" fill="url(#rollerGrad)" />
+            <circle cx="14" cy="14" r="13" fill="#6b4a18" stroke="#e8c97e" strokeWidth="1.5" />
+            <circle cx="14" cy="14" r="5" fill="#3d2a0e" />
+            <circle cx="386" cy="14" r="13" fill="#6b4a18" stroke="#e8c97e" strokeWidth="1.5" />
+            <circle cx="386" cy="14" r="5" fill="#3d2a0e" />
+          </svg>
+        </div>
+
+        {/* Pergamino cuerpo */}
+        <div className="pergamino-body">
+          {/* Ornamentos esquinas */}
+          <span className="pergamino-corner pergamino-corner-tl" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <path d="M2 14 Q2 2 14 2 M2 14 Q6 6 14 6" stroke="currentColor" strokeWidth="1.4" />
+              <circle cx="8" cy="8" r="1.5" fill="currentColor" />
+            </svg>
+          </span>
+          <span className="pergamino-corner pergamino-corner-tr" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <path d="M38 14 Q38 2 26 2 M38 14 Q34 6 26 6" stroke="currentColor" strokeWidth="1.4" />
+              <circle cx="32" cy="8" r="1.5" fill="currentColor" />
+            </svg>
+          </span>
+          <span className="pergamino-corner pergamino-corner-bl" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <path d="M2 26 Q2 38 14 38 M2 26 Q6 34 14 34" stroke="currentColor" strokeWidth="1.4" />
+              <circle cx="8" cy="32" r="1.5" fill="currentColor" />
+            </svg>
+          </span>
+          <span className="pergamino-corner pergamino-corner-br" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <path d="M38 26 Q38 38 26 38 M38 26 Q34 34 26 34" stroke="currentColor" strokeWidth="1.4" />
+              <circle cx="32" cy="32" r="1.5" fill="currentColor" />
+            </svg>
+          </span>
+
+          {/* Cabecera */}
+          <div className="pergamino-head">
+            <span className="pergamino-kicker">
+              <ParchmentIcon size={12} /> Sala Chronos · Resonancias
             </span>
-            <h2 className="comments-sheet-title">Resonancias</h2>
+            <h2 className="pergamino-title">Resonancias del archivo</h2>
+            <p className="pergamino-subtitle">
+              {comments.length === 0
+                ? 'Aún sin ecos en este pergamino'
+                : `${comments.length} ${comments.length === 1 ? 'voz se ha alzado' : 'voces se han alzado'} aquí`}
+            </p>
             <button
-              className="comments-sheet-close"
+              className="pergamino-close"
               onClick={onClose}
               data-testid="comments-sheet-close"
-              aria-label="Cerrar"
+              aria-label="Enrollar pergamino"
             >
               <CloseIcon size={18} />
             </button>
-          </header>
-          <FleurDivider style={{ width: 60, opacity: 0.5, margin: '4px auto 0' }} />
-        </div>
-
-        {/* Lista de comentarios */}
-        <div className="comments-sheet-list" ref={listRef} data-testid="comments-sheet-list">
-          {loading && (
-            <div className="comments-sheet-loading">Recopilando voces…</div>
-          )}
-          {!loading && comments.length === 0 && (
-            <div className="comments-sheet-empty">
-              <ParchmentIcon size={36} style={{ color: 'var(--gold)', opacity: 0.6 }} />
-              <p>Sé el primero en valorar esta crónica.</p>
-            </div>
-          )}
-          {comments.map(c => {
-            const u = c.usuario_id;
-            return (
-              <div className="comments-sheet-item" key={c._id} data-testid={`comment-${c._id}`}>
-                <button
-                  className="comments-sheet-avatar"
-                  onClick={() => u?._id && u._id !== 'me' && navigate(`/perfil/${u._id}`)}
-                  aria-label={u?.nombre}
-                >
-                  <img src={getAvatarUrl(u)} alt={u?.nombre} />
-                  {u?._id && u._id !== 'me' && <PresenceBadge userId={u._id} variant="dot" />}
-                </button>
-                <div className="comments-sheet-body">
-                  <div className="comments-sheet-meta">
-                    <strong>{u?.nombre || 'Cronista'}</strong>
-                    <span className="comments-sheet-time">· {formatFechaRelativa(c.creado_en)}</span>
-                  </div>
-                  <div className="comments-sheet-text">{c.contenido}</div>
-                </div>
-              </div>
-            );
-          })}
-          <div className="comments-sheet-bottom-spacer" />
-
-          {/* Typing indicator */}
-          {typing.length > 0 && (
-            <div className="typing-indicator" data-testid="typing-indicator">
-              <span className="typing-dots">
-                <span></span><span></span><span></span>
-              </span>
-              <span>
-                <span className="typing-name">
-                  {typing.length === 1
-                    ? typing[0].nombre
-                    : `${typing[0].nombre} y ${typing.length - 1} más`}
-                </span>
-                {typing.length === 1 ? 'está escribiendo…' : 'están escribiendo…'}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Form sticky de respuesta */}
-        <form className="comments-sheet-form" onSubmit={handleSubmit}>
-          <div className="comments-sheet-form-avatar">
-            <img src={currentUserAvatar} alt={currentUserName} />
           </div>
-          <input
-            ref={inputRef}
-            type="text"
-            value={newComment}
-            onChange={handleInputChange}
-            placeholder="Comparte tu valoración…"
-            className="comments-sheet-form-input"
-            data-testid="comments-sheet-input"
-            maxLength={500}
-          />
-          <button
-            type="submit"
-            className="comments-sheet-form-send"
-            disabled={posting || !newComment.trim()}
-            data-testid="comments-sheet-send"
-            aria-label="Enviar"
-          >
-            <FeatherIcon size={16} />
-          </button>
-        </form>
+
+          {/* Divisor flor */}
+          <div className="pergamino-divider" aria-hidden="true">
+            <span className="pergamino-divider-line" />
+            <span className="pergamino-divider-mark">✦</span>
+            <span className="pergamino-divider-line" />
+          </div>
+
+          {/* Lista (orden inverso: nuevos arriba) */}
+          <div className="pergamino-list" ref={listRef} data-testid="comments-sheet-list">
+            {/* Typing indicator arriba (lo más reciente) */}
+            {typing.length > 0 && (
+              <div className="pergamino-typing" data-testid="typing-indicator">
+                <span className="pergamino-typing-dots">
+                  <span></span><span></span><span></span>
+                </span>
+                <span className="pergamino-typing-name">
+                  {typing.length === 1
+                    ? `${typing[0].nombre} traza su pluma…`
+                    : `${typing[0].nombre} y ${typing.length - 1} más trazan sus plumas…`}
+                </span>
+              </div>
+            )}
+
+            {loading && comments.length === 0 && (
+              <div className="pergamino-loading">Recopilando voces del archivo…</div>
+            )}
+
+            {!loading && comments.length === 0 && (
+              <div className="pergamino-empty">
+                <ParchmentIcon size={42} style={{ color: 'var(--sepia-deep, #6b4a18)', opacity: 0.5 }} />
+                <p>Sé la primera pluma en resonar.</p>
+                <p style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+                  Escribe abajo y verás tu aporte ascender en el pergamino.
+                </p>
+              </div>
+            )}
+
+            {sortedComments.map((c, idx) => {
+              const u = c.usuario_id;
+              const online = u?._id && u._id !== 'me' && isOnline(u._id);
+              return (
+                <article
+                  className={`pergamino-entry ${idx === 0 ? 'pergamino-entry-new' : ''}`}
+                  key={c._id}
+                  data-testid={`comment-${c._id}`}
+                >
+                  <span className="pergamino-quill" aria-hidden="true">
+                    <FeatherIcon size={14} />
+                  </span>
+                  <div className="pergamino-entry-body">
+                    <div className="pergamino-entry-head">
+                      <button
+                        className="pergamino-entry-avatar"
+                        onClick={() => u?._id && u._id !== 'me' && navigate(`/perfil/${u._id}`)}
+                        aria-label={u?.nombre}
+                        type="button"
+                      >
+                        <img src={getAvatarUrl(u)} alt={u?.nombre} />
+                        {u?._id && u._id !== 'me' && <PresenceBadge userId={u._id} variant="dot" />}
+                      </button>
+                      <div className="pergamino-entry-meta">
+                        <strong className="pergamino-entry-name">
+                          {u?.nombre || 'Cronista'}
+                          {online && (
+                            <span className="pergamino-online" data-testid={`pergamino-online-${u._id}`}>
+                              <span className="pergamino-online-dot" />
+                              <span className="pergamino-online-text">en línea</span>
+                            </span>
+                          )}
+                        </strong>
+                        <span className="pergamino-entry-time">{formatFechaRelativa(c.creado_en)}</span>
+                      </div>
+                    </div>
+                    <p className="pergamino-entry-text">{c.contenido}</p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          {/* Form sticky de respuesta */}
+          <form className="pergamino-form" onSubmit={handleSubmit}>
+            <div className="pergamino-form-avatar">
+              <img src={currentUserAvatar} alt={currentUserName} />
+            </div>
+            <input
+              ref={inputRef}
+              type="text"
+              value={newComment}
+              onChange={handleInputChange}
+              placeholder="Escribe tu aporte con pluma…"
+              className="pergamino-form-input"
+              data-testid="comments-sheet-input"
+              maxLength={500}
+            />
+            <button
+              type="submit"
+              className="pergamino-form-send"
+              disabled={posting || !newComment.trim()}
+              data-testid="comments-sheet-send"
+              aria-label="Sellar resonancia"
+              title="Sellar resonancia"
+            >
+              <FeatherIcon size={16} />
+            </button>
+          </form>
+        </div>
+
+        {/* Rodillo inferior */}
+        <div className="pergamino-roller pergamino-roller-bottom" aria-hidden="true">
+          <svg viewBox="0 0 400 28" preserveAspectRatio="none" width="100%" height="100%">
+            <rect x="0" y="6" width="400" height="16" fill="url(#rollerGrad)" />
+            <circle cx="14" cy="14" r="13" fill="#6b4a18" stroke="#e8c97e" strokeWidth="1.5" />
+            <circle cx="14" cy="14" r="5" fill="#3d2a0e" />
+            <circle cx="386" cy="14" r="13" fill="#6b4a18" stroke="#e8c97e" strokeWidth="1.5" />
+            <circle cx="386" cy="14" r="5" fill="#3d2a0e" />
+          </svg>
+        </div>
       </div>
     </div>,
     document.body

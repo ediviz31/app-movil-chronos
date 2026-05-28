@@ -803,6 +803,25 @@ setInterval(() => {
   }
 }, 30000);
 
+// Cronistas activos ahora (últimos 2 min) — para la sección del sidebar.
+// Excluye al usuario solicitante. Limita a 12.
+app.get('/api/presencia/activos', auth, async (req, res) => {
+  try {
+    const threshold = new Date(Date.now() - 2 * 60 * 1000);
+    const activos = await User.find(
+      { _id: { $ne: req.userId }, ultimo_visto: { $gte: threshold } },
+      { _id: 1, nombre: 1, usuario: 1, avatar: 1, ultimo_visto: 1 }
+    )
+      .sort({ ultimo_visto: -1 })
+      .limit(12)
+      .lean();
+    res.json({ activos, total: activos.length });
+  } catch (err) {
+    console.error('Error /presencia/activos:', err);
+    res.status(500).json({ error: 'Error al consultar activos' });
+  }
+});
+
 
 
 // ============================================

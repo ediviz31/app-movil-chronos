@@ -1,0 +1,55 @@
+{
+  "summary": "Iteration 21 — Probado backend GET /api/presencia/activos (auth, shape, exclude self, sorted desc, threshold 2min) y regresión heartbeat/consultar: 9/9 pasaron. Frontend CommentsSheet pergamino: portal en body, rodillos, 4 esquinas, título 'Resonancias del archivo', subtitle dinámico, optimistic comment en TOP con clase pergamino-entry-new, orden cronológico inverso, close OK. ENCONTRADOS 2 BUGS: (1) CRÍTICO — ActivosAhora se importa en ArchiveSidebar.js pero NUNCA se renderiza en el JSX, por lo que el data-testid='activos-ahora-section' jamás aparece en pantalla aunque el endpoint funcione. (2) MENOR — El badge 'EN LÍNEA' del pergamino aparece sobre los comentarios del propio usuario logueado porque CommentsSheet solo excluye el id literal 'me' (optimistic) y no recibe currentUserId como prop para comparar contra los comentarios reales del propio autor.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "ArchiveSidebar.js",
+        "issue": "ActivosAhora se importa (línea 8) pero NUNCA se renderiza en el JSX de ArchiveSidebar. El section data-testid='activos-ahora-section' no aparece nunca en /archivo, aunque el endpoint /api/presencia/activos devuelva cronistas activos. Forzando 2 cronistas activos vía Mongo y consultando el DOM: activos-ahora-section=false, ActivosAhora-en-html=false.",
+        "selector": "[data-testid='activos-ahora-section']",
+        "priority": "CRITICAL"
+      },
+      {
+        "component": "CommentsSheet.js",
+        "issue": "El span.pergamino-online con texto 'EN LÍNEA' se renderiza sobre los comentarios del propio usuario logueado. El check actual es u._id !== 'me', pero solo el optimistic temporal tiene id 'me'; los comentarios reales del propio autor (tras refetch) traen su _id real, por lo que el badge aparece en sus propias entradas. CommentsSheet no recibe currentUserId como prop. Fix sugerido: pasar currentUserId desde el padre (SocialPost) y excluir también ese id en el check.",
+        "selector": "[data-testid^='pergamino-online-']",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Sidebar -> ActivosAhora",
+        "issue": "Aunque ActivosAhora.js está bien implementado (fetch, polling 45s, cleanup en unmount, grid 3 cols, +X más en la sala), no se está montando en ningún lado porque ArchiveSidebar.js no lo renderiza. Por consiguiente NO se puede validar el polling/grid/total/+más en la app real, solo por revisión de código del componente standalone.",
+        "affected_selectors": ["[data-testid='activos-ahora-section']", "[data-testid='activos-ahora-count']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter21_presencia_activos.py",
+    "/app/test_reports/pytest/iter21_results.xml"
+  ],
+  "action_items": [
+    "URGENTE: Renderizar <ActivosAhora /> dentro del JSX de /app/frontend/src/components/ArchiveSidebar.js, ANTES del section 'Efeméride del Día' como pide el problem statement (línea ~76, justo antes del primer <section className='sidebar-section'> con data-testid='ephemeris-section').",
+    "Pasar prop currentUserId desde SocialPost a CommentsSheet y reemplazar el check `u._id !== 'me'` por `u._id && u._id !== 'me' && u._id !== currentUserId` para no mostrar 'EN LÍNEA' en los comentarios propios del usuario logueado."
+  ],
+  "critical_code_review_comments": [
+    "ArchiveSidebar.js: import sin uso (ActivosAhora). Eslint debería marcarlo. Render falta.",
+    "CommentsSheet.js: la comparación del propio usuario depende del literal 'me' (id ficticio del optimistic). Esto es frágil: en cuanto el polling refetch reemplaza el optimistic, el badge incorrecto aparece. Pasar siempre el currentUserId real.",
+    "server.js: el endpoint /api/presencia/activos respeta el límite de 12, ordena desc por ultimo_visto, excluye al solicitante y filtra por umbral de 2min — todo verificado por pytest."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (9/9 tests pasados, incluido test_sorted_desc tras forzar 2 cronistas activos en Mongo)",
+    "frontend": "85% — pergamino estructura/portal/optimistic/orden/close OK; ActivosAhora NO renderizado y badge 'en línea' aparece en comentarios propios"
+  },
+  "test_credentials": "vizcarrapulidoeddy@gmail.com / chronos2026",
+  "seed_data_creation": "Vía mongosh seteé ultimo_visto=now en 2 usuarios distintos de Yelsi (Keilin Vizcarra 6a162ec924dbda262c85954f y ArqueoRelatos 6a162ec924dbda262c859551) para validar el orden desc y exclude-self del endpoint. También dejé un comentario TEST_iter21 en un relato durante la prueba UI.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend /api/presencia/activos verificado al 100% por pytest (test_iter21_presencia_activos.py). El bug principal es que <ActivosAhora /> está importado pero no renderizado en ArchiveSidebar (línea 76+ del JSX). Tras el fix, recargar /archivo con sesión de vizcarrapulidoeddy y comprobar que aparece [data-testid='activos-ahora-section'] con el contador y al menos 1 tarjeta (siempre que haya otros usuarios con heartbeat reciente). Para el segundo bug, agregar prop currentUserId a CommentsSheet y comparar contra el ID real del usuario logueado además de 'me'. CommentsSheet pergamino y backend endpoint están sólidos.",
+  "rca of the issue": "Bug 1 (ActivosAhora no renderizado): durante search_replace previo del trailing 'lt ArchiveSidebar;' (mencionado en agent_to_agent_context_note) probablemente se removió accidentalmente el bloque JSX que renderizaba <ActivosAhora />, dejando solo el import. Reproducción: login con Yelsi, ir a /archivo, inspeccionar el sidebar derecho — solo aparecen Efeméride/Épocas/Temas/Cita/Acción, sin sección de cronistas activos. Mitigación: agregar <ActivosAhora /> dentro del fragmento JSX antes del section ephemeris-section. Bug 2 (en línea propio): comparación incompleta. Reproducción: enviar comentario, esperar 8s al refetch, el badge aparece en el propio comentario. Mitigación: pasar currentUserId como prop y exclude también."
+}

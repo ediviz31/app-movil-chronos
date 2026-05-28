@@ -5,6 +5,7 @@ import { getAvatarUrl } from '../utils/imageHelpers';
 import {
   CalendarIcon, TempleIcon, FlameIcon, PlusOrnateIcon, ArrowRightIcon
 } from './HistoricIcons';
+import ActivosAhora from './ActivosAhora';
 
 // Datos curados de épocas con imágenes
 const EPOCAS_DATA = {
