@@ -232,7 +232,8 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
 
             {sortedComments.map((c, idx) => {
               const u = c.usuario_id;
-              const online = u?._id && u._id !== 'me' && isOnline(u._id);
+              const isSelf = u?._id && (u._id === 'me' || (currentUserId && String(u._id) === String(currentUserId)));
+              const online = !isSelf && u?._id && isOnline(u._id);
               return (
                 <article
                   className={`pergamino-entry ${idx === 0 ? 'pergamino-entry-new' : ''}`}
