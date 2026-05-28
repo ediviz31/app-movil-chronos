@@ -213,6 +213,52 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - Animación slide-in del drawer + sheet-up de modales (cubic-bezier nativo)
 - `activeRail` corregido en `MiLegado` y demás páginas con tab en mobile
 
+### Fase 13 — Native Mobile UX overhaul 📱✨ (Feb 28, 2026)
+**Renovación completa de PWA mobile para sentir como app nativa, basada en mockups del usuario:**
+
+**Layout & sticky:**
+- `MobileSubBar` (nuevo): position:fixed bajo el topbar (top:56px), contiene SearchBar pill full-width + 4 tabs (Para ti, Crónicas, Legados, Documentos)
+- Topbar mobile rediseñado: logo CHRONOS **centrado**, avatar circular dorado a la derecha (click abre el drawer)
+- `main-area` padding-top:128px en mobile para compensar topbar+subbar fijos
+- Fix crítico: `overflow-x: hidden` → `overflow-x: clip` en body/archive-layout (no rompe `position:sticky` en iOS)
+- Grid layout mobile: `grid-template-rows: 56px 1fr` (sin reservar fila para bottom-nav, que es position:fixed)
+- Cards centradas con padding simétrico (antes lean-left por padding 28px/48px asimétrico en social-refine.css)
+
+**Bottom nav (5 items, como Twitter/Instagram):**
+- Inicio · Explorar · Crónicas · Biblioteca · Mi legado
+- Sin gap inferior, indicador activo dorado tipo iOS
+
+**Drawer móvil:**
+- Renderizado via `createPortal` a `document.body` (evita containing-block por backdrop-filter del topbar)
+- Fondo opaco azul oscuro (no transparente)
+- Búsqueda inline real (resultados de `/api/buscar`)
+- Lista: Misivas, Avisos, Épocas, Efemérides, Legados + Cerrar sesión
+
+**Gestos táctiles nativos:**
+- 🤚 **Swipe-to-open** desde borde izquierdo (primeros 24px → dx>60px abre drawer)
+- 🤚 **Swipe-to-close** sobre el drawer abierto (desliza a la derecha → cierra)
+- 🔄 **Pull-to-refresh** estilo Twitter/iOS en `/` (HourglassIcon rota, resistencia, threshold 70px)
+
+**Refinamiento visual:**
+- Hashtags inline como **pills doradas** con borde
+- WeeklyHighlight ("Boletín del archivo") centrado con marco doble dorado
+- SALA CHRONOS card con borde dorado + kicker + título italic "Buen día/tarde/noche"
+- Composer iconos dorados visibles (Imagen / Época / Relato + botón PUBLICAR)
+- Modales tipo bottom-sheet con asa superior, scrollbar dorado dentro (no amarillo del browser)
+- Topbar mobile esconde botones secundarios (crear, hamburguesa, badges) — todo se accede vía drawer
+
+**Archivos clave:**
+- `/app/frontend/src/components/MobileSubBar.js` (nuevo)
+- `/app/frontend/src/components/PullToRefresh.js` (nuevo)
+- `/app/frontend/src/components/MobileMoreDrawer.js` (refactor: createPortal + swipe-to-close)
+- `/app/frontend/src/components/TopbarArchive.js` (logo centrado, swipe-to-open, avatar abre drawer)
+- `/app/frontend/src/components/SideRail.js` (5 items mobile)
+- `/app/frontend/src/components/PageShell.js` (incluye MobileSubBar)
+- `/app/frontend/src/pages/Feed.js` (PullToRefresh wrapper)
+- `/app/frontend/src/styles/mobile-app.css` (1000+ líneas; grid-aware, sticky-safe)
+
+**Testing:** `iteration_17.json` — todos los casos PASS (Mobile 390x844 + Desktop 1920x800).
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
 - `/explorar` ← Fase 5
