@@ -1536,12 +1536,12 @@ button {
 @media (max-width: 900px) {
   /* === LAYOUT: bottom rail nav en lugar de side rail === */
   .archive-layout {
-    grid-template-rows: 56px 1fr 64px;
+    grid-template-rows: 56px 1fr;
     grid-template-columns: 1fr;
     grid-template-areas:
       "topbar"
-      "main"
-      "rail";
+      "main";
+    /* IMPORTANT: NO usar overflow-x: hidden aquí, rompe position: sticky en iOS */
   }
   /* En mobile bottom nav: ocultar items que no son prioritarios */
   .side-rail .rail-item.desktop-only { display: none !important; }
@@ -1559,12 +1559,13 @@ button {
     align-items: center;
     padding: 0 4px;
     border-right: none;
-    border-top: 1px solid var(--border-thin);
-    background: linear-gradient(180deg, rgba(6, 13, 30, 0.95), rgba(6, 13, 30, 0.98));
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--gold-soft);
+    background: rgba(4, 9, 26, 0.96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     gap: 0;
     z-index: 90;
+    grid-area: unset;
   }
   .rail-logo,
   .rail-user,
@@ -1603,14 +1604,15 @@ button {
   /* === MAIN === */
   .main-area {
     grid-template-columns: 1fr;
-    padding: 14px 12px 24px;
+    padding: 14px 12px 96px;
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
     min-width: 0;
   }
-  /* Prevenir cualquier desbordamiento global en móvil */
-  body, .archive-layout { overflow-x: hidden; max-width: 100vw; }
+  /* Prevenir cualquier desbordamiento global en móvil. `clip` (no hidden) NO rompe sticky */
+  body, .archive-layout { overflow-x: clip; max-width: 100vw; }
+  html { overflow-x: clip; }
   .archive-layout > * { min-width: 0; }
   .main-area > * { min-width: 0; max-width: 100%; box-sizing: border-box; }
   .archive-feed { min-width: 0; max-width: 100%; box-sizing: border-box; }

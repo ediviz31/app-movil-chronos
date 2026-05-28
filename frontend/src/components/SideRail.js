@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import {
-  HourglassIcon, OrnateStarIcon, TempleIcon, MapIcon,
+  OrnateStarIcon, TempleIcon, MapIcon,
   FeatherIcon, ChronicleIcon, LibraryIcon, CommunitiesIcon,
   LogoutIcon, TelescopeIcon, DoveScrollIcon
 } from './HistoricIcons';
@@ -12,16 +12,19 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // mobile: 5 ítems visibles en bottom tab bar (orden idéntico al mockup)
+  // desktop: todos visibles en side rail
   const items = [
-    { id: 'inicio', label: 'Inicio', icon: OrnateStarIcon, path: '/', mobile: true },
-    { id: 'explorar', label: 'Explorar', icon: TelescopeIcon, path: '/explorar', mobile: true },
-    { id: 'epocas', label: 'Épocas', icon: TempleIcon, path: '/epocas' },
-    { id: 'efemerides', label: 'Efemérides', icon: MapIcon, path: '/efemerides' },
-    { id: 'cronicas', label: 'Crónicas', icon: ChronicleIcon, path: '/cronicas' },
-    { id: 'biblioteca', label: 'Biblioteca', icon: LibraryIcon, path: '/documentos' },
-    { id: 'legados', label: 'Legados', icon: CommunitiesIcon, path: '/legados' },
-    { id: 'misivas', label: 'Misivas', icon: DoveScrollIcon, path: '/misivas', mobile: true },
-    { id: 'mi-legado', label: 'Mi Legado', icon: FeatherIcon, path: '/mi-legado', mobile: true }
+    { id: 'inicio',     label: 'Inicio',     icon: OrnateStarIcon, path: '/',           mobile: true  },
+    { id: 'explorar',   label: 'Explorar',   icon: TelescopeIcon,  path: '/explorar',   mobile: true  },
+    { id: 'cronicas',   label: 'Crónicas',   icon: ChronicleIcon,  path: '/cronicas',   mobile: true  },
+    { id: 'biblioteca', label: 'Biblioteca', icon: LibraryIcon,    path: '/documentos', mobile: true  },
+    { id: 'mi-legado',  label: 'Mi legado',  icon: FeatherIcon,    path: '/mi-legado',  mobile: true  },
+    // desktop-only
+    { id: 'epocas',     label: 'Épocas',     icon: TempleIcon,     path: '/epocas',     mobile: false },
+    { id: 'efemerides', label: 'Efemérides', icon: MapIcon,        path: '/efemerides', mobile: false },
+    { id: 'legados',    label: 'Legados',    icon: CommunitiesIcon,path: '/legados',    mobile: false },
+    { id: 'misivas',    label: 'Misivas',    icon: DoveScrollIcon, path: '/misivas',    mobile: false }
   ];
 
   const handleClick = (item) => {
@@ -39,7 +42,7 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
             onClick={() => handleClick(item)}
             data-testid={`rail-${item.id}`}
           >
-            <IconComp size={26} />
+            <IconComp size={22} />
             <span>{item.label}</span>
           </button>
         );
@@ -60,7 +63,7 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
       </button>
 
       <div
-        className="rail-user"
+        className="rail-user desktop-only"
         data-testid="rail-user-avatar"
         onClick={() => user && navigate(`/perfil/${user._id || user.id}`)}
         style={{ cursor: 'pointer' }}
@@ -68,7 +71,6 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
       >
         <img src={getAvatarUrl(user)} alt={user?.nombre} />
       </div>
-      <div className="rail-user-label">Mi legado</div>
     </aside>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
@@ -37,6 +38,53 @@ const MobileMoreDrawer = ({ open, onClose, onLogout }) => {
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
+  // Swipe-to-close: si el usuario desliza hacia la derecha sobre el drawer, cerramos
+  useEffect(() => {
+    if (!open) return;
+    let startX = 0;
+    let startY = 0;
+    let tracking = false;
+    const drawerEl = document.querySelector('.mobile-drawer');
+    if (!drawerEl) return;
+
+    const onStart = (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      tracking = true;
+      drawerEl.style.transition = 'none';
+    };
+    const onMove = (e) => {
+      if (!tracking) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = Math.abs(e.touches[0].clientY - startY);
+      if (dx > 0 && dy < 60) {
+        drawerEl.style.transform = `translateX(${dx}px)`;
+      }
+    };
+    const onEnd = (e) => {
+      if (!tracking) return;
+      tracking = false;
+      drawerEl.style.transition = '';
+      const dx = (e.changedTouches[0].clientX - startX);
+      const dy = Math.abs(e.changedTouches[0].clientY - startY);
+      if (dx > 80 && dy < 60) {
+        drawerEl.style.transform = 'translateX(100%)';
+        setTimeout(() => { onClose(); drawerEl.style.transform = ''; }, 180);
+      } else {
+        drawerEl.style.transform = '';
+      }
+    };
+
+    drawerEl.addEventListener('touchstart', onStart, { passive: true });
+    drawerEl.addEventListener('touchmove', onMove, { passive: true });
+    drawerEl.addEventListener('touchend', onEnd);
+    return () => {
+      drawerEl.removeEventListener('touchstart', onStart);
+      drawerEl.removeEventListener('touchmove', onMove);
+      drawerEl.removeEventListener('touchend', onEnd);
+    };
+  }, [open, onClose]);
+
   // Búsqueda con debounce
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -65,16 +113,15 @@ const MobileMoreDrawer = ({ open, onClose, onLogout }) => {
     const q = search.trim();
     if (q) go(`/explorar?q=${encodeURIComponent(q)}`);
   };
-
   const sections = [
+    { id: 'misivas',   label: 'Misivas',    icon: CommunitiesIcon,  path: '/misivas',    desc: 'Mensajes privados' },
+    { id: 'avisos',    label: 'Avisos',     icon: OrnateStarIcon,   path: '/avisos',     desc: 'Notificaciones' },
     { id: 'epocas',    label: 'Épocas',     icon: TempleIcon,       path: '/epocas',     desc: 'Explora las eras' },
     { id: 'efemerides',label: 'Efemérides', icon: MapIcon,          path: '/efemerides', desc: 'Hoy en la historia' },
-    { id: 'cronicas',  label: 'Crónicas',   icon: ChronicleIcon,    path: '/cronicas',   desc: 'Todos los relatos' },
-    { id: 'documentos',label: 'Biblioteca', icon: LibraryIcon,      path: '/documentos', desc: 'Documentos visuales' },
-    { id: 'legados',   label: 'Legados',    icon: CommunitiesIcon,  path: '/legados',    desc: 'Otros cronistas' }
+    { id: 'legados',   label: 'Legados',    icon: LibraryIcon,      path: '/legados',    desc: 'Otros cronistas' }
   ];
 
-  return (
+  return createPortal(
     <div className="mobile-drawer-backdrop" onClick={onClose} data-testid="mobile-drawer-backdrop">
       <aside
         className="mobile-drawer"
@@ -199,7 +246,8 @@ const MobileMoreDrawer = ({ open, onClose, onLogout }) => {
           <span className="mobile-drawer-version">Chronos · archivo vivo</span>
         </div>
       </aside>
-    </div>
+    </div>,
+    document.body
   );
 };
 

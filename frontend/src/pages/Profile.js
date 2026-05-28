@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getAvatarUrl, getImageUrl } from '../utils/imageHelpers';
 import TopbarArchive from '../components/TopbarArchive';
+import MobileSubBar from '../components/MobileSubBar';
 import SideRail from '../components/SideRail';
 import SocialPost from '../components/SocialPost';
 import CreateChronicleModal from '../components/CreateChronicleModal';
@@ -126,6 +127,7 @@ const Profile = () => {
     return (
       <div className="archive-layout">
         <TopbarArchive onCreate={() => setModalOpen(true)} />
+        <MobileSubBar />
         <SideRail activeItem="" onLogout={logout} />
         <div className="main-area">
           <div style={{ padding: 60, textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -155,6 +157,7 @@ const Profile = () => {
   return (
     <div className="archive-layout">
       <TopbarArchive onCreate={() => setModalOpen(true)} />
+      <MobileSubBar />
       <SideRail activeItem="" onLogout={logout} />
 
       <div className="main-area profile-main">

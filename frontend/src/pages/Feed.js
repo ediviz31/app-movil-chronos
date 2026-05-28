@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import SideRail from '../components/SideRail';
 import TopbarArchive from '../components/TopbarArchive';
+import MobileSubBar from '../components/MobileSubBar';
+import PullToRefresh from '../components/PullToRefresh';
 import ArchiveSidebar from '../components/ArchiveSidebar';
 import SocialPost from '../components/SocialPost';
 import CreateChronicleModal from '../components/CreateChronicleModal';
@@ -51,10 +53,12 @@ const Feed = () => {
   return (
     <div className="archive-layout">
       <TopbarArchive onCreate={() => setModalOpen(true)} />
+      <MobileSubBar />
       <SideRail activeItem="inicio" onLogout={logout} />
 
       <div className="main-area">
 
+        <PullToRefresh onRefresh={fetchRelatos}>
         <main className="archive-feed" data-testid="archive-feed">
 
           {/* Saludo / Header del feed */}
@@ -156,6 +160,7 @@ const Feed = () => {
             </div>
           )}
         </main>
+        </PullToRefresh>
 
         <ArchiveSidebar />
       </div>

@@ -1,0 +1,67 @@
+{
+  "summary": "Tested mobile UX overhaul (viewport 390x844) and verified desktop did not regress (1920x800). Found ONE CRITICAL layout bug: MobileSubBar (search pill + 4 tabs) renders at y=5706px (end of feed) instead of sticky below topbar. Root cause: .archive-layout CSS grid only declares 'topbar/main' rows; <MobileSubBar/> has no grid-area so it lands in implicit row after main-area. Visible side-effect: the 4 mobile tabs are completely off the visible area, and force-click navigates to the wrong destination because the bottom SideRail intercepts the click after scrollIntoView. All other mobile requirements pass: sticky topbar, opaque drawer with working search ('kei' returned users, 'roma' returned 5 relatos), 5-item bottom nav with no gap, symmetric card centering (x=12, right_margin=12), composer icons + PUBLICAR visible, hashtag pills present, PTR indicator triggers, bottom-sheet modal works. Desktop preserves SearchBar inline, 4 nav tabs and full side rail (Inicio/Explorar/Crónicas/Biblioteca/Mi legado/Épocas/Efemérides/Legados/Misivas + Salir + avatar). Backend endpoints /api/buscar, /api/misivas, /api/relatos all return 200.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/mi-legado/perfil", "issue": "Path does not exist in server.js (404). Review request mentioned it but actual mi-legado endpoints use different paths. Confirm intended URL or update doc."},
+      {"endpoint": "/api/misivas/conversaciones", "issue": "404 — correct path is /api/misivas (returns array of conversations)."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "MobileSubBar / PageShell / archive-layout",
+        "issue": "MobileSubBar is rendered inside .archive-layout (CSS grid) but the grid only declares rows 'topbar' and 'main'. The subbar has no grid-area, so it gets auto-placed in an implicit row AFTER .main-area. Measured bounding-box: y=5706px (end of feed), height=64px. Although CSS marks it position:sticky;top:56px;z-index:80, sticky has no effect because the subbar's containing block is positioned at the bottom of the document — user never sees the search pill nor the 4 tabs (Para ti / Crónicas / Legados / Documentos) below the topbar. Mockups required these to be the second visible row of the mobile UI.",
+        "selector": "[data-testid=\"mobile-subbar\"]",
+        "priority": "CRITICAL"
+      },
+      {
+        "component": "MobileSubBar tabs navigation (consequence of layout bug)",
+        "issue": "Because the subbar sits at y≈5706 (off-screen), Playwright force-clicks scroll the page first, then the fixed bottom .side-rail (z=100) intercepts the click. Observed: click 'Crónicas' → URL becomes /explorar; click 'Legados' → /documentos; click 'Documentos' → /mi-legado (each tab navigates to the rail item it visually overlaps after scroll). Will resolve automatically once the layout bug above is fixed (subbar at viewport top).",
+        "selector": "[data-testid=\"mobile-tabs-nav\"] a",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "mobile_checks_passed": [
+    "Sticky topbar (y=0 before and after window.scrollTo(0,800))",
+    "Avatar click opens MobileMoreDrawer (drawer visible=true)",
+    "Drawer visually opaque (linear-gradient bg, screenshot confirmed)",
+    "Drawer inline search returns real results: 'kei' → 1 user (Keilin), 'roma' → 5 relatos",
+    "Drawer close button works",
+    "Bottom nav 5 items (Inicio, Explorar, Crónicas, Biblioteca, Mi legado) fixed at y+h=844 (no gap)",
+    "Feed cards centered: .social-post / .weekly-highlight / .feed-greeting / .social-composer all at x=12, width=366, right margin=12 (symmetric)",
+    "Hashtag pills rendered inside .social-post-content (10 pills found across feed)",
+    "Composer shows Imagen/Época/Relato icons and PUBLICAR button visible",
+    "Pull-to-refresh: indicator element appears (count=1) after touch drag from top",
+    "'Agregar familiar' opens bottom-sheet modal on /mi-legado",
+    "Zero console errors on /, /explorar, /mi-legado, /misivas at 390x844"
+  ],
+  "desktop_checks_passed": [
+    "mobile-subbar hidden (display:none)",
+    "Inline SearchBar visible in topbar (.topbar-search-wrap)",
+    "Desktop nav tabs visible (nav-para-ti, nav-crónicas, nav-legados, nav-documentos)",
+    "SideRail shows 10 items including epocas, efemerides, legados, misivas + rail-logout + rail-user-avatar"
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "Fix .archive-layout grid to allocate a row for the mobile subbar. Suggested: in @media (max-width: 900px) change grid-template-rows to '56px auto 1fr' and grid-template-areas to '\"topbar\" \"subbar\" \"main\"', and add .mobile-subbar { grid-area: subbar; } at mobile breakpoint. Alternatively, move <MobileSubBar/> out of .archive-layout (render it as direct sibling of the topbar with position:sticky on body), or assign it via grid-row: 2 explicitly.",
+    "After layout fix, re-verify tab navigation: clicking each mobile-tab should land on its own path (/, /cronicas, /legados, /documentos).",
+    "Optional: confirm whether /api/mi-legado/perfil and /api/misivas/conversaciones should exist or if review request had stale paths."
+  ],
+  "critical_code_review_comments": [
+    "PageShell.js: <MobileSubBar/> is rendered as a direct child of .archive-layout (a CSS grid), but no grid-area is assigned anywhere in mobile-app.css for .mobile-subbar — this is the root cause of the misplacement.",
+    "MobileSubBar uses sticky positioning relying on the parent being a scroll container; verify the new grid row also acts correctly with the surrounding overflow:clip applied to html/body.",
+    "Side-rail z-index (100) > mobile-subbar z-index (80); once subbar is at top this is fine, but worth keeping in mind for any future overlap scenarios."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (core endpoints 200)", "frontend": "12/13 mobile checks passed (~92%) — only subbar placement failing; 100% desktop"},
+  "test_credentials": "keilin@chronos.com / chronos123 (verified working)",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "After main agent fixes the grid layout so MobileSubBar appears between topbar and main, re-test on 390x844: (1) measure bounding box of [data-testid=\"mobile-subbar\"] expecting y≈56, (2) click each mobile-tab-{para-ti,crónicas,legados,documentos} and assert URL changes to /, /cronicas, /legados, /documentos respectively, (3) sticky check: scroll to 800 and confirm subbar y stays ≈56. All other mobile UX requirements already pass.",
+  "rca_of_the_issue": "Root cause: CSS grid layout .archive-layout declares only two grid areas (topbar/main on mobile). The MobileSubBar component (added in PageShell.js between TopbarArchive and SideRail in DOM order) lacks any grid-area: subbar assignment. CSS Grid therefore auto-places the unassigned item into an implicit row generated AFTER the explicit template, placing the subbar at the end of the document (y=5706 in the tested feed). The element's position:sticky;top:56px has no visible effect because, by the time it would stick, the viewport has already scrolled past its containing-block. As a consequence, the 4 mobile navigation tabs are never visible to the user and force-click navigation lands on the SideRail item that happens to overlap the same coordinates after Playwright's auto-scroll. Fix: extend grid template to include a subbar row OR remove the subbar from the grid context and render it as a fixed/sticky overlay sibling of topbar."
+}

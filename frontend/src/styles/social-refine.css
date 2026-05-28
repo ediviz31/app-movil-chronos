@@ -9,10 +9,20 @@
   grid-template-columns: minmax(0, 1fr) 340px !important;
   max-width: 1280px !important;
   margin: 0 auto !important;
-  padding: 28px 48px 28px 32px !important;
+  padding: 28px 40px !important;
   gap: 48px !important;
   width: 100%;
   align-items: start;
+}
+
+@media (max-width: 900px) {
+  .main-area {
+    grid-template-columns: 1fr !important;
+    padding: 12px 14px 96px !important;
+    gap: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
 }
 
 .archive-feed {

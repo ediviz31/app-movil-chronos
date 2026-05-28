@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
@@ -7,7 +7,7 @@ import AvisosBadge from './AvisosBadge';
 import MisivasBadge from './MisivasBadge';
 import MobileMoreDrawer from './MobileMoreDrawer';
 import {
-  FeatherIcon, HourglassIcon, MenuIcon, SearchIcon,
+  FeatherIcon, HourglassIcon,
   OrnateStarIcon, ChronicleIcon, CommunitiesIcon, ScrollIcon
 } from './HistoricIcons';
 
@@ -24,14 +24,57 @@ const TopbarArchive = ({ onCreate }) => {
     { path: '/documentos', label: 'Documentos', Icon: ScrollIcon }
   ];
 
+  // ─── Swipe-to-open desde el borde izquierdo (mobile) ───
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let startX = 0;
+    let startY = 0;
+    let tracking = false;
+
+    const onStart = (e) => {
+      if (drawerOpen) return;
+      if (window.innerWidth > 900) return;
+      const x = e.touches[0].clientX;
+      // sólo activamos si toca cerca del borde izquierdo (primeros 24px)
+      if (x > 24) return;
+      startX = x;
+      startY = e.touches[0].clientY;
+      tracking = true;
+    };
+
+    const onMove = (e) => {
+      if (!tracking) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = Math.abs(e.touches[0].clientY - startY);
+      // Sólo abrir si el gesto es claramente horizontal y supera 60px
+      if (dx > 60 && dy < 50) {
+        setDrawerOpen(true);
+        tracking = false;
+      }
+    };
+
+    const onEnd = () => { tracking = false; };
+
+    window.addEventListener('touchstart', onStart, { passive: true });
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('touchend', onEnd);
+    return () => {
+      window.removeEventListener('touchstart', onStart);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
+  }, [drawerOpen]);
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
+
   return (
     <header className="archive-topbar" data-testid="archive-topbar">
       <div className="topbar-inner">
-        {/* IZQUIERDA: Logo + Buscador (estilo Facebook) */}
+        {/* IZQUIERDA (desktop): Logo + Buscador */}
         <div className="topbar-section-left">
           <div className="topbar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} data-testid="topbar-brand">
             <div className="topbar-brand-icon">
-              <HourglassIcon size={28} />
+              <HourglassIcon size={26} />
             </div>
             <div className="topbar-brand-text">
               <span className="brand-name">CHRONOS</span>
@@ -41,18 +84,9 @@ const TopbarArchive = ({ onCreate }) => {
           <div className="topbar-search-wrap">
             <SearchBar />
           </div>
-          {/* Botón búsqueda compacto solo en mobile (abre el drawer con buscador) */}
-          <button
-            className="icon-btn mobile-only-icon topbar-search-mobile-btn"
-            onClick={() => setDrawerOpen(true)}
-            data-testid="topbar-search-mobile-btn"
-            aria-label="Buscar"
-          >
-            <SearchIcon size={20} />
-          </button>
         </div>
 
-        {/* CENTRO: Navegación */}
+        {/* CENTRO (desktop): Navegación */}
         <div className="topbar-section-center">
           <nav className="archive-nav">
             {navItems.map(item => {
@@ -76,28 +110,23 @@ const TopbarArchive = ({ onCreate }) => {
           </nav>
         </div>
 
-        {/* DERECHA: Acciones */}
+        {/* DERECHA: Acciones (desktop) + avatar (siempre) */}
         <div className="topbar-section-right">
           <div className="archive-topbar-actions">
-            <button className="icon-btn" onClick={onCreate} data-testid="topbar-create-btn" title="Crear crónica">
+            <button className="icon-btn desktop-only-inline" onClick={onCreate} data-testid="topbar-create-btn" title="Crear crónica">
               <FeatherIcon size={20} />
             </button>
             <AvisosBadge />
             <MisivasBadge />
-            <button
-              className="icon-btn mobile-only-icon"
-              onClick={() => setDrawerOpen(true)}
-              data-testid="topbar-more-btn"
-              aria-label="Más opciones"
-            >
-              <MenuIcon size={20} />
-            </button>
             <div
-              className="user-avatar-small desktop-only-inline"
+              className="user-avatar-small"
               data-testid="topbar-user-avatar"
-              onClick={() => user && navigate(`/perfil/${user._id || user.id}`)}
+              onClick={() => {
+                if (isMobile) setDrawerOpen(true);
+                else if (user) navigate(`/perfil/${user._id || user.id}`);
+              }}
               style={{ cursor: 'pointer' }}
-              title="Mi perfil"
+              title={isMobile ? 'Menú' : 'Mi perfil'}
             >
               <img src={getAvatarUrl(user)} alt={user?.nombre} />
             </div>
