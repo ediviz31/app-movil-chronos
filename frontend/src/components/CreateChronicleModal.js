@@ -72,13 +72,14 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
     return () => clearInterval(timer);
   }, [isOpen, formData]);
 
-  // Reset estado al cerrar
+  // Reset estado al cerrar (formData se restaurará desde localStorage al reabrir si hay borrador)
   useEffect(() => {
     if (!isOpen) {
       setHasRestoredOnce(false);
       setDraftStatus('idle');
       setDraftMeta(null);
       lastSavedSnapshot.current = '';
+      setFormData({ titulo: '', categoria: 'Antigüedad', contenido: '' });
     }
   }, [isOpen]);
 

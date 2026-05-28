@@ -259,6 +259,38 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 
 **Testing:** `iteration_17.json` — todos los casos PASS (Mobile 390x844 + Desktop 1920x800).
 
+### Fase 14 — Tema claro pergamino + Borradores automáticos + Haptic feedback (Feb 28, 2026)
+
+**🌅 Tema dual (claro/oscuro/automático):**
+- `ThemeContext` con preferencia persistida en `localStorage` (`chronos_theme_pref`)
+- Modos: `dark` (default), `light` (pergamino), `auto` (6am-19h = light, resto = dark)
+- Modo auto recheck cada 30min + al volver de background
+- Override de variables CSS bajo `html[data-theme="light"]` en `theme-light.css`
+- Paleta pergamino: fondo `#F4ECD8`, texto `#3D2914`, dorado oscuro `#A6862E`, textura noise sutil
+- Toggle ciclico en el drawer móvil (Sol → Auto → Luna)
+- Meta `theme-color` se actualiza dinámicamente (status bar nativo PWA)
+
+**📝 Borradores automáticos en CreateChronicleModal:**
+- Autosave cada 5s en `localStorage` clave `chronos_chronicle_draft`
+- Banner "Borrador recuperado" al reabrir con edad humanizada (hace 3m, 2h, 1d…)
+- Indicador sutil "· Borrador guardado" en el form-actions con fade animation
+- Botón "Descartar" elimina el borrador y limpia el form
+- Al publicar exitosamente, el borrador se consume automáticamente
+
+**🤚 Haptic feedback (vibración):**
+- Utility `/app/frontend/src/utils/haptic.js` con patrones: light, medium, success, notify, warn
+- Integrado en: pull-to-refresh, swipe-to-open drawer, tap avatar, eco, archivar, enviar misiva (success), recibir aviso (notify), publicar crónica (success)
+- Falla silenciosamente en navegadores sin `navigator.vibrate` (iOS Safari)
+
+**Archivos clave:**
+- `/app/frontend/src/context/ThemeContext.js` (nuevo)
+- `/app/frontend/src/styles/theme-light.css` (nuevo)
+- `/app/frontend/src/utils/haptic.js` (nuevo)
+- `/app/frontend/src/components/HistoricIcons.js` — añadidos SunIcon, MoonIcon, AutoThemeIcon
+- `/app/frontend/src/components/CreateChronicleModal.js` — autosave + restore banner
+
+**Testing:** `iteration_18.json` — 10/11 PASS (un edge case menor de re-render fixed).
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
 - `/explorar` ← Fase 5
