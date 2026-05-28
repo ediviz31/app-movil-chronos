@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../services/api';
+import haptic from '../utils/haptic';
 import { CloseIcon, FeatherIcon } from './HistoricIcons';
 
 const CATEGORIAS = [
@@ -43,6 +44,7 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
       const response = await api.post('/relatos', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
+      haptic.success();   // ✍️ vibración al publicar crónica
       if (onSuccess) onSuccess(response.data.relato);
       setFormData({ titulo: '', categoria: 'Antigüedad', contenido: '' });
       setImagen(null); setImagenPreview(null);

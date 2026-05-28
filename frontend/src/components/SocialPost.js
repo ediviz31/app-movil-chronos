@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import haptic from '../utils/haptic';
 import { getImageUrl, getAvatarUrl } from '../utils/imageHelpers';
 import { CoinLaurelIcon, ParchmentIcon, DoveScrollIcon, ChestIcon, TabletDaggerIcon } from './HistoricIcons';
 import HashtagText from './HashtagText';
@@ -36,6 +37,7 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
   const handleEco = async () => {
     try {
       await api.post(`/ecos/${relato._id}`);
+      haptic.light();   // ✨ vibración al hacer eco
       setDioEco(!dioEco);
       setTotalEcos(dioEco ? totalEcos - 1 : totalEcos + 1);
     } catch (e) { console.error(e); }
@@ -44,6 +46,7 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
   const handleArchivar = async () => {
     try {
       await api.post(`/archivados/${relato._id}`);
+      haptic.light();   // 📜 vibración al archivar
       setArchivado(!archivado);
     } catch (e) { console.error(e); }
   };

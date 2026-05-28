@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
+import haptic from '../utils/haptic';
 import SearchBar from './SearchBar';
 import AvisosBadge from './AvisosBadge';
 import MisivasBadge from './MisivasBadge';
@@ -48,6 +49,7 @@ const TopbarArchive = ({ onCreate }) => {
       const dy = Math.abs(e.touches[0].clientY - startY);
       // Sólo abrir si el gesto es claramente horizontal y supera 60px
       if (dx > 60 && dy < 50) {
+        haptic.light();   // 🤚 vibración al abrir drawer con swipe
         setDrawerOpen(true);
         tracking = false;
       }

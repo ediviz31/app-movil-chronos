@@ -317,19 +317,69 @@
   .social-post-content { font-size: 13.5px !important; line-height: 1.55 !important; }
   .social-post-stats { padding: 8px 14px !important; gap: 12px; font-size: 11px; }
   .social-post-actions {
-    grid-template-columns: 1fr 1fr 1fr auto !important;
-    padding: 6px 8px !important;
-    gap: 2px;
+    grid-template-columns: 1fr 1fr 1fr 1fr !important;
+    padding: 4px 6px !important;
+    gap: 4px !important;
   }
   .social-action-btn {
-    padding: 8px 4px !important;
-    flex-direction: row;
-    gap: 6px !important;
-    font-size: 11px !important;
-    min-height: 40px !important;
+    padding: 9px 4px !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    font-size: 10px !important;
+    min-height: 48px !important;
+    letter-spacing: 0.02em;
   }
   .social-action-btn span { display: inline !important; }
   .social-action-btn svg { width: 18px !important; height: 18px !important; }
+
+  /* === Comentarios: caja con respiración === */
+  .comments-section {
+    padding: 14px 14px 16px !important;
+    margin-top: 6px;
+  }
+  .comment-item { gap: 10px !important; }
+  .comment-avatar { width: 32px !important; height: 32px !important; }
+  .comment-bubble {
+    padding: 10px 12px !important;
+    border-radius: 14px !important;
+  }
+  .comment-author { font-size: 13px !important; }
+  .comment-text { font-size: 13.5px !important; line-height: 1.45 !important; }
+  .comment-date { font-size: 10px !important; margin-top: 4px; opacity: 0.7; }
+
+  .comment-form {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 12px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid var(--border-thin);
+  }
+  .comment-form-input {
+    flex: 1 !important;
+    min-width: 0 !important;
+    padding: 10px 14px !important;
+    border-radius: 18px !important;
+    background: rgba(6, 13, 30, 0.5) !important;
+    border: 1px solid var(--border-thin) !important;
+    color: var(--text-default) !important;
+    font-family: var(--font-display) !important;
+    font-style: italic;
+    font-size: 13.5px !important;
+  }
+  .comment-form-input::placeholder { color: var(--text-muted); }
+  .comment-form-btn {
+    padding: 8px 14px !important;
+    border-radius: 18px !important;
+    background: var(--gold-ghost) !important;
+    border: 1px solid var(--gold-soft) !important;
+    color: var(--gold) !important;
+    font-family: var(--font-elegant) !important;
+    font-size: 10px !important;
+    letter-spacing: 0.15em !important;
+    text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
+  }
 }
 
 /* ---- Hashtags: pills bien distribuidos ---- */

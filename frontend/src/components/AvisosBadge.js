@@ -4,6 +4,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { HornHeraldIcon } from './HistoricIcons';
 import { playChronosAlert, primeAudio } from '../utils/chronosSound';
+import haptic from '../utils/haptic';
 
 const POLL_INTERVAL = 25000; // 25s
 
@@ -21,6 +22,7 @@ const AvisosBadge = () => {
       const newCount = res.data.total || 0;
       if (initializedRef.current && newCount > prevCountRef.current) {
         playChronosAlert(variante);
+        haptic.notify();   // 🔔 vibración al recibir aviso
       }
       prevCountRef.current = newCount;
       initializedRef.current = true;

@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import PageShell from '../components/PageShell';
+import haptic from '../utils/haptic';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import {
   DoveScrollIcon, HourglassIcon, ScrollIcon, ArrowRightIcon,
@@ -165,6 +166,7 @@ ${enlace}
       });
       // Append optimista
       setConvActiva(prev => prev ? { ...prev, mensajes: [...prev.mensajes, res.data] } : prev);
+      haptic.success();   // 💌 vibración al enviar misiva
       fetchLista();
     } catch (err) {
       console.error(err);

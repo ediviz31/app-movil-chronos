@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { HourglassIcon } from './HistoricIcons';
+import haptic from '../utils/haptic';
 
 /**
  * Pull-to-refresh estilo Twitter/Instagram.
