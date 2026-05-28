@@ -8,6 +8,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl, getImageUrl } from '../utils/imageHelpers';
 import { CloseIcon, HourglassIcon, MapIcon, FeatherIcon } from './HistoricIcons';
 import { yearToCentury } from '../utils/historicTime';
@@ -18,11 +20,14 @@ import useVisitaVirtual from '../hooks/useVisitaVirtual';
 const DURATION_MS = 6000;
 const TICK_MS = 50;
 
-const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto }) => {
+const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto, onDeleted }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const userId = user?._id || user?.id;
   const [idx, setIdx] = useState(startIndex);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const timerRef = useRef(null);
   const touchStartY = useRef(null);
 
@@ -98,7 +103,7 @@ const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto }) => {
   const isEfemeride = current.tipo === 'efemeride';
   const isCita = current.tipo === 'cita';
   const isCronista = current.tipo === 'cronista';
-  const user = current.usuario_id;
+  const capsulaUser = current.usuario_id;
   const century = yearToCentury(current.anio);
 
   // Consultamos si hay visita virtual disponible para esta cápsula
@@ -177,14 +182,14 @@ const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto }) => {
         {/* Header */}
         <div className="capsule-viewer-header">
           <div className="capsule-viewer-author">
-            {isCronista && user && (
+            {isCronista && capsulaUser && (
               <>
                 <span className="capsule-viewer-avatar">
-                  <img src={getAvatarUrl(user)} alt={user?.nombre} />
+                  <img src={getAvatarUrl(capsulaUser)} alt={capsulaUser?.nombre} />
                 </span>
                 <div>
-                  <div className="capsule-viewer-name">{user.nombre}</div>
-                  <div className="capsule-viewer-sub">@{user.usuario}</div>
+                  <div className="capsule-viewer-name">{capsulaUser.nombre}</div>
+                  <div className="capsule-viewer-sub">@{capsulaUser.usuario}</div>
                 </div>
               </>
             )}
