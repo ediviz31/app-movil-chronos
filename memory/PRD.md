@@ -1,5 +1,12 @@
 # Chronos — Red Social Histórica (PRD)
 
+## ⏸️ Estado del proyecto (Feb 2026)
+**PAUSADO POR USUARIO** — App saludable y funcional. Usuario decidió hacer "cierre limpio" (guardar en GitHub + deployar) para detener consumo de créditos. Backlog pendiente (no crítico):
+- Botón "Generar imagen IA" en composers (script `generate_image.py` ya creado, falta endpoint + UI).
+- Pulido CSS del rail de cápsulas (anillo "Tú" + botón eliminar en viewer).
+- Moderación IA + Sistema de reportes + Panel admin.
+- Newsletter Resend, Stripe Premium, Refactor de `server.js` (>2500 líneas).
+
 ## Visión
 PWA social/blog con estética histórica donde "cronistas" comparten relatos del pasado y de hoy. Auth con email, feed cronológico, dark + light pergamino, comments en pergamino desplegado ("Resonancias"), presencia en vivo, mapa de efemérides, reading mode, mensajería directa, **Cápsulas del Tiempo (stories históricas)**, **Mi Pasado en Cápsulas**, **Visitas Virtuales 360°**.
 
