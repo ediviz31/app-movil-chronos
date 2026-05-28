@@ -80,9 +80,10 @@ memory/test_credentials.md
 
 # Mobile development
 android-sdk/frontend/node_modules/.cache/default-development/0.pack
-.env
-.env.*
-*.env
+# Emergent platform needs .env files tracked for deployment
+# .env
+# .env.*
+# *.env
 credentials.json
 *.key
 .credentials
