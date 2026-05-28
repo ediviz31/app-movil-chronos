@@ -237,65 +237,73 @@
   body::-webkit-scrollbar { width: 0; height: 0; }
 }
 
-/* ---- Saludo del feed más cálido y compacto en mobile ---- */
+/* ---- Saludo del feed como CARD elegante en mobile (estilo referencia) ---- */
 @media (max-width: 900px) {
   .feed-greeting {
-    background: linear-gradient(180deg, rgba(20, 34, 64, 0.55), rgba(10, 18, 38, 0.65));
-    border: none;
-    border-bottom: 1px solid var(--gold-soft);
-    border-radius: 0;
-    padding: 18px 14px 22px !important;
-    margin: 0 -14px 4px !important;
+    background: linear-gradient(180deg, rgba(20, 34, 64, 0.78), rgba(10, 18, 38, 0.85));
+    border: 1px solid var(--gold-soft);
+    border-radius: 14px;
+    padding: 22px 20px 24px !important;
+    margin: 0 0 14px !important;
+    width: 100%;
+    box-sizing: border-box;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   }
   .feed-greeting::after {
     content: '';
     position: absolute;
     top: -20px; right: -30px;
-    width: 120px; height: 120px;
-    background: radial-gradient(circle, rgba(212,184,120,0.15), transparent 65%);
+    width: 130px; height: 130px;
+    background: radial-gradient(circle, rgba(212,184,120,0.18), transparent 65%);
     pointer-events: none;
   }
   .feed-greeting-kicker {
     color: var(--gold);
     font-family: var(--font-elegant);
     letter-spacing: 0.28em;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
   .feed-greeting h1 {
     font-family: var(--font-display);
     font-style: italic;
     font-weight: 500;
     color: var(--gold-bright);
+    margin: 4px 0 8px;
   }
   .feed-greeting p {
     color: var(--text-default);
-    opacity: 0.85;
+    opacity: 0.88;
+    line-height: 1.45;
   }
-  /* Cards SIN bordes pesados: edge-to-edge con sólo separador inferior */
+
+  /* Cards CON marco propio: padding lateral consistente, NO edge-to-edge */
   .social-post, .relato-join-cta {
-    margin: 0 -14px !important;
-    border-radius: 0 !important;
-    border: none !important;
-    border-bottom: 1px solid var(--border-thin) !important;
-    width: calc(100% + 28px);
+    margin: 0 0 14px !important;
+    border-radius: 14px !important;
+    border: 1px solid var(--gold-soft) !important;
+    width: 100% !important;
     box-sizing: border-box;
-    background: transparent !important;
-    padding: 4px 0 !important;
+    background: var(--bg-card) !important;
+    padding: 0 !important;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
   }
+
   .social-composer {
-    margin: 0 -14px 4px !important;
-    border-radius: 0 !important;
-    border: none !important;
-    border-bottom: 1px solid var(--border-thin) !important;
-    width: calc(100% + 28px);
+    margin: 0 0 14px !important;
+    border-radius: 14px !important;
+    border: 1px solid var(--gold-soft) !important;
+    width: 100% !important;
     box-sizing: border-box;
-    background: rgba(15, 26, 51, 0.4) !important;
+    background: var(--bg-card);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
   }
+
   /* WeeklyHighlight conserva su marco ornamental (intencional) */
   .weekly-highlight {
-    margin: 4px 0 8px !important;
+    margin: 0 0 14px !important;
   }
 }
 

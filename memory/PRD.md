@@ -1,526 +1,87 @@
-# Chronos - Red Social Histórica (PRD)
+# Chronos — Red Social Histórica (PRD)
 
-## Problema original
-Migración de proyecto PHP/MySQL a stack moderno (React + Node.js + MongoDB) para crear **Chronos**, una red social temática histórica. Funcionalidad social estándar + estética muy personalizada tipo "archivo histórico / museo" + **valor diferenciador**: vincular cronistas con sus antepasados (árbol genealógico integrado con épocas históricas).
+## Visión
+PWA social/blog con estética histórica donde "cronistas" comparten relatos del pasado y de hoy. Auth con email, feed cronológico, dark + light pergamino, comments tipo TikTok ("Resonancias"), presencia en vivo, mapa de efemérides, reading mode, mensajería directa.
 
 ## Stack
-- Frontend: React 18 + React Router v6, axios, custom CSS, **Web Audio API** para sonidos
-- Backend: Node.js + Express, JWT (httpOnly cookies), Multer (uploads), bcrypt
-- DB: MongoDB con Mongoose
-- Auth: cookie `chronos_token` httpOnly, sameSite=lax, secure=true
-
-## Estética
-- Paleta: dark navy + dorado + crema
-- Tipografía: Cormorant Garamond, Marcellus, Inter
-- Iconografía oficial Chronos: 8 SVG vectoriales custom (moneda+laurel, pergamino, paloma+pergamino, cofre, catalejo, cuerno, pluma+tintero, tablilla+daga)
-- Layout: rail íconos IZQ (90px sticky) | feed centro | sidebar efemérides DER (340px sticky sin scroll visible)
-
-## Fases completadas
-
-### MVP base (auth + relatos + interacciones)
-Auth httpOnly cookies, CRUD de relatos, comentarios anidados, ecos, archivados, seguir.
-
-### Fase 0 — Búsqueda + Perfil + Topbar
-Búsqueda avanzada Facebook-style con avatares y highlight, página de perfil con cover/avatar editable, topbar refinado.
-
-### Fase 1 — Páginas + Detalle de relato + Iconografía oficial
-8 íconos SVG vectoriales, páginas `/cronicas` `/legados` `/documentos` `/epocas` `/epocas/:nombre`, `/relato/:id` con drop-cap + comentarios + respuestas anidadas, `PageShell` reutilizable.
-
-### Fase 2 — Avisos con sonido + Editar perfil
-Modelo Notificacion integrado con ecos/comentarios/respuestas/seguidores, página `/avisos` con badge pulsante + polling 25s, sonido sintetizado, EditProfileModal.
-
-### Fase 3 — Calendario histórico real
-Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario navegable, ArchiveSidebar usa datos reales.
-
-### Fase 4 — Árbol Genealógico + Sonidos custom configurables ⭐
-**Mi Legado Familiar** (`/mi-legado`):
-- Modelo `MiembroFamiliar` con 25 tipos de parentesco (bisabuelos por línea, etc.)
-- Árbol SVG visual con cameos dorados, posicionamiento automático por generación, fan-out horizontal para hermanos
-- CRUD completo + upload de foto + validación de owner
-- **Anécdotas inline** por familiar (historias cortas)
-- **GEDCOM Import**: parser básico que importa de Ancestry/MyHeritage/FamilySearch
-- **Capa de valor Chronos**: muestra época histórica del familiar + efemérides del día de su nacimiento
-
-**Sonidos custom configurables** (Web Audio API, sin archivos externos):
-- Cuerno de heraldo (G3→C4 + chime)
-- Lira griega (arpegio C-E-G-C tipo cuerda pulsada)
-- Campana de monasterio (B3 con parciales armónicos)
-- Silencio total
-
-**Preferencias del cronista**:
-- Selector de sonido con preview al clic
-- Toggle de privacidad del árbol (privado/público)
-
-### Fase 5 — Explorar + Hashtags + Timeline (Bloque 2)
-**Hashtags auto-extraídos**:
-- Modelo `Publicacion.extractTags(text)` con regex Unicode (`\p{L}\p{N}_`) — soporta acentos y minimiza a 2-30 chars
-- POST/PUT `/api/relatos` re-extrae tags al crear o cambiar título/contenido
-- Componente `<HashtagText>` parsea contenido de relatos y convierte `#palabra` en spans clickeables → navega a `/tags/:tag`
-
-**Página Explorar** (`/explorar`):
-- 4 secciones: trending semanal (por score = ecos+comentarios 7d), cronistas para seguir, hashtags populares, épocas con más actividad
-- Endpoint único `GET /api/explorar` (combinado)
-- Entrada en SideRail con `TelescopeIcon`
-
-**Página Tag** (`/tags/:tag`):
-- Lista de relatos con un hashtag dado, header con back, total de relatos, render con `SocialPost`
-
-**Vista Línea cronológica del árbol** (`/mi-legado`):
-- Toggle Árbol ↔ Línea cronológica (componente `TimelineView`)
-- Eje vertical = años, izquierda = familiares, derecha = ~19 hitos universales (1492 Colón → 2020 COVID)
-- Espina dorsal dorada con marcas de décadas, cameo "Hoy" del usuario al final
-- Empty state mejorado: línea + hitos + cameo TÚ siempre visibles, hint "agrega fechas..." como overlay si no hay familiares con `fecha_nacimiento`
-
-**Mobile responsive sweep (Bloque 3 base)**:
-- Media queries `@max-width: 1100px` (sidebar oculta, rail comprimido) y `@max-width: 700px` (rail bottom nav, topbar simplificada, timeline compactada)
-
-### Fase 6 — Boletín del archivo (Weekly Highlight)
-- Componente `<WeeklyHighlight>` en el Feed (entre saludo y composer)
-- Reutiliza `GET /api/explorar` (sin endpoint nuevo)
-- 3 secciones: relato más resonante, cronista para seguir, 3 hashtags populares + CTA "Visitar el archivo de la semana"
-- Diseño: sello dorado (laurel), divisor flor de lis, paleta histórica existente
-- Empty state: silent hide si la API falla o no hay datos; secciones individuales también se ocultan independientemente
-- Mobile responsive: a ≤700px se reorganiza a 1 columna
-
-### Fase 7 — Misivas (Mensajería directa estilo carta) 💌
-**Modelos backend:**
-- `Conversacion`: participantes [2] (normalizados ordenando IDs), ultimo_mensaje_en, ultimo_mensaje_resumen, ultimo_remitente_id, leido_por (Map<userId, Date>)
-- `Mensaje`: conversacion_id, remitente_id, contenido (1-4000 chars)
-
-**API endpoints (`/api/misivas`):**
-- `POST /abrir/:userId` — abre o reutiliza conversación 1-on-1 (idempotente)
-- `GET /` — lista de conversaciones con `{otro, ultimo_mensaje_en, ultimo_mensaje_resumen, no_leido}`
-- `GET /no-leidas` — count para badge en topbar
-- `GET /:conversacionId/mensajes` — historial cronológico
-- `POST /:conversacionId/mensajes` — enviar
-- `POST /:conversacionId/leer` — marcar leído
-
-**Frontend (`/misivas`, `/misivas/abrir/:userId`, `/misivas/:conversacionId`):**
-- Layout 2 columnas: lista de hilos (izq) + hilo activo (der)
-- Cada mensaje renderiza como **carta de pergamino**: esquinas ornamentadas, sello dorado, alineación izquierda/derecha según remitente
-- Polling 10s en el hilo activo + lista
-- Optimistic append al enviar
-- Atajos: Ctrl/Cmd+Enter envía
-- Mobile responsive a ≤900px (sidebar arriba, hilo abajo, botón "back")
-
-**Integraciones UI:**
-- `<MisivasBadge>` en topbar con polling 20s
-- Botón "Enviar misiva" en perfil ajeno
-- Entrada "Misivas" en SideRail (DoveScrollIcon)
-
-### Fase 8 — Compartir crónica por misiva 📜→💌
-**Backend:**
-- `GET /api/misivas/contactos-sugeridos` — devuelve cronistas que sigo + me siguen, dedup, sin yo mismo
-
-**Frontend:**
-- `<ShareChronicleModal>` reemplaza el comportamiento anterior del botón "Compartir" (que solo copiaba al portapapeles)
-- Dos vías: copiar enlace o seleccionar un cronista (lista sugeridos + búsqueda con debounce 250ms)
-- Al seleccionar destinatario → `/misivas/abrir/:userId?compartir=<relatoId>`
-- `MisivasPage` propaga el `?compartir` al redirigir a `/misivas/:convId?compartir=<relatoId>`
-- Composer se pre-rellena con plantilla editable: `título + autor + fragmento (180 chars) + enlace`
-- Usuario puede editar antes de enviar (preserva intimidad, no spam automático)
-
-### Fase 9 — Open Graph cards para viralidad externa 🌐
-**Backend:**
-- `GET /api/og/relato/:id` (público, sin auth) — HTML con meta tags `og:*` y `twitter:*` completas; detección de bots por User-Agent para servir o no el meta refresh hacia `/relato/:id`
-- `GET /api/og/relato/:id/imagen` (público) — PNG dinámico 1200×630 generado vía `@resvg/resvg-js` con título, autor, época, fragmento (100 chars), reloj de arena monograma y marco ornamentado dorado
-- Cache-Control 600s (HTML) / 3600s (imagen)
-- Detecta: WhatsApp, FacebookExternalHit, Twitterbot, Discord, Telegram, Slackbot, SkypeURIPreview + patrones genéricos (bot|crawl|spider|preview|embed)
-
-**Frontend:**
-- `ShareChronicleModal` y `MisivasPage` ahora usan `/api/og/relato/:id` como enlace público — al pegar en WhatsApp/Twitter/Discord aparece la preview elegante (vista previa con título + autor + época + sello dorado)
-
-### Fase 10 — Lectura pública de relatos 🔓 (funnel de adquisición)
-**Backend:**
-- Nuevo middleware `authOptional.js` — adjunta `req.user` si hay cookie válida, si no continúa como anónimo
-- `GET /api/relatos/:id` ahora usa `authOptional`; devuelve `es_publico` flag y `usuario_dio_eco/usuario_archivado=false` para anónimos
-- `GET /api/comentarios/:publicacionId` ahora usa `authOptional`
-- Acciones de escritura (POST ecos/comentarios/archivados) SIGUEN requiriendo auth estricto (401 sin cookie)
-
-**Frontend:**
-- `/relato/:id` ya NO está en `ProtectedRoute` — es público
-- `<PublicShell>` (nuevo) — topbar minimal con branding + "Entrar / Únete a Chronos"
-- `RelatoDetail` usa Shell condicional: `PageShell` si autenticado, `PublicShell` si anónimo
-- `<RelatoJoinCTA>` banner dorado ornamentado entre contenido y comentarios
-- Comentarios solo en lectura para anónimos; en lugar del composer aparece "Únete a Chronos para comentar"
-- Cada acción de escritura (eco, comentar, archivar, responder) verifica `isAuthenticated`; si no, redirige a `/registro?redirect=/relato/:id`
-- `Login.js` y `Register.js` leen query `?redirect` y honran la URL de destino tras autenticarse
-- `PublicRoute` reactivo (con `useSearchParams`) hace el redirect declarativamente cuando `isAuthenticated` cambia, evitando race conditions
-- Interceptor de `api.js` actualizado: no redirige a `/login` desde rutas públicas (login/registro/relato/) ni para checks pasivos `/auth/me`
-- `AuthContext.checkAuth` suprime `console.error` para 401 esperado en anónimos
-
-### Fase 11 — Contador de lecturas 👁️
-**Backend:**
-- Campo `visitas: Number, default: 0` en modelo `Publicacion`
-- `POST /api/relatos/:id/visita` (auth opcional) — incrementa atómicamente con anti-flooding
-- Cache en memoria con TTL 30min, clave `${userId|ip}:${relatoId}` → evita refrescos infladores
-- Excepción: el autor NO infla sus propias lecturas (respuesta `contado=false razon='autor'`)
-- `app.set('trust proxy', true)` para que `x-forwarded-for` funcione tras el ingress
-
-**Frontend:**
-- `RelatoDetail` dispara POST visita al montar (fire-and-forget)
-- Badge `EyeScrollIcon + "N lecturas"` (singular/plural en español) en el kicker del relato
-- Solo se muestra cuando `visitas > 0`
-- Nuevo icono `EyeScrollIcon` (inspirado en Ojo de Horus) en `HistoricIcons`
-
-### Fase 12 — PWA + Web Push notifications 📱🔔
-**Branding visual generado con IA:**
-- Logo/ícono de la app generado con **Gemini Nano Banana** (`@gemini-3.1-flash-image-preview`)
-- Reloj de arena dorado ornamentado sobre fondo dark navy, sin texto, estilo heráldico
-- Genera con `python /app/backend/scripts/generate_chronos_logo.py`
-- Sale a `/app/frontend/public/icons/{icon-192,256,384,512.png, apple-touch-icon.png, favicon-16/32.png}` + `favicon.ico`
-
-**PWA básica:**
-- `manifest.json` con name "Chronos · Archivo vivo de la historia", theme_color `#0a1228`, display standalone, shortcuts (Crear crónica · Misivas · Mi Legado)
-- `sw.js` service worker: cache-first para assets estáticos, network-first para navegaciones, /api/** sin cache
-- Meta tags PWA en `index.html`: apple-mobile-web-app-capable, apple-touch-icon, theme-color, etc.
-- Registro del SW desde `/src/index.js` vía `registerServiceWorker()`
-
-**Web Push (VAPID self-hosted):**
-- Librería `web-push` npm + VAPID keys en `/app/backend/.env`
-- Nuevo modelo `PushSubscription` (endpoint único, keys{p256dh,auth}, user_agent)
-- Endpoints `/api/push/{public-key, suscribir, desuscribir, test}`
-- `enviarPushAUsuario(userId, payload)` integrado en `crearAviso()` y `POST /api/misivas/:id/mensajes` — dispara en `setImmediate` (no bloquea respuesta)
-- Limpia subscripciones expiradas automáticamente (410/404)
-
-**UX opt-in:**
-- `PushOptInBanner` aparece tras 25s para usuarios autenticados con permiso `default` y sin subscripción
-- Botones "Activar avisos" / cierre (X) — el dismiss persiste en `localStorage chronos_push_dismissed_v1`
-- Robusto contra re-renders del contexto (ref-based, timer no se resetea)
-
-**Service Worker push handler:**
-- Evento `push`: muestra notificación con icon, badge, tag, url, vibrate
-- Evento `notificationclick`: enfoca ventana existente o abre nueva en la URL específica
-
-### Fase 13 — UX móvil nativo 📱✨
-**Diseño app-like en móvil (≤900px):**
-- Bottom tab bar (4 items principales: Inicio · Explorar · Misivas · Mi Legado + ☰Más en topbar) con indicador dorado superior tipo iOS
-- Topbar minimal (logo + Crear · Avisos · Misivas · Buscar · ☰Más)
-- `<MobileMoreDrawer>` — drawer lateral derecho con:
-  - Avatar del usuario clickeable hacia su perfil
-  - Búsqueda inline con debounce 250ms y resultados (cronistas + crónicas)
-  - Secciones secundarias (Épocas, Efemérides, Crónicas, Biblioteca, Legados)
-  - Cerrar sesión
-- Modals tipo "sheet" (suben desde abajo, asa superior, border-radius solo arriba)
-- Touch feedback (scale 0.98 + opacity active state) en todo elemento interactivo
-- Safe-area insets (`env(safe-area-inset-top/bottom)`) para iPhones con notch
-- Items mínimos 44px (touch target), inputs 16px (evita auto-zoom iOS)
-- Cards edge-to-edge en móvil
-- **Overflow horizontal anulado** globalmente + targeted en `.explorar-grid`, `.tree-canvas` (scroll horizontal contenido), `.explore-section`, `.profile-*`, `.archive-listing-page`, `.epocas-grid`, `.cronistas-grid`
-- Badge "Made with Emergent" oculto en móvil vía `visibility: hidden` (workaround del inline `display:!important`)
-- Scrollbars ocultos en móvil (más nativo)
-- Tipografías escaladas (h1 32px → 26px → 22px @≤480px)
-- Animación slide-in del drawer + sheet-up de modales (cubic-bezier nativo)
-- `activeRail` corregido en `MiLegado` y demás páginas con tab en mobile
-
-### Fase 13 — Native Mobile UX overhaul 📱✨ (Feb 28, 2026)
-**Renovación completa de PWA mobile para sentir como app nativa, basada en mockups del usuario:**
-
-**Layout & sticky:**
-- `MobileSubBar` (nuevo): position:fixed bajo el topbar (top:56px), contiene SearchBar pill full-width + 4 tabs (Para ti, Crónicas, Legados, Documentos)
-- Topbar mobile rediseñado: logo CHRONOS **centrado**, avatar circular dorado a la derecha (click abre el drawer)
-- `main-area` padding-top:128px en mobile para compensar topbar+subbar fijos
-- Fix crítico: `overflow-x: hidden` → `overflow-x: clip` en body/archive-layout (no rompe `position:sticky` en iOS)
-- Grid layout mobile: `grid-template-rows: 56px 1fr` (sin reservar fila para bottom-nav, que es position:fixed)
-- Cards centradas con padding simétrico (antes lean-left por padding 28px/48px asimétrico en social-refine.css)
-
-**Bottom nav (5 items, como Twitter/Instagram):**
-- Inicio · Explorar · Crónicas · Biblioteca · Mi legado
-- Sin gap inferior, indicador activo dorado tipo iOS
-
-**Drawer móvil:**
-- Renderizado via `createPortal` a `document.body` (evita containing-block por backdrop-filter del topbar)
-- Fondo opaco azul oscuro (no transparente)
-- Búsqueda inline real (resultados de `/api/buscar`)
-- Lista: Misivas, Avisos, Épocas, Efemérides, Legados + Cerrar sesión
-
-**Gestos táctiles nativos:**
-- 🤚 **Swipe-to-open** desde borde izquierdo (primeros 24px → dx>60px abre drawer)
-- 🤚 **Swipe-to-close** sobre el drawer abierto (desliza a la derecha → cierra)
-- 🔄 **Pull-to-refresh** estilo Twitter/iOS en `/` (HourglassIcon rota, resistencia, threshold 70px)
-
-**Refinamiento visual:**
-- Hashtags inline como **pills doradas** con borde
-- WeeklyHighlight ("Boletín del archivo") centrado con marco doble dorado
-- SALA CHRONOS card con borde dorado + kicker + título italic "Buen día/tarde/noche"
-- Composer iconos dorados visibles (Imagen / Época / Relato + botón PUBLICAR)
-- Modales tipo bottom-sheet con asa superior, scrollbar dorado dentro (no amarillo del browser)
-- Topbar mobile esconde botones secundarios (crear, hamburguesa, badges) — todo se accede vía drawer
-
-**Archivos clave:**
-- `/app/frontend/src/components/MobileSubBar.js` (nuevo)
-- `/app/frontend/src/components/PullToRefresh.js` (nuevo)
-- `/app/frontend/src/components/MobileMoreDrawer.js` (refactor: createPortal + swipe-to-close)
-- `/app/frontend/src/components/TopbarArchive.js` (logo centrado, swipe-to-open, avatar abre drawer)
-- `/app/frontend/src/components/SideRail.js` (5 items mobile)
-- `/app/frontend/src/components/PageShell.js` (incluye MobileSubBar)
-- `/app/frontend/src/pages/Feed.js` (PullToRefresh wrapper)
-- `/app/frontend/src/styles/mobile-app.css` (1000+ líneas; grid-aware, sticky-safe)
-
-**Testing:** `iteration_17.json` — todos los casos PASS (Mobile 390x844 + Desktop 1920x800).
-
-### Fase 14 — Tema claro pergamino + Borradores automáticos + Haptic feedback (Feb 28, 2026)
-
-**🌅 Tema dual (claro/oscuro/automático):**
-- `ThemeContext` con preferencia persistida en `localStorage` (`chronos_theme_pref`)
-- Modos: `dark` (default), `light` (pergamino), `auto` (6am-19h = light, resto = dark)
-- Modo auto recheck cada 30min + al volver de background
-- Override de variables CSS bajo `html[data-theme="light"]` en `theme-light.css`
-- Paleta pergamino: fondo `#F4ECD8`, texto `#3D2914`, dorado oscuro `#A6862E`, textura noise sutil
-- Toggle ciclico en el drawer móvil (Sol → Auto → Luna)
-- Meta `theme-color` se actualiza dinámicamente (status bar nativo PWA)
-
-**📝 Borradores automáticos en CreateChronicleModal:**
-- Autosave cada 5s en `localStorage` clave `chronos_chronicle_draft`
-- Banner "Borrador recuperado" al reabrir con edad humanizada (hace 3m, 2h, 1d…)
-- Indicador sutil "· Borrador guardado" en el form-actions con fade animation
-- Botón "Descartar" elimina el borrador y limpia el form
-- Al publicar exitosamente, el borrador se consume automáticamente
-
-**🤚 Haptic feedback (vibración):**
-- Utility `/app/frontend/src/utils/haptic.js` con patrones: light, medium, success, notify, warn
-- Integrado en: pull-to-refresh, swipe-to-open drawer, tap avatar, eco, archivar, enviar misiva (success), recibir aviso (notify), publicar crónica (success)
-- Falla silenciosamente en navegadores sin `navigator.vibrate` (iOS Safari)
-
-**Archivos clave:**
-- `/app/frontend/src/context/ThemeContext.js` (nuevo)
-- `/app/frontend/src/styles/theme-light.css` (nuevo)
-- `/app/frontend/src/utils/haptic.js` (nuevo)
-- `/app/frontend/src/components/HistoricIcons.js` — añadidos SunIcon, MoonIcon, AutoThemeIcon
-- `/app/frontend/src/components/CreateChronicleModal.js` — autosave + restore banner
-
-**Testing:** `iteration_18.json` — 10/11 PASS (un edge case menor de re-render fixed).
-
-### Fase 15 — Bottom-sheet de Resonancias (comentarios cómodos) (Feb 28, 2026)
-**Reemplaza la sección inline apretada de comentarios por un bottom-sheet estilo TikTok pero con estética Chronos:**
-- `CommentsSheet.js` (nuevo, ~210 líneas): sube desde abajo con drag handle dorado, backdrop translúcido, swipe-to-close en la cabecera
-- Lista scrollable con avatares grandes (40px), padding generoso, divisores sepia, animación fade-in por item
-- Empty state ornamental con `ParchmentIcon` + "Sé el primero en valorar esta crónica"
-- Cabecera grid 3-col: kicker "SALA CHRONOS" · título cursiva "Resonancias" · botón cerrar
-- Input sticky al fondo: avatar pequeño + textarea pill italic + botón pluma circular dorado
-- Optimistic comment append (aparece al instante, se reconcilia con el server)
-- `haptic.light()` al enviar comentario
-- Estilos completos en `/app/frontend/src/styles/comments-sheet.css` (~250 líneas) con override tema claro pergamino
-- `SocialPost.js` ahora abre el sheet en lugar de mostrar comentarios inline. Toggle desde botón "Comentar" del post.
-- `data-testid`s nuevos: `comments-sheet`, `comments-sheet-backdrop`, `comments-sheet-input`, `comments-sheet-send`, `comments-sheet-close`, `comment-{id}`
-
-### Fase 16 — Acciones Chronos, badges visibles, auto-hide topbar, eco burst ⭐ (Feb 28, 2026)
-
-**🏷️ Renombrado de acciones con lenguaje propio Chronos:**
-- "Comentar" → **"Aportar"**
-- "Compartir" → **"Difundir"**
-- "Seguir" → **"Seguir legado"** (en Rightbar y LegadosPage)
-- "..." de carga → **"Sellando…"** (en LegadosPage)
-- Estado siguiendo → **"✓ Siguiendo"**
-- Saludos corregidos: "Buen día/tarde/noche" → "Buenos días/Buenas tardes/Buenas noches"
-
-**🔔 Badges visibles en topbar mobile:**
-- AvisosBadge y MisivasBadge ahora se muestran con contador dorado pulsante (animación `badgePulse` 2.4s)
-- Layout flex space-between: logo izquierda, badges + avatar derecha
-- Topbar compacto: oculta el subtítulo "Archivo Vivo" en mobile para dar espacio
-- Avatar circular dorado con halo
-
-**📜 Auto-hide topbar + subbar (estilo Twitter/Instagram):**
-- `useScrollDirection` hook (`/app/frontend/src/utils/useScrollDirection.js`)
-- Threshold 8px anti-jitter, fuerza visibilidad cuando scrollY < 60
-- Transición translateY suave 320ms cubic-bezier
-- Topbar y subbar se ocultan al scroll-down, reaparecen al scroll-up
-- Crea más espacio vertical de lectura en feed
-
-**⭐ Eco burst — animación al dar eco:**
-- Botón Eco con 6 estrellas SVG `✦/✧` que explotan radialmente desde el icono
-- Cada estrella sigue trayectoria personalizada con delays escalonados (CSS vars `--tx, --ty, --sz`)
-- Halo radial dorado expansivo desde el centro
-- Icono pulsa con scale 1.35 y color gold-bright
-- Optimistic UI: contador se actualiza al instante (revierte si API falla)
-- haptic.light() durante el burst
-
-**Bug fix:**
-- `LegadosPage` botón "Seguir" se quedaba con "..." si fallaba la API. Ahora siempre resetea a 'no' en catch + `e.preventDefault()`.
-
-**Archivos clave:**
-- `/app/frontend/src/utils/useScrollDirection.js` (nuevo)
-- `/app/frontend/src/components/SocialPost.js` — eco optimista + burst + iconografía
-- `/app/frontend/src/components/TopbarArchive.js` + `MobileSubBar.js` — auto-hide
-- `/app/frontend/src/components/Rightbar.js` + `LegadosPage.js` — "Seguir legado"
-- `/app/frontend/src/pages/Feed.js` — saludos plurales correctos
-- `/app/frontend/src/styles/mobile-app.css` — eco burst keyframes, badges pulsantes, layout flex
-
-### Fase 17 — Modo Lectura sin distracciones 📖 (Feb 28, 2026)
-
-**Estilo Medium/Pocket pero con identidad Chronos:**
-- Botón "Modo lectura" arriba derecha del relato (dorado pill)
-- Al activarlo, `body.chronos-reading-active` clase global oculta: topbar, subbar, side rail, FAB, sidebars, comentarios, CTAs
-- Fondo permanente: pergamino `#F4ECD8` con textura sutil de papel envejecido (independiente del tema seleccionado)
-- Tipografía amplia: título italic 38px (28px mobile), cuerpo serif 18px con `line-height: 1.72` y justificación
-- **Capital ornamental** en el primer párrafo: primera letra `font-size: 3.2em` italic dorada, float left tipo libro antiguo
-- Imagen edge-to-edge con sepia 0.18 + caption italic
-- Hashtags como pills sepia integrados al texto
-- HUD flotante fijo abajo-centro: botones `A−` `A+` con tamaño actual (14-28px), pill blanca papel
-- Tamaño persistido en `localStorage` (`chronos_reading_fontsize`)
-- Cleanup automático: si el usuario sale de la página, se quita la clase del body
-- Funciona para usuarios autenticados Y visitantes públicos (`/relato/:id` sin login)
-
-**Archivos clave:**
-- `/app/frontend/src/styles/reading-mode.css` (nuevo, ~250 líneas)
-- `/app/frontend/src/pages/RelatoDetail.js` — toggle, HUD, state, persistencia
-
-### Fase 18 — Presencia "Activo ahora" 🔥 + "Escribiendo..." (Feb 28, 2026)
-
-**Backend:**
-- Campo `User.ultimo_visto` con índice (default Date.now)
-- `POST /api/presencia/heartbeat` — marca al usuario activo (auth)
-- `POST /api/presencia/consultar { ids[] }` — devuelve usuarios activos (< 2 min)
-- `POST /api/presencia/escribiendo/:relatoId` — TTL 4s en memoria
-- `GET /api/presencia/escribiendo/:relatoId` — lista quién escribe (excluye al solicitante)
-- Limpieza periódica del typingMap (cada 30s)
-
-**Frontend:**
-- `PresenceHeartbeat` — beat global cada 60s mientras `visibilitychange='visible'`
-- `PresenceContext` — pool de IDs trackeados + polling cada 30s + `isOnline(id)` + `track(ids)`
-- `PresenceBadge` — variantes: `dot` (pulsa dorado en esquina del avatar), `torch` (antorcha encendida con label "ACTIVA AHORA"), `mini`
-- `TorchActiveIcon` — antorcha SVG con llama dorada exterior + amarillo claro interior + núcleo brillante
-- Dots integrados en: `SocialPost.avatar`, `CommentsSheet.avatar`, `MisivasPage.thread-avatar` y header (avatar + torch+label)
-- Typing indicator en `CommentsSheet`: 3 dots dorados bounce + "Keilin está escribiendo…" (o "X y N más están escribiendo…")
-- Throttle del POST escribiendo cada 2.5s mientras el usuario teclea
-
-**Estilos:**
-- `presence.css` con keyframes: `presence-glow` (dot pulsante), `torch-flicker` (llama vibrando), `typing-bounce` (dots animados)
-- `position: relative` añadido a todos los wrappers de avatares
-- Tema claro adaptado para dots y antorcha sobre pergamino
-
-**Archivos clave:**
-- `/app/backend/models/User.js` + `/app/backend/server.js` (4 endpoints nuevos)
-- `/app/frontend/src/context/PresenceContext.js` (nuevo)
-- `/app/frontend/src/components/PresenceBadge.js` + `PresenceHeartbeat.js` (nuevos)
-- `/app/frontend/src/components/HistoricIcons.js` — TorchActiveIcon
-- `/app/frontend/src/styles/presence.css` (nuevo, ~130 líneas)
-- `/app/frontend/src/components/CommentsSheet.js` — typing indicator + handleInputChange throttled
-- `/app/frontend/src/pages/MisivasPage.js` — dot + torch en header
-
-### Fase 19 — Atlas del Cronista (mapa interactivo) + Refinamiento feed (Feb 28, 2026)
-
-**🗺️ Mapa interactivo `/efemerides/mapa`:**
-- **53 efemérides geolocalizadas** (de 55 totales) curadas a mano con `lugar`, `lat`, `lng` en `efemerides.js`
-- **Endpoint:** `GET /api/efemerides/mapa` devuelve eventos ordenados cronológicamente
-- **Frontend:** `react-leaflet@5.0.0` + `leaflet@1.9.4` + tiles **Carto Dark Matter** (sin API key)
-- **Marcadores dorados pulsantes** SVG custom con halo expansivo (`chronos-marker-pulse`)
-- **Marcador activo** crece y cambia a tonos naranja-fuego con sombra dorada
-- **Popup elegante** estilo Chronos: año (a.C./d.C.), título italic, lugar con icono mapa, pill de época
-- **Filtros por época** horizontales (Todas, Antigüedad, Roma Imperial, Edad Media, Moderna, Contemporánea, Egipto antiguo) cada uno con color identificador
-- **Línea de tiempo horizontal abajo**: scroll horizontal con cards "AÑO · LUGAR", click hace fly-to en el mapa
-- **Tema-aware**: tiles cambian a Carto Voyager en tema claro pergamino
-- **Botón CTA en `/efemerides`**: "Ver mapa histórico" pill dorado
-- Bottom nav respetado, FAB oculto (no aplica), MobileSubBar oculta (no necesaria)
-
-**🎨 Refinamiento del feed (a petición del usuario):**
-- **Eliminados bordes encajonados** en cards: ahora edge-to-edge con sólo border-bottom sepia (estilo Twitter/Instagram)
-- **Composer sin caja**: fondo translúcido sutil
-- **Nombre del autor protagonista**: 17px serif italic 600 dorado brillante con letter-spacing
-- **Avatar 46px** (antes 40px) más prominente
-- **Iconos de acción 20px** (antes 18px) con label inferior
-- **Nombres en Resonancias 15px** (antes 14px)
-
-**🐛 Bug-fix botón "Seguir":**
-- Arreglados los 3 lugares (ArchiveSidebar, Rightbar, Profile) que podían atorarse en "..."
-- Funcional updater + finally block garantiza reset incluso en error
-- Labels Chronos: "Sellando…" durante carga, "✓ Siguiendo" / "Seguir legado"
-
-**Archivos clave:**
-- `/app/backend/data/efemerides.js` — enriquecido con lat/lng/lugar
-- `/app/backend/server.js` — endpoint `/api/efemerides/mapa`
-- `/app/frontend/src/pages/MapaEfemerides.js` (nuevo, ~180 líneas)
-- `/app/frontend/src/styles/mapa.css` (nuevo, ~260 líneas)
-- `/app/frontend/package.json` — `leaflet`, `react-leaflet` añadidos
-
-## Rutas Frontend (actualizadas)
-- `/` Feed (con `<WeeklyHighlight>` semanal)
-- `/explorar` ← Fase 5
-- `/tags/:tag` ← Fase 5
-- `/misivas` · `/misivas/abrir/:userId` · `/misivas/:conversacionId` ← Fase 7
-- `/cronicas`, `/legados`, `/documentos`
-- `/epocas`, `/epocas/:nombre`
-- `/efemerides`
-- `/avisos`
-- `/mi-legado` (con toggle vista árbol/timeline)
-- `/relato/:id`, `/perfil/:id`
-- `/login`, `/registro`
-
-## API Endpoints clave
-
-### Familiares (Fase 4)
-- `GET /api/familiares/mios`
-- `GET /api/familiares/usuario/:userId` (respeta privacidad)
-- `POST /api/familiares`, `PUT /api/familiares/:id`, `DELETE /api/familiares/:id`
-- `POST /api/familiares/:id/foto` (multipart)
-- `POST/DELETE /api/familiares/:id/historias`
-- `POST /api/familiares/importar-gedcom`
-
-### Explorar / Tags (Fase 5)
-- `GET /api/explorar` → `{trending, tags_populares, cronistas, epocas}`
-- `GET /api/trending` → `{dias:7, relatos:[...]}`
-- `GET /api/tags/populares`
-- `GET /api/tags/:tag/relatos` → `{tag, total, relatos}`
-
-### Misivas (Fase 7 + 8)
-- `POST /api/misivas/abrir/:userId`
-- `GET /api/misivas`
-- `GET /api/misivas/no-leidas`
-- `GET /api/misivas/contactos-sugeridos` (Fase 8 — para "Compartir crónica")
-- `GET /api/misivas/:conversacionId/mensajes`
-- `POST /api/misivas/:conversacionId/mensajes`
-- `POST /api/misivas/:conversacionId/leer`
-
-### Open Graph (Fase 9 — sin auth, públicos)
-- `GET /api/og/relato/:id` → HTML con meta og:*/twitter:* + redirect humanos
-- `GET /api/og/relato/:id/imagen` → PNG 1200×630 dinámico
-
-### Preferencias
-- `PUT /api/usuarios/preferencias` con `{sonido_aviso, arbol_publico}`
-
-### Resto: ver iteraciones anteriores
-
-## Backlog / Roadmap
-
-### P1 - Próximas (en orden secuencial)
-- 🛡️ **Moderación de contenido con IA** (Claude Sonnet 4.5 / Gemini 3) — preservar el tono histórico del archivo: bloquear memes, ofensas, contenido fuera de contexto
-- 🚩 Sistema de reportes comunitario + panel admin
-- 🏛️ Detalle de Época funcional (relatos por era histórica)
-- 📨 Newsletter semanal con Resend
-- 🎥 Videos de exploradores históricos (Fase A MVP)
-- 💳 Stripe + Plan Cronista Premium
-
-### P2 - Mejoras
-- 🔗 **FamilySearch API OAuth** (sincronización con árbol externo más grande del mundo)
-- 📤 Export GEDCOM del árbol Chronos
-- 📦 Export crónicas a PDF (estilo pergamino)
-- 🌗 Modo claro (paleta papel/sepia)
-- 🌍 i18n (inglés)
-- 📅 Ampliar dataset efemérides a 365 días cubiertos
-
-### P3 - Backlog
-- 📱 Empaquetado app móvil (Capacitor/PWA)
-- 🤝 Líneas de tiempo colaborativas
-- 💬 Reacciones múltiples
-- 📜 API pública / RSS
-- 👨‍👩‍👧 Compartir árbol con familiares por correo
-- 🌳 Vista cronológica del árbol (línea de tiempo)
-
-### Deuda técnica (sugerencias del testing agent)
-- **🔴 server.js ~1390 líneas → URGENTE partir en `routes/`** (familiares, preferencias, comentarios, usuarios, relatos, efemerides, buscar, auth, avisos)
-- Helper `isOwner(doc, req)` para regla DRY de validación de propietario
-- Lista de parentescos duplicada en 3 lugares (modelo, server, parentescoMap.js) → extraer a constants compartido
-- Consolidar CSS: archive.css, social-refine.css, historic-refinements.css
-- CORS_ORIGINS específico antes de producción
-
-## Tests
-- `/app/backend/tests/test_*.py` (pytest, 6 archivos)
-- `test_phase4_legado.py` — 22 tests del árbol
-- Iteraciones: `/app/test_reports/iteration_{1..11}.json` — todas 100%
-- `test_phase5_explorar.py` — 12 tests
-- `test_misivas.py` — 16 tests (DM 1-on-1)
-- `test_share_chronicle.py` — 8 tests (compartir crónica por misiva)
-- `test_og_cards.py` — 21 tests (Open Graph cards)
-
-## Credenciales
-Ver `/app/memory/test_credentials.md`
+- **Backend:** Node.js + Express + MongoDB (Mongoose) en `server.js` monolítico (~2400 líneas)
+- **Frontend:** React (CRA), CSS custom themes (variables), Leaflet maps, PWA
+- **Integraciones:** Emergent LLM Key (vía `emergentintegrations` Python) para imágenes (Nano Banana) y TTS (OpenAI)
+
+## Cuenta de prueba
+- Email: `vizcarrapulidoeddy@gmail.com`
+- Password: `chronos2026`
+
+## Fases COMPLETADAS
+
+### Fase 1-13 (sesiones previas)
+- Auth httpOnly, posts/relatos, ecos/comentarios, archivado, seguidores
+- Notificaciones, mensajería directa, perfil, hashtags
+- PWA install, push web (VAPID), iconos custom históricos
+- Tema dark navy + gold, ornamentaciones SVG
+- Mobile UX: topbar auto-hide, pull-to-refresh, swipe-to-open drawer, haptic feedback
+- Anti-zoom mobile (touch-action, meta, JS)
+
+### Fase 14-19 (sesión anterior)
+- ✅ Light theme pergamino con switch automático por hora del día
+- ✅ "Resonancias" — bottom sheet TikTok-style para comentarios
+- ✅ Rename acciones: Avalar, Responder, Aportes, Eco, Seguir legado
+- ✅ Eco animation (golden star burst)
+- ✅ Presence System: 🔥 activo, escribiendo... (heartbeat polling)
+- ✅ Reading Mode parchment con A-/A+
+- ✅ Mapa interactivo Efemérides (Leaflet + Carto, 53 eventos con lat/lng)
+- ✅ Video upload (multer 50MB) en `POST /api/relatos`
+- ✅ Ruta `POST /api/relatos/:id/narrar` (TTS vía Python emergentintegrations) — backend listo
+
+### Fase 20 (esta sesión, 28-may-2026)
+- ✅ **Rediseño de cards mobile**: quitado el patrón "edge-to-edge negativo" (`margin: 0 -14px`) en `.social-post`, `.feed-greeting` y `.social-composer`. Ahora son cards reales con:
+  - `border-radius: 14px`
+  - `border: 1px solid var(--gold-soft)`
+  - `padding lateral consistente` desde el container `.main-area`
+  - `box-shadow` sutil para profundidad
+  - `margin-bottom: 14px` entre cards
+- ✅ Compatibilidad con tema pergamino: el composer usa `var(--bg-card)` (sin `!important`) para que el tema light/dark lo controle correctamente.
+- ✅ Verificado en mobile 393×852 en ambos temas.
+
+## Pendiente / Backlog Priorizado
+
+### P0 — Cerrar lo que ya está armado backend pero falta UI/test
+- 🔧 **Video + TTS UI**: el endpoint y multer están listos pero falta:
+  - Frontend: input "📹 Adjuntar video" en `CreateChronicleModal`
+  - Frontend: `<video controls>` en `SocialPost` / `RelatoDetail`
+  - Frontend: botón "🔊 Escuchar narración" + selector de voz en `RelatoDetail`
+  - Backend: instalar `python-dotenv` en el venv que llama `generate_tts.py` (error actual: `ModuleNotFoundError: No module named 'dotenv'`)
+  - E2E test con testing_agent_v3_fork
+
+### P1 — Próximas features
+- Sonido de notificación más resonante + vibración 3-pulsos (`navigator.vibrate([100,50,100])`)
+- Stories "Cápsulas del Tiempo" estilo Instagram pero histórico (carrusel circular dorado + efeméride / cita / micro-crónica 24h)
+- Moderación IA de crónicas + comentarios (Claude/Gemini vía Emergent LLM key)
+- Sistema de reportes comunitario + panel `/admin/moderacion`
+
+### P2 — Backlog futuro
+- Newsletter semanal con Resend
+- Stripe + Plan Premium (árboles genealógicos extendidos, más voces TTS, etc.)
+- Refactor de `server.js` (2414 líneas) → routes/, models/, controllers/ modular
+
+## Architecture
+```
+/app/
+├── backend/
+│   ├── data/efemerides.js          # 53 eventos enriquecidos con lat/lng
+│   ├── models/                      # User, Publicacion (con video_path/audio_path), Eco, Comentario...
+│   ├── scripts/generate_tts.py      # OpenAI TTS vía emergentintegrations
+│   └── server.js                    # Monolito Express (>2400 líneas)
+└── frontend/src/
+    ├── components/                  # SocialPost, CommentsSheet, PresenceBadge, TopbarArchive, SearchBar
+    ├── context/                     # AuthContext, ThemeContext, PresenceContext
+    ├── pages/                       # Feed, RelatoDetail, MapaEfemerides, Profile
+    ├── styles/                      # mobile-app.css ★, theme-light.css, social-refine.css, archive.css
+    └── utils/                       # haptic, useScrollDirection
+```
+
+## Decisiones de diseño clave
+- Mobile cards: **padding lateral consistente** (no edge-to-edge). Border-radius 14px + border `gold-soft` + sombra suave.
+- Tema light = pergamino (cream/sepia/gold-deep). Switch automático según hora.
+- Toda interacción importante en mobile activa `haptic.light()` o `haptic.medium()`.
+- PWA: zoom completamente deshabilitado (gesturestart, touch-action, meta).
