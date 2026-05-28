@@ -9,6 +9,7 @@ import HashtagText from './HashtagText';
 import ShareChronicleModal from './ShareChronicleModal';
 import CommentsSheet from './CommentsSheet';
 import PresenceBadge from './PresenceBadge';
+import NarrarBtn from './NarrarBtn';
 
 const formatFechaRelativa = (fecha) => {
   const date = new Date(fecha);
@@ -158,6 +159,24 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
           <img src={imagenSrc} alt={relato.titulo} onError={(e) => { e.target.parentElement.style.display = 'none'; }} />
         </div>
       )}
+
+      {/* Video (exploración histórica) */}
+      {relato.video_path && (
+        <div className="social-post-video" data-testid={`video-${relato._id}`}>
+          <video
+            src={`${process.env.REACT_APP_BACKEND_URL || ''}${relato.video_path}`}
+            controls
+            preload="metadata"
+            playsInline
+            style={{ width: '100%', display: 'block', maxHeight: '420px', objectFit: 'cover' }}
+          />
+        </div>
+      )}
+
+      {/* Botón Escuchar narración (TTS) */}
+      <div className="social-post-narrar-row">
+        <NarrarBtn relatoId={relato._id} initialAudioPath={relato.audio_path} />
+      </div>
 
       {/* Stats counter */}
       {(totalEcos > 0 || totalComentarios > 0) && (

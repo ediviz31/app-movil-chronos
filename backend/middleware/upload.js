@@ -26,11 +26,37 @@ function makeUpload(folder) {
   });
 }
 
+// Factoría para videos: 50MB, formatos mp4/webm/mov
+function makeVideoUpload(folder) {
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, `uploads/${folder}`),
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+  const fileFilter = (req, file, cb) => {
+    const allowedExt = /mp4|webm|mov|m4v|quicktime/;
+    const allowedMime = /^video\//;
+    const extname = allowedExt.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedMime.test(file.mimetype);
+    if (mimetype || extname) return cb(null, true);
+    cb(new Error('Sólo se permiten videos (mp4, webm, mov)'));
+  };
+  return multer({
+    storage,
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+    fileFilter
+  });
+}
+
 // Por defecto exporta el de relatos (compat. existente)
 const upload = makeUpload('relatos');
 upload.makeUpload = makeUpload;
+upload.makeVideoUpload = makeVideoUpload;
 upload.avatares = makeUpload('avatares');
 upload.portadas = makeUpload('portadas');
 upload.familiares = makeUpload('familiares');
+upload.videos = makeVideoUpload('videos');
 
 module.exports = upload;

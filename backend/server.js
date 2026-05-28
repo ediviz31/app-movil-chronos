@@ -110,7 +110,7 @@ app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Asegurar que las carpetas de uploads existan al arranque (multer no las crea)
-['relatos', 'avatares', 'portadas', 'familiares'].forEach(dir => {
+['relatos', 'avatares', 'portadas', 'familiares', 'videos', 'audio'].forEach(dir => {
   const full = path.join(__dirname, 'uploads', dir);
   if (!fs.existsSync(full)) fs.mkdirSync(full, { recursive: true });
 });
@@ -347,8 +347,34 @@ app.get('/api/relatos', auth, async (req, res) => {
   }
 });
 
+// Multer para crear relato: acepta imagen (5MB) + video (50MB)
+const relatoMediaUpload = require('multer')({
+  storage: require('multer').diskStorage({
+    destination: (req, file, cb) => {
+      const folder = file.mimetype.startsWith('video/') ? 'uploads/videos' : 'uploads/relatos';
+      cb(null, folder);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + require('path').extname(file.originalname));
+    }
+  }),
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max (videos)
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'imagen') {
+      const ok = /^image\/(jpeg|jpg|png|gif|webp)$/.test(file.mimetype);
+      return cb(ok ? null : new Error('Imagen inválida'), ok);
+    }
+    if (file.fieldname === 'video') {
+      const ok = /^video\//.test(file.mimetype);
+      return cb(ok ? null : new Error('Video inválido'), ok);
+    }
+    cb(null, false);
+  }
+}).fields([{ name: 'imagen', maxCount: 1 }, { name: 'video', maxCount: 1 }]);
+
 // Crear relato
-app.post('/api/relatos', [auth, upload.single('imagen')], [
+app.post('/api/relatos', [auth, relatoMediaUpload], [
   body('titulo').trim().notEmpty().withMessage('El título es requerido'),
   body('categoria').trim().notEmpty().withMessage('La categoría es requerida'),
   body('contenido').trim().notEmpty().withMessage('El contenido es requerido')
@@ -360,7 +386,10 @@ app.post('/api/relatos', [auth, upload.single('imagen')], [
     }
 
     const { titulo, categoria, contenido } = req.body;
-    const imagen = req.file ? `/api/uploads/relatos/${req.file.filename}` : null;
+    const imagenFile = req.files?.imagen?.[0];
+    const videoFile = req.files?.video?.[0];
+    const imagen = imagenFile ? `/api/uploads/relatos/${imagenFile.filename}` : null;
+    const videoPath = videoFile ? `/api/uploads/videos/${videoFile.filename}` : null;
     const tags = Publicacion.extractTags(`${titulo} ${contenido}`);
 
     const nuevoRelato = new Publicacion({
@@ -369,6 +398,7 @@ app.post('/api/relatos', [auth, upload.single('imagen')], [
       categoria,
       contenido,
       imagen,
+      video_path: videoPath,
       tags
     });
 
@@ -2308,6 +2338,75 @@ app.use((err, req, res, next) => {
 });
 
 // Iniciar servidor
+
+// ============================================
+// AUDIO NARRACIÓN (TTS) — usa Emergent LLM key
+// ============================================
+const { spawn } = require('child_process');
+
+app.post('/api/relatos/:id/narrar', auth, async (req, res) => {
+  try {
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ error: 'ID inválido' });
+    }
+    const { voz = 'onyx', regenerar = false } = req.body || {};
+    const allowedVoices = new Set(['onyx', 'echo', 'fable', 'sage', 'shimmer', 'nova', 'alloy']);
+    const finalVoice = allowedVoices.has(voz) ? voz : 'onyx';
+
+    const relato = await Publicacion.findById(req.params.id);
+    if (!relato) return res.status(404).json({ error: 'Relato no encontrado' });
+
+    if (relato.audio_path && !regenerar && relato.audio_voz === finalVoice) {
+      return res.json({ audio_path: relato.audio_path, voz: relato.audio_voz, cached: true });
+    }
+
+    const cleanContenido = String(relato.contenido || '')
+      .replace(/#[\p{L}\p{N}_]+/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const texto = `${relato.titulo}. ${cleanContenido}`;
+    if (texto.length < 10) return res.status(400).json({ error: 'Texto demasiado corto' });
+
+    const filename = `${relato._id}-${finalVoice}-${Date.now()}.mp3`;
+    const outputPath = path.join(__dirname, 'uploads', 'audio', filename);
+    // Usar python del venv (con emergentintegrations y dotenv instalados)
+    const pyExec = process.env.PYTHON_BIN || '/root/.venv/bin/python3';
+    const script = path.join(__dirname, 'scripts', 'generate_tts.py');
+    const child = spawn(pyExec, [script, outputPath, finalVoice], { env: process.env });
+
+    child.stdin.write(texto, 'utf8');
+    child.stdin.end();
+
+    let stderrBuf = '';
+    child.stderr.on('data', (d) => { stderrBuf += d.toString(); });
+
+    const exitCode = await new Promise((resolve) => child.on('close', resolve));
+    if (exitCode !== 0) {
+      console.error('TTS error:', stderrBuf);
+      return res.status(500).json({ error: 'Error al generar narración' });
+    }
+    if (!fs.existsSync(outputPath)) {
+      return res.status(500).json({ error: 'Archivo de audio no generado' });
+    }
+
+    if (relato.audio_path) {
+      const old = path.join(__dirname, relato.audio_path.replace('/api/', ''));
+      if (fs.existsSync(old)) { try { fs.unlinkSync(old); } catch (_) {} }
+    }
+
+    const audioUrl = `/api/uploads/audio/${filename}`;
+    relato.audio_path = audioUrl;
+    relato.audio_voz = finalVoice;
+    await relato.save();
+
+    res.json({ audio_path: audioUrl, voz: finalVoice, cached: false });
+  } catch (err) {
+    console.error('Error narrar:', err);
+    res.status(500).json({ error: 'Error al narrar' });
+  }
+});
+
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor Chronos corriendo en puerto ${PORT}`);
   console.log(`📚 Base de datos: ${process.env.MONGO_URL}`);

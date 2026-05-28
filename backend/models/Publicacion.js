@@ -34,6 +34,20 @@ const publicacionSchema = new mongoose.Schema({
   visitas: {
     type: Number,
     default: 0
+  },
+  // Narración TTS generada bajo demanda (path relativo a /uploads/audio/)
+  audio_path: {
+    type: String,
+    default: null
+  },
+  audio_voz: {
+    type: String,
+    default: null   // onyx | echo | sage | shimmer | fable
+  },
+  // Video adjunto (sitio histórico explorado por el cronista)
+  video_path: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: { createdAt: 'creado_en', updatedAt: 'actualizado_en' }
