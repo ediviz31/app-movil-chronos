@@ -38,6 +38,8 @@
     /* Evita el ajuste automático de tipografía al rotar */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* Deshabilita el double-tap-to-zoom de iOS/Android */
+    touch-action: manipulation;
   }
   body {
     /* Cuerpo sin selección textual accidental al hacer long-press en navegación */
@@ -46,6 +48,12 @@
     -webkit-overflow-scrolling: touch;
     /* Disable pull-to-refresh accidental dentro de la app */
     overscroll-behavior-y: contain;
+    /* Sin zoom por gestos */
+    touch-action: pan-x pan-y;
+  }
+  /* Imágenes/SVG/medios: bloquear pinch-zoom específicamente */
+  img, video, svg, canvas, .social-post-image, .relato-figure {
+    touch-action: pan-x pan-y;
   }
   /* Permitir selección sólo en contenido leíble */
   .relato-content, .relato-title, .social-post-content, .social-post-title,
