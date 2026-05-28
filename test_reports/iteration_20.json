@@ -1,0 +1,44 @@
+{
+  "summary": "Iteration 20: validated 'Mi Pasado en Cápsulas' archive endpoint + UI, video input in CreateChronicleModal, TTS narración cache, and audio/haptic constants. 12/12 new backend tests pass, 13/13 iter19 regression pass. Frontend UI smoke validated: tab-pasado, profile-pasado, archivo-empty with correct text, input-video, btn-remove-video selectors present.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter20_archivo_tts_video.py",
+    "/app/backend/tests/test_capsulas_y_relatos.py",
+    "/app/test_reports/pytest/iter20_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "OK: server.js sigue siendo grande (>2400 líneas) — recomendación de split en routes/* persiste de iter19, no bloqueante.",
+    "OK: /api/capsulas/archivo/:usuarioId valida ObjectId (400 en id inválido) y popula usuario_id correctamente.",
+    "OK: TTS /api/relatos/:id/narrar implementa caché (segunda llamada con misma voz → cached:true, mismo audio_path). Voz inválida cae a 'onyx' (fallback explícito).",
+    "OK: chronosSound.js volúmenes verificados: cuerno 0.38–0.42 con eco 130.81Hz + chime 880Hz; campana 0.36; lira 0.24–0.28. haptic notify = [80,60,120,60,80].",
+    "OK: CreateChronicleModal valida video >50MB con mensaje 'El video no puede superar los 50 MB'. data-testid='input-video' (accept='video/*') y 'btn-remove-video' presentes."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter20_archivo_tts_video.py (NUEVO)"
+  ],
+  "success_rate": { "backend": "100% (12/12 nuevos + 13/13 regresión)", "frontend": "100% en smoke (tab-pasado, empty state, input-video)" },
+  "test_credentials": "vizcarrapulidoeddy@gmail.com / chronos2026 (login: POST /api/auth/login body={correo,password})",
+  "seed_data_creation": "Capsules TEST_iter20 creadas y limpiadas (mongo update_one con expira_en pasado + delete_one) en cada test. Una cápsula extra para forzar UI grid también limpiada.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Para validar el grid del archivo en UI: crear cápsula vía API y luego MongoClient('mongodb://localhost:27017/chronos').chronos.capsulas.update_one({'_id': ObjectId(cid)}, {'$set':{'expira_en': past_datetime}}). El URL del perfil propio usa el _id (24-hex): /perfil/<userId>. Navegar por /perfil/<usuario> a veces devuelve 400 desde backend, no es bug nuevo — el frontend usa _id en links generados internamente. Backend tests requieren env REACT_APP_BACKEND_URL y MONGO_URL (ya disponibles).",
+  "verified_behaviors": [
+    "Capsula sin TTL — vencidas persisten y son recuperables vía /archivo",
+    "GET /api/capsulas filtra solo activas (cápsula vencida desaparece)",
+    "GET /api/capsulas/archivo/<id> popula usuario_id, ordena por creado_en desc, devuelve [] si no hay archivo",
+    "POST /api/relatos acepta multipart con campo 'video' y persiste video_path '/api/uploads/videos/...'",
+    "POST /api/relatos/:id/narrar primera llamada cached=false, segunda misma voz cached=true mismo audio_path",
+    "Voz inválida cae a 'onyx' (fallback)",
+    "Frontend: tab 'Mi Pasado' visible con icono HourglassIcon, click activa profile-pasado, muestra archivo-empty con texto 'Aún no tienes cápsulas selladas...'",
+    "CreateChronicleModal: input-video presente con accept='video/*'"
+  ]
+}

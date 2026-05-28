@@ -121,22 +121,32 @@ const playMonasteryBell = (ctx, freq, startTime, duration = 2.5, volume = 0.18) 
 };
 
 // ─── FANFARES POR TIPO ─────────────────────────────────────────
+// Volúmenes ~2.2x más altos para que se sientan más resonantes/recios.
 const playCuerno = (ctx, now) => {
-  playHornNote(ctx, 196.0, now, 0.32, 0.16);
-  playHornNote(ctx, 261.63, now + 0.18, 0.45, 0.18);
-  playChime(ctx, 659.25, now + 0.55, 0.7, 0.08);
+  // Cuerno principal: G3 → C4 (más fuerte y largo)
+  playHornNote(ctx, 196.0, now, 0.38, 0.38);
+  playHornNote(ctx, 261.63, now + 0.18, 0.55, 0.42);
+  // Eco/resonancia: segundo cuerno una octava abajo, suave (efecto cavernoso)
+  playHornNote(ctx, 130.81, now + 0.10, 0.6, 0.18);
+  // Chime brillante encima
+  playChime(ctx, 659.25, now + 0.55, 0.9, 0.18);
+  playChime(ctx, 880.00, now + 0.70, 0.8, 0.12);
 };
 
 const playLira = (ctx, now) => {
-  // Arpegio Do mayor: C4-E4-G4-C5
-  playLiraNote(ctx, 261.63, now, 0.7, 0.13);          // C4
-  playLiraNote(ctx, 329.63, now + 0.12, 0.7, 0.12);   // E4
-  playLiraNote(ctx, 392.00, now + 0.24, 0.7, 0.11);   // G4
-  playLiraNote(ctx, 523.25, now + 0.36, 1.0, 0.13);   // C5
+  // Arpegio Do mayor: C4-E4-G4-C5 (volúmenes 2x)
+  playLiraNote(ctx, 261.63, now, 0.85, 0.28);          // C4
+  playLiraNote(ctx, 329.63, now + 0.12, 0.85, 0.26);   // E4
+  playLiraNote(ctx, 392.00, now + 0.24, 0.85, 0.24);   // G4
+  playLiraNote(ctx, 523.25, now + 0.36, 1.2, 0.28);    // C5
+  // Re-pluck suave para resonancia
+  playLiraNote(ctx, 523.25, now + 0.85, 0.7, 0.14);
 };
 
 const playCampana = (ctx, now) => {
-  playMonasteryBell(ctx, 246.94, now, 2.5, 0.16); // B3 grave
+  playMonasteryBell(ctx, 246.94, now, 3.2, 0.36);       // B3 grave fuerte
+  // Eco a octava arriba (campana más distante)
+  playMonasteryBell(ctx, 493.88, now + 0.35, 2.0, 0.12);
 };
 
 // ─── API PÚBLICA ───────────────────────────────────────────────

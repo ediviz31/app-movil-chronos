@@ -50,7 +50,8 @@ const capsulaSchema = new mongoose.Schema({
     default: [],
     ref: 'User'
   },
-  // Fecha en la que expira (TTL: 24h por defecto)
+  // Fecha en la que expira la "vida activa" (24h) — vencida ≠ borrada.
+  // Las cápsulas vencidas pasan al "Pasado en Cápsulas" del perfil del cronista.
   expira_en: {
     type: Date,
     required: true
@@ -59,7 +60,7 @@ const capsulaSchema = new mongoose.Schema({
   timestamps: { createdAt: 'creado_en', updatedAt: 'actualizado_en' }
 });
 
-// TTL index: MongoDB borra automáticamente cápsulas vencidas
-capsulaSchema.index({ expira_en: 1 }, { expireAfterSeconds: 0 });
+// Sin TTL: las cápsulas vencidas se preservan como archivo personal del cronista.
+// Se filtra por expira_en > now en GET /api/capsulas.
 
 module.exports = mongoose.model('Capsula', capsulaSchema);

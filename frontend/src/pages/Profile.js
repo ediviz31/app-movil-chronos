@@ -9,6 +9,7 @@ import SideRail from '../components/SideRail';
 import SocialPost from '../components/SocialPost';
 import CreateChronicleModal from '../components/CreateChronicleModal';
 import EditProfileModal from '../components/EditProfileModal';
+import ArchivoCapsulas from '../components/ArchivoCapsulas';
 import {
   HourglassIcon, FeatherIcon, OrnateStarIcon, ChronicleIcon,
   CommunitiesIcon, CalendarIcon, PlusOrnateIcon, ArrowRightIcon,
@@ -316,6 +317,13 @@ const Profile = () => {
               <FeatherIcon size={14} /> Crónicas
             </button>
             <button
+              className={`profile-tab ${activeTab === 'pasado' ? 'active' : ''}`}
+              onClick={() => setActiveTab('pasado')}
+              data-testid="tab-pasado"
+            >
+              <HourglassIcon size={14} /> Mi Pasado
+            </button>
+            <button
               className={`profile-tab ${activeTab === 'seguidores' ? 'active' : ''}`}
               onClick={() => setActiveTab('seguidores')}
               data-testid="tab-seguidores"
@@ -348,6 +356,12 @@ const Profile = () => {
                   />
                 ))
               )}
+            </div>
+          )}
+
+          {activeTab === 'pasado' && (
+            <div data-testid="profile-pasado" style={{ marginTop: 16 }}>
+              <ArchivoCapsulas usuarioId={perfil._id} esMiPerfil={isMyProfile} />
             </div>
           )}
 

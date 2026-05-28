@@ -20,6 +20,8 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
   });
   const [imagen, setImagen] = useState(null);
   const [imagenPreview, setImagenPreview] = useState(null);
+  const [video, setVideo] = useState(null);
+  const [videoName, setVideoName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   // Borradores
@@ -111,6 +113,19 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
     }
   };
 
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    // 50MB máximo (límite multer del backend)
+    if (file.size > 50 * 1024 * 1024) {
+      setError('El video no puede superar los 50 MB');
+      return;
+    }
+    setError('');
+    setVideo(file);
+    setVideoName(file.name);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); setLoading(true);
@@ -118,6 +133,7 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
       const data = new FormData();
       Object.keys(formData).forEach(k => data.append(k, formData[k]));
       if (imagen) data.append('imagen', imagen);
+      if (video) data.append('video', video);
 
       const response = await api.post('/relatos', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -126,8 +142,9 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
       // Borrador consumido: limpiar
       try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
       if (onSuccess) onSuccess(response.data.relato);
-      setFormData({ titulo: '', categoria: 'Antigüedad', contenido: '' });
+      setFormData({ titulo: '', categoria: 'Antigüedad', contenido: '', historia_anio: '', historia_lugar: '' });
       setImagen(null); setImagenPreview(null);
+      setVideo(null); setVideoName('');
       onClose();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al crear crónica');
@@ -239,6 +256,45 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
             {imagenPreview && (
               <div style={{ marginTop: 12, borderRadius: 4, overflow: 'hidden', border: '1px solid var(--border-mid)' }}>
                 <img src={imagenPreview} alt="Preview" style={{ width: '100%', maxHeight: 280, objectFit: 'cover', display: 'block', filter: 'sepia(0.2) contrast(1.05)' }} />
+              </div>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              Video del sitio histórico <span style={{ opacity: 0.6, fontWeight: 400 }}>(opcional · máx 50 MB)</span>
+            </label>
+            <input
+              type="file" accept="video/*" onChange={handleVideoChange}
+              className="form-input"
+              data-testid="input-video"
+            />
+            {video && (
+              <div style={{
+                marginTop: 10,
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--gold-soft)',
+                background: 'var(--gold-ghost)',
+                fontFamily: 'var(--font-elegant)',
+                fontSize: 12,
+                letterSpacing: '0.04em',
+                color: 'var(--gold)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span>📹 {videoName} ({(video.size / 1024 / 1024).toFixed(1)} MB)</span>
+                <button
+                  type="button"
+                  onClick={() => { setVideo(null); setVideoName(''); }}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--text-muted)', fontSize: 18, lineHeight: 1
+                  }}
+                  data-testid="btn-remove-video"
+                  title="Quitar video"
+                >×</button>
               </div>
             )}
           </div>

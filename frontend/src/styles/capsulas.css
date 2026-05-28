@@ -367,3 +367,216 @@ html[data-theme="light"] .capsule-label {
   .capsule-viewer-text.is-cita { font-size: 21px; }
   .capsule-cita-mark { font-size: 90px; }
 }
+
+/* =====================================================
+   ARCHIVO DE CÁPSULAS (Mi Pasado en Cápsulas)
+   ===================================================== */
+
+.archivo-capsulas-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.archivo-capsula-card {
+  position: relative;
+  aspect-ratio: 9 / 14;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--gold-soft);
+  background: var(--bg-card);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+}
+.archivo-capsula-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(212, 184, 120, 0.18);
+}
+
+.archivo-capsula-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(0.25) saturate(0.95);
+}
+.archivo-capsula-bg-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, rgba(212, 184, 120, 0.08), rgba(212, 184, 120, 0));
+}
+
+.archivo-capsula-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 12px 12px 10px;
+  background: linear-gradient(180deg, transparent 35%, rgba(0, 0, 0, 0.78) 100%);
+  color: #f5ecd2;
+  text-align: left;
+}
+
+.archivo-capsula-text {
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  line-height: 1.35;
+  margin: 0 0 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.archivo-capsula-tag {
+  display: inline-block;
+  font-family: var(--font-elegant);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  color: var(--gold-bright, #e8c97e);
+  padding: 2px 8px;
+  border: 1px solid rgba(212, 184, 120, 0.5);
+  border-radius: 10px;
+  background: rgba(212, 184, 120, 0.1);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  width: fit-content;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.archivo-capsula-date {
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: rgba(245, 236, 210, 0.7);
+}
+
+.archivo-capsulas-empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text-muted);
+}
+.archivo-capsulas-empty h3 {
+  font-family: var(--font-display);
+  color: var(--gold-bright);
+  margin: 18px 0 8px;
+  font-style: italic;
+}
+.archivo-capsulas-empty p {
+  font-family: var(--font-body);
+  max-width: 320px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Modal de cápsula sellada */
+.archivo-capsula-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  background: rgba(2, 6, 18, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.archivo-capsula-modal {
+  background: linear-gradient(160deg, #0c1228 0%, #050912 100%);
+  border: 1px solid var(--gold-soft);
+  border-radius: 14px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+}
+.archivo-capsula-modal-img {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  filter: sepia(0.2);
+}
+.archivo-capsula-modal-body {
+  padding: 22px 24px 18px;
+}
+.archivo-capsula-modal-kicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.archivo-capsula-modal-text {
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 1.5;
+  color: #f5ecd2;
+  margin: 0 0 14px;
+}
+.archivo-capsula-modal-tag {
+  display: inline-block;
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--gold-bright);
+  padding: 5px 12px;
+  border: 1px solid var(--gold);
+  border-radius: 14px;
+  background: rgba(212, 184, 120, 0.08);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.archivo-capsula-modal-close {
+  display: block;
+  width: 100%;
+  padding: 10px 18px;
+  background: var(--gold-ghost);
+  border: 1px solid var(--gold-soft);
+  border-radius: 22px;
+  color: var(--gold);
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+html[data-theme="light"] .archivo-capsula-card {
+  background: var(--bg-card);
+  border-color: var(--border-thin);
+}
+html[data-theme="light"] .archivo-capsula-modal {
+  background: linear-gradient(160deg, #FBF5E4 0%, #F4ECD8 100%);
+  border-color: var(--gold-soft);
+}
+html[data-theme="light"] .archivo-capsula-modal-text {
+  color: var(--text-default);
+}
+html[data-theme="light"] .archivo-capsula-modal-kicker {
+  color: var(--gold-deep, #a07d3a);
+}
+
+@media (max-width: 600px) {
+  .archivo-capsulas-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}

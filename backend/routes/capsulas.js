@@ -221,5 +221,31 @@ module.exports = function createCapsulasRouter({ auth, authOptional }) {
     }
   });
 
+  /** GET /api/capsulas/archivo/:usuarioId — "Mi Pasado en Cápsulas"
+   *  Devuelve cápsulas del cronista cuya vida activa (24h) ya venció.
+   *  Estas se conservan como archivo permanente del cronista.
+   */
+  router.get('/archivo/:usuarioId', authOptional, async (req, res) => {
+    try {
+      if (!req.params.usuarioId.match(/^[0-9a-fA-F]{24}$/)) {
+        return res.status(400).json({ error: 'ID inválido' });
+      }
+      const now = new Date();
+      const archivadas = await Capsula.find({
+        tipo: 'cronista',
+        usuario_id: req.params.usuarioId,
+        expira_en: { $lte: now }
+      })
+        .populate('usuario_id', 'nombre usuario avatar')
+        .sort({ creado_en: -1 })
+        .limit(120)
+        .lean();
+      res.json(archivadas.map(c => ({ ...c, visto: true, archivada: true })));
+    } catch (err) {
+      console.error('Error GET /capsulas/archivo:', err);
+      res.status(500).json({ error: 'Error al obtener archivo' });
+    }
+  });
+
   return router;
 };
