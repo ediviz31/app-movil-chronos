@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-r
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PresenceProvider } from './context/PresenceContext';
+import { NotificationsProvider } from './context/NotificationsContext';
+import GlobalToaster from './components/GlobalToaster';
 import PresenceHeartbeat from './components/PresenceHeartbeat';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -42,6 +44,7 @@ import './styles/presence.css';
 import './styles/mapa.css';
 import './styles/capsulas.css';
 import './styles/visitas.css';
+import './styles/toaster.css';
 import './styles/theme-light.css';
 
 const LoadingScreen = () => (
@@ -80,7 +83,9 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
         <PresenceProvider>
+        <NotificationsProvider>
         <PresenceHeartbeat />
+        <GlobalToaster />
         <Routes>
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/registro" element={<PublicRoute><Register /></PublicRoute>} />
@@ -104,6 +109,7 @@ function App() {
           <Route path="/perfil/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </NotificationsProvider>
         </PresenceProvider>
       </AuthProvider>
       </ThemeProvider>

@@ -1,0 +1,130 @@
+/* =====================================================
+   CHRONOS — Toaster global de notificaciones
+   ===================================================== */
+
+.chronos-toaster {
+  position: fixed;
+  top: env(safe-area-inset-top, 14px);
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px 0;
+  pointer-events: none;
+}
+
+.chronos-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+  padding: 12px 14px;
+  background: linear-gradient(160deg, #0c1228 0%, #050912 100%);
+  border: 1px solid var(--gold-soft);
+  border-radius: 14px;
+  color: #f5ecd2;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(212, 184, 120, 0.1);
+  font-family: var(--font-body);
+  animation: chronos-toast-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.chronos-toast:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold);
+}
+
+@keyframes chronos-toast-in {
+  from { opacity: 0; transform: translateY(-12px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.chronos-toast-icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--gold-ghost);
+  border: 1px solid var(--gold-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-bright);
+}
+
+.chronos-toast-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chronos-toast-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--gold-bright);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.chronos-toast-desc {
+  font-size: 12.5px;
+  line-height: 1.35;
+  opacity: 0.85;
+  color: #f5ecd2;
+}
+
+.chronos-toast-dismiss {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(212, 184, 120, 0.25);
+  color: #f5ecd2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  opacity: 0.7;
+}
+.chronos-toast-dismiss:hover {
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
+}
+
+.chronos-toast-misiva .chronos-toast-icon {
+  background: rgba(212, 184, 120, 0.15);
+  color: var(--gold-bright);
+}
+.chronos-toast-aviso .chronos-toast-icon {
+  background: rgba(255, 180, 80, 0.15);
+  color: #ffd57a;
+}
+
+/* Tema pergamino */
+html[data-theme="light"] .chronos-toast {
+  background: linear-gradient(160deg, #FBF5E4 0%, #F4ECD8 100%);
+  color: var(--text-default);
+  box-shadow: 0 12px 32px rgba(60, 40, 18, 0.18), 0 0 0 1px rgba(120, 80, 30, 0.08);
+}
+html[data-theme="light"] .chronos-toast-title { color: var(--gold-deep, #a07d3a); }
+html[data-theme="light"] .chronos-toast-desc { color: var(--text-default); opacity: 0.8; }
+
+/* Mobile ajustes */
+@media (max-width: 480px) {
+  .chronos-toaster { padding: 10px 10px 0; }
+  .chronos-toast { padding: 10px 12px; }
+  .chronos-toast-title { font-size: 14px; }
+  .chronos-toast-desc { font-size: 12px; }
+}
