@@ -247,15 +247,36 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Documento o Imagen (opcional)</label>
-            <input
-              type="file" accept="image/*" onChange={handleImageChange}
-              className="form-input"
-              data-testid="input-imagen"
-            />
+            <label className="form-label">Documento o Imagen <span style={{ opacity: 0.6, fontWeight: 400 }}>(opcional)</span></label>
+            <div className="media-picker">
+              <label className="media-picker-btn" data-testid="btn-imagen-camara">
+                <span aria-hidden="true">📷</span> Tomar foto
+                <input
+                  type="file" accept="image/*" capture="environment"
+                  onChange={handleImageChange}
+                  hidden
+                />
+              </label>
+              <label className="media-picker-btn" data-testid="btn-imagen-galeria">
+                <span aria-hidden="true">🖼️</span> Subir de galería
+                <input
+                  type="file" accept="image/*"
+                  onChange={handleImageChange}
+                  hidden
+                  data-testid="input-imagen"
+                />
+              </label>
+            </div>
             {imagenPreview && (
-              <div style={{ marginTop: 12, borderRadius: 4, overflow: 'hidden', border: '1px solid var(--border-mid)' }}>
-                <img src={imagenPreview} alt="Preview" style={{ width: '100%', maxHeight: 280, objectFit: 'cover', display: 'block', filter: 'sepia(0.2) contrast(1.05)' }} />
+              <div className="media-preview">
+                <img src={imagenPreview} alt="Preview" />
+                <button
+                  type="button"
+                  className="media-preview-remove"
+                  onClick={() => { setImagen(null); setImagenPreview(null); }}
+                  data-testid="btn-remove-imagen"
+                  aria-label="Quitar imagen"
+                >×</button>
               </div>
             )}
           </div>
@@ -264,11 +285,25 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
             <label className="form-label">
               Video del sitio histórico <span style={{ opacity: 0.6, fontWeight: 400 }}>(opcional · máx 50 MB)</span>
             </label>
-            <input
-              type="file" accept="video/*" onChange={handleVideoChange}
-              className="form-input"
-              data-testid="input-video"
-            />
+            <div className="media-picker">
+              <label className="media-picker-btn" data-testid="btn-video-camara">
+                <span aria-hidden="true">🎥</span> Grabar video
+                <input
+                  type="file" accept="video/*" capture="environment"
+                  onChange={handleVideoChange}
+                  hidden
+                />
+              </label>
+              <label className="media-picker-btn" data-testid="btn-video-galeria">
+                <span aria-hidden="true">📁</span> Subir de galería
+                <input
+                  type="file" accept="video/*"
+                  onChange={handleVideoChange}
+                  hidden
+                  data-testid="input-video"
+                />
+              </label>
+            </div>
             {video && (
               <div style={{
                 marginTop: 10,

@@ -157,17 +157,36 @@ const CreateCapsulaModal = ({ isOpen, onClose, onCreated }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Imagen (opcional)</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImagen}
-              className="form-input"
-              data-testid="capsule-input-imagen"
-            />
+            <label className="form-label">Imagen <span style={{ opacity: 0.6 }}>(opcional)</span></label>
+            <div className="media-picker">
+              <label className="media-picker-btn" data-testid="capsule-btn-camara">
+                <span aria-hidden="true">📷</span> Tomar foto
+                <input
+                  type="file" accept="image/*" capture="environment"
+                  onChange={handleImagen}
+                  hidden
+                />
+              </label>
+              <label className="media-picker-btn" data-testid="capsule-btn-galeria">
+                <span aria-hidden="true">🖼️</span> Subir de galería
+                <input
+                  type="file" accept="image/*"
+                  onChange={handleImagen}
+                  hidden
+                  data-testid="capsule-input-imagen"
+                />
+              </label>
+            </div>
             {preview && (
-              <div style={{ marginTop: 10, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-mid)' }}>
-                <img src={preview} alt="" style={{ width: '100%', maxHeight: 220, objectFit: 'cover', display: 'block', filter: 'sepia(0.18)' }} />
+              <div className="media-preview">
+                <img src={preview} alt="" />
+                <button
+                  type="button"
+                  className="media-preview-remove"
+                  onClick={() => { setImagen(null); setPreview(null); }}
+                  data-testid="capsule-btn-remove-imagen"
+                  aria-label="Quitar imagen"
+                >×</button>
               </div>
             )}
           </div>
