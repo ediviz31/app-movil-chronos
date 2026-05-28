@@ -487,15 +487,19 @@
 @media (max-width: 900px) {
   .mobile-subbar {
     display: block;
-    position: sticky;
+    position: fixed;
     top: calc(56px + env(safe-area-inset-top, 0px));
+    left: 0;
+    right: 0;
     z-index: 80;
-    background: linear-gradient(180deg, rgba(4, 9, 26, 0.98), rgba(6, 13, 30, 0.96));
+    background: rgba(4, 9, 26, 0.98);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border-thin);
     padding: 10px 14px 6px;
   }
+  /* Compensar el espacio del subbar fijo: main-area gana padding-top */
+  .archive-layout > .main-area { padding-top: 128px !important; }
   .mobile-subbar .search-wrapper { width: 100%; max-width: 100%; }
   .mobile-subbar .archive-search {
     display: flex;

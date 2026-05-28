@@ -1,0 +1,38 @@
+{
+  "summary": "Re-test mobile Chronos (390x844) after iter16 fix for sticky MobileSubBar. ALL CRITICAL CHECKS PASS. Measured [data-testid=mobile-subbar] at y=56, position=fixed, top=56px, z-index=80 — exactly below the topbar (y=0, h=56). After window.scrollTo(0,800), topbar (y=0) and subbar (y=56) both stay fixed in place. .archive-layout > .main-area computed padding-top=128px which fully compensates the topbar+subbar combined height (56+~122=178); first feed card lands at y=184, no overlap. All 4 tabs navigate to their correct routes: para-ti→/, crónicas→/cronicas, legados→/legados, documentos→/documentos. Mobile SearchBar inside subbar fully functional: 'roma' returned 25 dropdown items, 'kei' returned 5. Bottom nav (.side-rail on mobile) is position:fixed at y=780,h=64 (bottom=844, viewport bottom) — no gap; renders 5 visible items on mobile. Drawer opens from avatar tap (screenshot captured profile header Keilin Vizcarra @keilin + the 5-item list Misivas/Avisos/Épocas/Efemérides/Legados + inline search + Cerrar sesión). Desktop (1920x800): mobile-subbar display:none confirmed and inline topbar-search-wrap visible — original layout preserved. The critical bug from iteration_16 (subbar at y=5706) is FIXED.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "mobile_checks_passed": [
+    "MobileSubBar visible and fixed at y=56 (was 5706 in iter16) — position:fixed, top:56px, z-index:80",
+    "Topbar sticky at y=0 and SubBar fixed at y=56 BOTH remain in place after window.scrollTo(0,800)",
+    "main-area padding-top=128px verified — feed content not covered (first card y=184 > subbar bottom 178.19)",
+    "All 4 subbar tabs navigate correctly: Para ti→/, Crónicas→/cronicas, Legados→/legados, Documentos→/documentos",
+    "Subbar SearchBar dropdown returns real results: 'roma'=25 items, 'kei'=5 items",
+    "Bottom nav (.side-rail) fixed at bottom=844 with 5 visible mobile items (Inicio/Explorar/Crónicas/Biblioteca/Mi legado), no gap",
+    "Drawer opens from avatar — opaque dark bg, shows profile header + 5 items (Misivas/Avisos/Épocas/Efemérides/Legados) + inline search + Cerrar sesión",
+    "Drawer items match spec (Misivas, Avisos, Épocas, Efemérides, Legados)",
+    "Desktop 1920x800: mobile-subbar display:none, inline topbar-search-wrap visible — original layout preserved"
+  ],
+  "checks_not_independently_verified_this_iteration": [
+    "Swipe-from-left-edge to open drawer: Playwright cannot construct TouchEvent in this environment (TypeError on 'touches' property). Avatar tap to open drawer works perfectly (verified). Recommend manual QA on a real device, or main agent can use the existing manual tap path which exercises the same MobileMoreDrawer component.",
+    "Pull-to-refresh indicator: not re-triggered in this iteration; iter16 already verified ptr indicator appears on touchmove drag from top — no code change touched PTR so behaviour assumed unchanged."
+  ],
+  "test_report_links": ["/app/test_reports/iteration_17.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Fix approach (position:fixed + padding-top:128px) is solid and correctly compensates the layout. No regressions detected.",
+    "Minor consideration: subbar height is 122px (search pill + tabs row), topbar is 56px, so combined header overlay is 178px. The 128px padding-top is enough because main-area already begins at row 2 of the grid (which itself starts at y=56 after the topbar). The math works (56+122=178; padding-top:128 + topbar:56=184 first content y), but if subbar content ever grows (e.g. extra tab row), the padding should be parameterised via CSS var to avoid mismatch."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only request)", "frontend": "9/9 critical mobile checks pass (100%); desktop 2/2 (100%)"},
+  "test_credentials": "keilin@chronos.com / chronos123 (verified working)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration_16 critical layout bug (MobileSubBar at y=5706) confirmed RESOLVED via position:fixed top:56px + main-area padding-top:128px. SubBar now sits at y=56, fixed across scroll. Tab navigation, mobile search, bottom nav, drawer-from-avatar, desktop preservation — all pass. Remaining items the main agent may want a human to verify on a real device: (a) swipe-from-left-edge gesture to open drawer (Playwright cannot dispatch TouchEvent in this env), (b) pull-to-refresh haptic feel.",
+  "rca_of_the_issue": "Iter16 RCA was correct (MobileSubBar lacked grid-area in CSS grid .archive-layout, ending up in implicit row at end of feed). Iter17 fix instead pulls the element out of grid flow via position:fixed; top: calc(56px + env(safe-area-inset-top, 0px)); and compensates the lost space with padding-top:128px on .archive-layout > .main-area inside the @media(max-width:900px) block. This approach decouples subbar positioning from the grid template entirely, avoiding any future regressions if grid rows change."
+}
