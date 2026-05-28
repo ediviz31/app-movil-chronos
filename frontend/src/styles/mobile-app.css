@@ -883,6 +883,44 @@
   gap: 10px;
   align-items: center;
 }
+.mobile-drawer-theme-toggle {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--gold-soft);
+  color: var(--gold);
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.mobile-drawer-theme-toggle:active {
+  background: rgba(212, 184, 120, 0.08);
+  border-color: var(--gold);
+}
+.mobile-drawer-theme-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  flex: 1;
+  min-width: 0;
+}
+.mobile-drawer-theme-text strong {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--gold-bright);
+  font-size: 14px;
+}
+.mobile-drawer-theme-text span {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--text-muted);
+  font-size: 11px;
+}
 .mobile-drawer-logout {
   width: 100%;
   background: transparent;
@@ -960,6 +998,79 @@
 .mobile-drawer-result-row > div {
   display: flex;
   flex-direction: column;
+
+/* ===== BANNER DE BORRADOR (autosave) ===== */
+.draft-banner {
+  margin: 12px 18px 6px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-style: italic;
+}
+.draft-banner-restored {
+  background: rgba(212, 184, 120, 0.08);
+  border: 1px solid var(--gold-soft);
+  color: var(--text-default);
+}
+.draft-banner-restored strong {
+  font-style: normal;
+  color: var(--gold-bright);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  margin-right: 4px;
+}
+.draft-banner-discard {
+  background: transparent;
+  border: 1px solid var(--border-thin);
+  color: var(--text-muted);
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.draft-banner-discard:hover,
+.draft-banner-discard:active {
+  border-color: var(--gold-soft);
+  color: var(--gold);
+}
+
+/* Indicador sutil "Borrador guardado" en el bottom del form */
+.draft-status {
+  flex: 1;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.draft-status-saved {
+  opacity: 0.85;
+  animation: draftFade 2.5s ease-out forwards;
+}
+@keyframes draftFade {
+  0%   { opacity: 0; transform: translateY(2px); }
+  20%  { opacity: 0.85; transform: translateY(0); }
+  80%  { opacity: 0.85; }
+  100% { opacity: 0.4; }
+}
+@media (max-width: 900px) {
+  .draft-banner { margin: 10px 14px 4px; font-size: 12px; }
+  .draft-banner-discard { font-size: 9px; padding: 5px 10px; }
+}
+
   min-width: 0;
   flex: 1;
 }

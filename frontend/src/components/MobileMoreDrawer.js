@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import api from '../services/api';
+import { useTheme } from '../context/ThemeContext';
+import haptic from '../utils/haptic';
 import {
   TempleIcon, MapIcon, ChronicleIcon, LibraryIcon, CommunitiesIcon,
   LogoutIcon, SearchIcon, CloseIcon, OrnateStarIcon, ArrowRightIcon,
-  HourglassIcon
+  HourglassIcon, SunIcon, MoonIcon, AutoThemeIcon
 } from './HistoricIcons';
 
 /**
@@ -20,11 +22,20 @@ import {
 const MobileMoreDrawer = ({ open, onClose, onLogout }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { pref: themePref, cyclePref } = useTheme();
   const [search, setSearch] = useState('');
   const [results, setResults] = useState({ usuarios: [], relatos: [] });
   const [loading, setLoading] = useState(false);
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
+
+  const themeIcon = themePref === 'light' ? SunIcon : (themePref === 'dark' ? MoonIcon : AutoThemeIcon);
+  const themeLabel = themePref === 'light' ? 'Tema claro' : (themePref === 'dark' ? 'Tema oscuro' : 'Automático');
+  const themeDesc = themePref === 'light' ? 'Pergamino · pulsa para cambiar'
+                  : themePref === 'dark' ? 'Tinta · pulsa para cambiar'
+                  : 'Cambia con la hora del día';
+  const ThemeIcon = themeIcon;
+  const handleThemeToggle = () => { haptic.light(); cyclePref(); };
 
   useEffect(() => {
     if (open) {
@@ -236,6 +247,18 @@ const MobileMoreDrawer = ({ open, onClose, onLogout }) => {
         </nav>
 
         <div className="mobile-drawer-footer">
+          <button
+            className="mobile-drawer-theme-toggle"
+            onClick={handleThemeToggle}
+            data-testid="mobile-drawer-theme-toggle"
+            aria-label="Cambiar tema"
+          >
+            <ThemeIcon size={20} />
+            <div className="mobile-drawer-theme-text">
+              <strong>{themeLabel}</strong>
+              <span>{themeDesc}</span>
+            </div>
+          </button>
           <button
             className="mobile-drawer-logout"
             onClick={() => { onLogout && onLogout(); onClose(); }}

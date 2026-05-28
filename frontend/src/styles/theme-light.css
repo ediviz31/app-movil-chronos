@@ -1,0 +1,259 @@
+/* =====================================================
+   CHRONOS — TEMA CLARO "PERGAMINO ANTIGUO"
+   Sobrescribe las variables del tema oscuro cuando
+   <html data-theme="light">.
+   Mantiene la identidad: serif + dorado, sólo cambia
+   fondo (papel envejecido) + texto (sepia oscuro).
+   ===================================================== */
+
+html[data-theme="light"] {
+  /* Fondos: pergamino envejecido */
+  --bg-ink:        #EFE5CC;
+  --bg-deep:       #F4ECD8;   /* papel principal */
+  --bg-card:       #FBF5E4;   /* tarjeta más clara que el fondo */
+  --bg-card-hover: #FFF8E8;
+  --bg-overlay:    rgba(255, 250, 235, 0.7);
+
+  /* Dorados ajustados: más oscuro para contraste sobre fondo claro */
+  --gold:        #A6862E;
+  --gold-bright: #8B6E1F;
+  --gold-deep:   #6B5417;
+  --gold-soft:   rgba(166, 134, 46, 0.45);
+  --gold-ghost:  rgba(166, 134, 46, 0.12);
+
+  /* Texto: sepia oscuro */
+  --text-bright:  #2D1F0E;
+  --text-default: #3D2914;
+  --text-muted:   #7B5A38;
+  --text-faint:   #A88B6A;
+
+  /* Bordes: tinta sepia translúcida */
+  --border-thin:   rgba(94, 66, 30, 0.18);
+  --border-mid:    rgba(94, 66, 30, 0.32);
+  --border-strong: rgba(94, 66, 30, 0.55);
+}
+
+/* ──────────── Ajustes específicos ──────────── */
+html[data-theme="light"] body,
+html[data-theme="light"] {
+  background: var(--bg-deep);
+  color: var(--text-default);
+}
+
+/* Textura de papel envejecido sutil (noise + manchas) */
+html[data-theme="light"] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.45;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(166, 134, 46, 0.10) 0%, transparent 22%),
+    radial-gradient(circle at 78% 70%, rgba(166, 134, 46, 0.08) 0%, transparent 28%),
+    radial-gradient(circle at 50% 92%, rgba(125, 92, 40, 0.06) 0%, transparent 30%);
+  mix-blend-mode: multiply;
+}
+
+/* Filtros sepia eliminados en avatares (no pegan con fondo claro) */
+html[data-theme="light"] .composer-avatar img,
+html[data-theme="light"] .social-post-avatar img,
+html[data-theme="light"] .rail-user img,
+html[data-theme="light"] .mobile-drawer-avatar,
+html[data-theme="light"] .user-avatar-small img,
+html[data-theme="light"] .comment-avatar img {
+  filter: none;
+}
+
+/* Imágenes de relatos: muy ligera sepia para coherencia, no demasiado */
+html[data-theme="light"] .social-post-image img,
+html[data-theme="light"] .relato-figure img {
+  filter: sepia(0.12) contrast(1.02);
+}
+
+/* Topbar: gradiente papel */
+html[data-theme="light"] .archive-topbar {
+  background: linear-gradient(180deg, #FBF5E4 0%, #F4ECD8 100%);
+  border-bottom: 1px solid var(--gold-soft);
+  box-shadow: 0 2px 12px rgba(94, 66, 30, 0.12);
+}
+
+/* Bottom nav y subbar */
+html[data-theme="light"] .side-rail {
+  background: rgba(251, 245, 228, 0.96) !important;
+  border-top: 1px solid var(--gold-soft) !important;
+}
+html[data-theme="light"] .mobile-subbar {
+  background: rgba(251, 245, 228, 0.96) !important;
+  border-bottom: 1px solid var(--border-thin);
+}
+
+/* Brand name dorado oscuro legible */
+html[data-theme="light"] .topbar-brand-text .brand-name {
+  color: var(--gold-bright);
+  text-shadow: none;
+}
+
+/* Cards: sombra papel */
+html[data-theme="light"] .social-post,
+html[data-theme="light"] .social-composer,
+html[data-theme="light"] .weekly-highlight,
+html[data-theme="light"] .feed-greeting,
+html[data-theme="light"] .archive-sidebar > * {
+  background: var(--bg-card);
+  border-color: var(--border-thin);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset, 0 4px 14px rgba(94, 66, 30, 0.08);
+}
+
+/* Drawer: papel + bordes */
+html[data-theme="light"] .mobile-drawer {
+  background: linear-gradient(180deg, #FBF5E4 0%, #F4ECD8 100%) !important;
+  border-left: 1px solid var(--gold-soft) !important;
+}
+html[data-theme="light"] .mobile-drawer-backdrop {
+  background: rgba(60, 40, 18, 0.4) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* Botón Publicar dorado: invertir texto a oscuro */
+html[data-theme="light"] .composer-publish-btn {
+  color: #F4ECD8;
+  background: linear-gradient(180deg, var(--gold) 0%, var(--gold-deep) 100%);
+}
+
+/* Inputs: fondo casi blanco-papel */
+html[data-theme="light"] input,
+html[data-theme="light"] textarea,
+html[data-theme="light"] select,
+html[data-theme="light"] .comment-form-input,
+html[data-theme="light"] .composer-input {
+  background: rgba(255, 250, 235, 0.85) !important;
+  color: var(--text-default) !important;
+  border-color: var(--border-thin) !important;
+}
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Search bar pill */
+html[data-theme="light"] .archive-search,
+html[data-theme="light"] .mobile-subbar .archive-search {
+  background: rgba(255, 250, 235, 0.92) !important;
+  border-color: var(--gold-soft) !important;
+}
+
+/* Modales (bottom-sheet) */
+html[data-theme="light"] .modal-content {
+  background: var(--bg-card);
+  color: var(--text-default);
+  border: 1px solid var(--border-thin);
+}
+html[data-theme="light"] .modal-backdrop {
+  background: rgba(60, 40, 18, 0.5);
+}
+
+/* Hashtag pills */
+html[data-theme="light"] .social-post-content .hashtag,
+html[data-theme="light"] .hashtag-pill,
+html[data-theme="light"] .post-hashtag {
+  border-color: var(--gold-soft);
+  color: var(--gold-bright);
+  background: rgba(166, 134, 46, 0.06);
+}
+
+/* Login/registro */
+html[data-theme="light"] .auth-screen { background: var(--bg-deep); }
+html[data-theme="light"] .auth-card {
+  background: var(--bg-card);
+  box-shadow: 0 12px 30px rgba(94, 66, 30, 0.18);
+  border: 1px solid var(--gold-soft);
+}
+
+/* FAB sin perder visibilidad */
+html[data-theme="light"] .floating-create {
+  color: var(--bg-deep);
+  box-shadow:
+    0 0 0 1px var(--gold-soft),
+    0 8px 22px rgba(94, 66, 30, 0.4),
+    0 4px 12px rgba(166, 134, 46, 0.3);
+}
+
+/* Pull-to-refresh indicator papel */
+html[data-theme="light"] .pull-to-refresh-indicator {
+  background: rgba(255, 250, 235, 0.95);
+  border-color: var(--gold-soft);
+  box-shadow: 0 4px 14px rgba(94, 66, 30, 0.22);
+}
+
+/* Scrollbar pergamino */
+html[data-theme="light"] ::-webkit-scrollbar-track { background: var(--bg-deep); }
+html[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: var(--gold-deep);
+  border-radius: 4px;
+}
+
+/* Selection: sepia */
+html[data-theme="light"] ::selection {
+  background: rgba(166, 134, 46, 0.35);
+  color: var(--text-bright);
+}
+
+/* ──────────── Tema claro: WeeklyHighlight ──────────── */
+html[data-theme="light"] .weekly-highlight {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(166, 134, 46, 0.10), transparent 55%),
+    linear-gradient(180deg, #FFF8E8 0%, #F4ECD8 100%) !important;
+  border-color: var(--gold-soft) !important;
+}
+html[data-theme="light"] .weekly-highlight-relato {
+  background: rgba(255, 248, 232, 0.6);
+  border-left: 3px solid var(--gold) !important;
+}
+html[data-theme="light"] .weekly-highlight-relato:hover {
+  background: rgba(255, 248, 232, 0.9);
+}
+html[data-theme="light"] .relato-join-cta {
+  background: rgba(255, 248, 232, 0.8) !important;
+}
+
+
+
+/* Avatares: en tema claro, fondo dorado-papel para iniciales */
+html[data-theme="light"] .user-avatar-small,
+html[data-theme="light"] .rail-user,
+html[data-theme="light"] .composer-avatar,
+html[data-theme="light"] .social-post-avatar,
+html[data-theme="light"] .mobile-drawer-avatar,
+html[data-theme="light"] .comment-avatar {
+  background: var(--gold-ghost) !important;
+}
+
+/* Drawer search en tema claro: papel */
+html[data-theme="light"] .mobile-drawer-search {
+  background: rgba(255, 250, 235, 0.92) !important;
+  border-color: var(--gold-soft) !important;
+}
+html[data-theme="light"] .mobile-drawer-search input {
+  color: var(--text-default) !important;
+}
+html[data-theme="light"] .mobile-drawer-search input::placeholder {
+  color: var(--text-muted);
+}
+html[data-theme="light"] .mobile-drawer-result-row:active {
+  background: rgba(166, 134, 46, 0.10);
+}
+html[data-theme="light"] .mobile-drawer-item:active {
+  background: rgba(166, 134, 46, 0.08);
+}
+html[data-theme="light"] .mobile-drawer-theme-toggle:active,
+html[data-theme="light"] .mobile-drawer-logout:active {
+  background: rgba(166, 134, 46, 0.08);
+}
+
+/* PWA standalone status bar respeta el papel */
+@media (display-mode: standalone) {
+  html[data-theme="light"] body { background: var(--bg-deep); }
+}
+
+/* Modo lectura overrides ya cubiertos por --bg-deep / --text-default */

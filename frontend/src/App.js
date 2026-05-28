@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Feed from './pages/Feed';
@@ -31,6 +32,7 @@ import './styles/misivas.css';
 import './styles/public.css';
 import './styles/pwa.css';
 import './styles/mobile-app.css';
+import './styles/theme-light.css';
 
 const LoadingScreen = () => (
   <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg-deep)' }}>
@@ -65,7 +67,8 @@ const PublicRoute = ({ children }) => {
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
         <Routes>
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/registro" element={<PublicRoute><Register /></PublicRoute>} />
@@ -88,6 +91,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

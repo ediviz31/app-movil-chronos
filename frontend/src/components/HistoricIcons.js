@@ -587,3 +587,47 @@ export const TabletDaggerIcon = ({ size = 22, ...props }) => (
     <circle cx="25" cy="27" r="0.3" fill="currentColor" stroke="none" opacity="0.5"/>
   </svg>
 );
+
+/* ─── Sol y Luna para toggle de tema ─── */
+export const SunIcon = ({ size = 20, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none"
+       stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    {/* Centro radiante */}
+    <circle cx="16" cy="16" r="5" />
+    <circle cx="16" cy="16" r="2.5" fill="currentColor" stroke="none" opacity="0.4" />
+    {/* 8 rayos: 4 cortos diagonales + 4 largos cardinales */}
+    <line x1="16" y1="3" x2="16" y2="7" />
+    <line x1="16" y1="25" x2="16" y2="29" />
+    <line x1="3" y1="16" x2="7" y2="16" />
+    <line x1="25" y1="16" x2="29" y2="16" />
+    <line x1="6.5" y1="6.5" x2="9.5" y2="9.5" />
+    <line x1="22.5" y1="22.5" x2="25.5" y2="25.5" />
+    <line x1="25.5" y1="6.5" x2="22.5" y2="9.5" />
+    <line x1="9.5" y1="22.5" x2="6.5" y2="25.5" />
+  </svg>
+);
+
+export const MoonIcon = ({ size = 20, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none"
+       stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    {/* Luna creciente con estrella ornamental */}
+    <path d="M22 21 a10 10 0 1 1 -7-17 a8 8 0 0 0 7 17 Z" />
+    {/* Estrella pequeña al lado */}
+    <path d="M24 9 L25 11 L27 11.5 L25 12 L24 14 L23 12 L21 11.5 L23 11 Z"
+          fill="currentColor" stroke="none" opacity="0.6" />
+  </svg>
+);
+
+/* Auto: pequeño sol+luna combinados */
+export const AutoThemeIcon = ({ size = 20, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none"
+       stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="16" cy="16" r="8" />
+    <path d="M16 8 A8 8 0 0 1 16 24 Z" fill="currentColor" stroke="none" opacity="0.55" />
+    <line x1="16" y1="2" x2="16" y2="5" />
+    <line x1="16" y1="27" x2="16" y2="30" />
+    <line x1="2" y1="16" x2="5" y2="16" />
+    <line x1="27" y1="16" x2="30" y2="16" />
+  </svg>
+);
+

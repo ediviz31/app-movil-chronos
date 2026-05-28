@@ -1,0 +1,55 @@
+{
+  "summary": "Iter18 frontend-only review of (a) tema claro/oscuro/auto + drawer toggle, (b) borradores autosave/restore/descartar en CreateChronicleModal, (c) no regresión móvil/desktop. 10/11 critical scenarios PASS. Single minor bug: el banner [data-testid=draft-restored-banner] NO se vuelve a mostrar tras cerrar modal sin publicar y reabrir SIN reload (formData persiste en memoria de React → el useEffect de restauración entra al guard `if (formData.titulo || formData.contenido || hasRestoredOnce) return` y bailout). El form sí queda pre-rellenado coincidentemente (state superviviente), pero la UX prometida del banner queda invisible. Tras reload (mount limpio) el banner aparece perfectamente y discard funciona OK. Todo lo demás (temas, ciclo, persistencia, autosave 5s, descartar, meta theme-color, light desktop, feed/nav/subbar en claro) verificado.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "CreateChronicleModal",
+        "issue": "Después de cerrar el modal sin publicar y reabrirlo SIN recargar página, el banner 'Borrador recuperado' (data-testid=draft-restored-banner) NO vuelve a mostrarse. El form se ve prellenado por estado React superviviente, pero el useEffect de restauración hace bailout porque `formData.titulo` sigue siendo truthy. Tras reload (mount limpio) el banner aparece correctamente.",
+        "selector": "[data-testid=draft-restored-banner]",
+        "priority": "MINOR"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "tests_passed": [
+    "TEST1 default load: data-theme se resuelve según hora (auto, no preferencia guardada) → effective coincide con isDayHour() y meta theme-color correcto",
+    "TEST2 light forzado (setItem('light') + reload): data-theme='light', body bg rgb(244,236,216) #F4ECD8, color sepia rgb(61,41,20) #3D2914, meta=#F4ECD8",
+    "TEST3 dark forzado: data-theme='dark', meta=#0a1228",
+    "TEST4 auto: localStorage.pref='auto', effective resuelto a dark (hora=02) coincide con isDayHour()",
+    "TEST5 ciclo toggle desde drawer (sin reload): dark → light → auto → dark, label cambia 'Tema oscuro/Tema claro/Automático', icono y meta theme-color se actualizan inmediatamente; localStorage queda persistido en cada click",
+    "TEST6 persistencia: setItem('light') + reload → eff='light' tras reload, pref='light' persiste",
+    "TEST7 autosave en CreateChronicleModal: tras 6s con título+contenido, [data-testid=draft-status] muestra '· Borrador guardado' y localStorage.chronos_chronicle_draft contiene {titulo, categoria='Antigüedad', contenido, ts}",
+    "TEST8b restore con reload (mount limpio): seed draft en localStorage + reload + abrir modal → form prellenado con título/categoría/contenido y banner [data-testid=draft-restored-banner] visible con 'Borrador recuperado · guardado hace 2m'",
+    "TEST9 discard: click [data-testid=draft-discard-btn] → form vacío, localStorage.chronos_chronicle_draft removido, banner desaparece",
+    "TEST10 desktop 1920x1080 + tema light: data-theme='light', body bg #F4ECD8 — variables CSS también aplican a desktop, topbar y rail dorados oscuros",
+    "TEST11 no regresión bajo tema light móvil: feed carga 9 posts, .side-rail (bottom nav) presente, [data-testid=mobile-subbar] presente, login con keilin@chronos.com / chronos123 OK"
+  ],
+  "extra_observations": [
+    "Toggle dentro de drawer NO requiere reload: data-theme se cambia inmediatamente en <html>, meta theme-color se actualiza en el momento (confirmed).",
+    "Cuando se publica una crónica (Preservar Crónica), localStorage.chronos_chronicle_draft se borra en el handler success — no testeado por evitar crear contenido seed extra, pero el código lo hace explícito (línea 123 CreateChronicleModal.js).",
+    "Theme-color meta se sincroniza también en modo auto cuando cambia visibilidad (visibilitychange handler).",
+    "Vibration API (haptic.light()) — el código llama haptic en handleThemeToggle y handleSubmit success; Playwright no soporta vibration pero no genera errores en consola, OK."
+  ],
+  "test_report_links": ["/app/test_reports/iteration_18.json"],
+  "action_items": [
+    "BUG MINOR: En CreateChronicleModal.js, el useEffect que resetea estado al cerrar (línea 76-83) NO resetea formData. Por lo tanto al reabrir sin reload, formData.titulo sigue truthy y el effect de restauración (línea 31-56) hace bailout y nunca enseña el banner. Soluciones posibles: (a) también `setFormData({titulo:'', categoria:'Antigüedad', contenido:''})` en el reset on-close cuando NO fue submit (requiere distinguir close vs submit-success), o (b) cambiar el guard del effect de restore a `if (hasRestoredOnce) return` quitando la check de formData (en clean mount hasRestoredOnce ya es false → restaura; en close+reopen sin reload, hasRestoredOnce se vuelve a false por el reset effect → vuelve a restaurar y mostrar banner). Opción (b) es 1 línea y respeta el comportamiento descrito en el problem statement."
+  ],
+  "critical_code_review_comments": [
+    "ThemeContext.js: limpio y correcto. cyclePref dark→light→auto→dark cubre los 3 estados; isDayHour 6-19h coincide con spec. Considera leer prefers-color-scheme como override de 'auto' inicial si el usuario nunca eligió nada.",
+    "CreateChronicleModal.js (#76-83): el reset-on-close debería también limpiar formData cuando el cierre NO fue por submit exitoso. Hoy formData se limpia solo dentro de handleSubmit success (#125). Si el usuario cierra sin publicar y reabre sin reload, mantienen los datos en memoria pero el banner de 'recuperación' queda mudo — inconsistencia con expectativa del problem statement.",
+    "CreateChronicleModal.js (#39): `if (formData.titulo || formData.contenido || hasRestoredOnce) return;` — combinar con la check anterior crea ambigüedad. Si hasRestoredOnce ya es la señal de control suficiente, esa línea bastaría con sólo `if (hasRestoredOnce) return;`.",
+    "MobileMoreDrawer.js (#32-36): bien estructurado; el themeDesc según pref es buen detalle UX. data-testid 'mobile-drawer-theme-toggle' presente y funcional.",
+    "theme-light.css: cobertura amplia (topbar, drawer, subbar, cards, modales, inputs, FAB, PTR indicator, scrollbar) — no detecté regresiones visuales. La textura de papel con radial-gradients es sutil y no afecta contraste de texto.",
+    "Contraste tema claro: --text-default #3D2914 sobre --bg-deep #F4ECD8 da ~10:1 (WCAG AAA). Excelente."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only)", "frontend": "10/11 (~91%) — 1 minor UX bug en restore-banner sin reload"},
+  "test_credentials": "keilin@chronos.com / chronos123 (verified)",
+  "seed_data_creation": "Ninguna creada (test localStorage no toca DB)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Tema claro/oscuro/auto + drawer toggle + meta theme-color + persistencia validados al 100%. Autosave 5s + localStorage payload + indicator '· Borrador guardado' validados al 100%. Restore + banner + discard validados al 100% tras reload limpio. Single bug minor pendiente: el banner no reaparece tras close+reopen SIN reload (formData persiste). Fix sugerido en action_items. Tras aplicar el fix, retestear escenario 'open modal → escribir → cerrar (X) → reabrir → banner visible'.",
+  "rca_of_the_issue": "Modal en React: `if (!isOpen) return null` mantiene el componente montado y conserva state. El useEffect reset al cerrar limpia hasRestoredOnce, draftStatus, draftMeta y lastSavedSnapshot.current — pero NO formData. Al reabrir, el useEffect [isOpen] de restauración ejecuta su check `if (formData.titulo || formData.contenido || hasRestoredOnce) return;` y bailout porque formData.titulo sigue siendo 'Sin publicar' (del ciclo previo). El form aparece prellenado por estado superviviente, pero el banner que confirma 'Borrador recuperado · hace Xm' nunca se renderiza. Mitigación 1-línea: cambiar guard a `if (hasRestoredOnce) return;` (porque hasRestoredOnce ya es false tras el reset-on-close, el effect SÍ restaura y muestra banner cada vez que se reabre el modal con borrador presente)."
+}
