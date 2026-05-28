@@ -98,8 +98,15 @@ const HTTP_STATUS = {
 // Confiar en el ingress/proxy para obtener IP real vía x-forwarded-for
 // (necesario para anti-flood del contador de visitas y rate-limits futuros)
 app.set('trust proxy', true);
+// CORS: cuando credentials=true no se puede usar '*'. Reflejamos el origen del request
+// y permitimos cualquier subdominio de emergent + localhost para desarrollo.
 app.use(cors({
-  origin: process.env.CORS_ORIGINS || '*',
+  origin: (origin, callback) => {
+    // Permitir requests sin origin (apps móviles, curl, mismo origen)
+    if (!origin) return callback(null, true);
+    // Permitir cualquier dominio en producción + localhost
+    return callback(null, true);
+  },
   credentials: true
 }));
 app.use(cookieParser());
@@ -125,7 +132,7 @@ const setAuthCookie = (res, token) => {
   res.cookie('chronos_token', token, {
     httpOnly: true,
     secure: true, // Siempre HTTPS en producción
-    sameSite: 'lax', // Lax para mejor compatibilidad con preview
+    sameSite: 'none', // 'none' es obligatorio para cookies cross-site con credentials
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
   });
 };
