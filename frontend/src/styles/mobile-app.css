@@ -473,27 +473,60 @@
 /* ---- Topbar y SubBar mobile (logo centrado + search pill + tabs) ---- */
 @media (max-width: 900px) {
   .topbar-inner {
-    padding: 0 14px 0 12px !important;
+    padding: 0 16px !important;
     gap: 0 !important;
     display: flex !important;
     align-items: center;
     justify-content: space-between;
     max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
   }
   .topbar-section-left {
     justify-content: flex-start !important;
-    flex: 0 0 auto !important;
+    flex: 0 1 auto !important;
     gap: 0 !important;
+    min-width: 0;
   }
   .topbar-section-center { display: none !important; }
   .topbar-section-right {
     justify-content: flex-end !important;
     flex: 0 0 auto !important;
+    padding-right: 0;
   }
   /* Espaciado generoso entre los iconos */
   .archive-topbar-actions {
-    gap: 10px !important;
+    gap: 14px !important;
     align-items: center;
+    padding-right: 4px;
+  }
+  /* Avisos y Misivas badges: compactos */
+  .archive-topbar-actions [data-testid="topbar-notif-btn"],
+  .archive-topbar-actions [data-testid="topbar-misivas-btn"] {
+    display: inline-flex !important;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .archive-topbar-actions [data-testid="topbar-notif-btn"] svg,
+  .archive-topbar-actions [data-testid="topbar-misivas-btn"] svg {
+    color: var(--gold);
+    width: 20px;
+    height: 20px;
+  }
+  /* Avatar redondo a la derecha */
+  .archive-topbar-actions .user-avatar-small {
+    display: inline-flex !important;
+    width: 30px !important;
+    height: 30px !important;
+    border: 1.5px solid var(--gold) !important;
+    margin-left: 2px;
+    box-shadow: 0 0 0 1px rgba(212, 184, 120, 0.18);
+    flex-shrink: 0;
   }
   /* Branding más compacto */
   .topbar-brand {
@@ -525,21 +558,6 @@
   .topbar-search-mobile-btn { display: none !important; }
   .archive-topbar-actions [data-testid="topbar-create-btn"] { display: none; }
   .archive-topbar-actions [data-testid="topbar-more-btn"] { display: none !important; }
-  /* Avisos y Misivas badges: VISIBLES en mobile topbar (icon compacto) */
-  .archive-topbar-actions [data-testid="topbar-notif-btn"],
-  .archive-topbar-actions [data-testid="topbar-misivas-btn"] {
-    display: inline-flex !important;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-  }
-  .archive-topbar-actions [data-testid="topbar-notif-btn"] svg,
-  .archive-topbar-actions [data-testid="topbar-misivas-btn"] svg {
-    color: var(--gold);
-  }
   /* Badge contador dorado pulsante */
   .archive-topbar-actions .avisos-badge {
     position: absolute;
@@ -563,15 +581,6 @@
   @keyframes badgePulse {
     0%, 100% { box-shadow: 0 0 0 1.5px var(--bg-deep), 0 0 6px rgba(212, 184, 120, 0.4); }
     50%      { box-shadow: 0 0 0 1.5px var(--bg-deep), 0 0 14px rgba(212, 184, 120, 0.85); }
-  }
-  /* Avatar grande y prominente con separación clara de los badges */
-  .archive-topbar-actions .user-avatar-small {
-    display: inline-flex !important;
-    width: 34px !important;
-    height: 34px !important;
-    border: 1.5px solid var(--gold) !important;
-    margin-left: 6px;
-    box-shadow: 0 0 0 2px rgba(212, 184, 120, 0.18);
   }
 }
 

@@ -1,0 +1,278 @@
+/* =====================================================
+   CHRONOS — MODO LECTURA SIN DISTRACCIONES
+   Pergamino claro permanente, tipografía amplia,
+   oculta navegación, sidebars, bottoms nav, CTAs, etc.
+   ===================================================== */
+
+/* Botón toggle visible siempre cerca del top del relato */
+.reading-mode-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--gold-soft);
+  background: rgba(6, 13, 30, 0.45);
+  color: var(--gold);
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.reading-mode-toggle:hover,
+.reading-mode-toggle:active {
+  border-color: var(--gold);
+  background: var(--gold-ghost);
+  color: var(--gold-bright);
+}
+
+/* Posición relativa para que el toggle se acomode bien dentro de la página */
+.relato-detail-page { position: relative; }
+
+/* ===== MODO LECTURA ACTIVADO ===== */
+
+/* Cuando body tiene la clase, ocultamos lo que distrae */
+body.chronos-reading-active .archive-topbar,
+body.chronos-reading-active .mobile-subbar,
+body.chronos-reading-active .side-rail,
+body.chronos-reading-active .floating-create,
+body.chronos-reading-active .archive-sidebar,
+body.chronos-reading-active .rightbar,
+body.chronos-reading-active .archive-feed > .archive-tabs,
+body.chronos-reading-active #emergent-badge {
+  display: none !important;
+}
+
+/* El área principal sin sidebars: una sola columna */
+body.chronos-reading-active .archive-layout {
+  grid-template-columns: 1fr !important;
+  grid-template-rows: 1fr !important;
+  grid-template-areas: "main" !important;
+}
+body.chronos-reading-active .main-area {
+  grid-template-columns: 1fr !important;
+  padding: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Pergamino fijo en modo lectura */
+body.chronos-reading-active {
+  background: #F4ECD8 !important;
+  color: #3D2914 !important;
+}
+body.chronos-reading-active::before {
+  /* Textura papel envejecido */
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(166, 134, 46, 0.10) 0%, transparent 22%),
+    radial-gradient(circle at 78% 70%, rgba(166, 134, 46, 0.08) 0%, transparent 28%),
+    radial-gradient(circle at 50% 92%, rgba(125, 92, 40, 0.06) 0%, transparent 30%);
+}
+
+/* El artículo es el único contenido visible */
+.relato-detail-page.reading-mode-on {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 28px 80px;
+  background: transparent;
+  position: relative;
+  z-index: 1;
+}
+
+/* Ocultar elementos no esenciales dentro del relato */
+.relato-detail-page.reading-mode-on .relato-back-link,
+.relato-detail-page.reading-mode-on .relato-actions,
+.relato-detail-page.reading-mode-on .relato-join-cta,
+.relato-detail-page.reading-mode-on .relato-comments-section,
+.relato-detail-page.reading-mode-on .relato-delete-btn {
+  display: none !important;
+}
+
+/* Artículo: tipografía amplia y serif */
+.relato-detail-page.reading-mode-on .relato-article {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.relato-detail-page.reading-mode-on .relato-kicker,
+.relato-detail-page.reading-mode-on .relato-kicker .relato-kicker-cat {
+  color: #8B6E1F !important;
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+}
+.relato-detail-page.reading-mode-on .relato-kicker-dot { color: #A88B6A !important; }
+
+.relato-detail-page.reading-mode-on .relato-title {
+  color: #1F1408 !important;
+  font-family: var(--font-display) !important;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 38px !important;
+  line-height: 1.18 !important;
+  margin: 18px 0 24px !important;
+  letter-spacing: -0.01em;
+}
+
+.relato-detail-page.reading-mode-on .relato-author-row {
+  border-top: 1px solid rgba(94, 66, 30, 0.2) !important;
+  border-bottom: 1px solid rgba(94, 66, 30, 0.2) !important;
+  padding: 16px 0 !important;
+  margin-bottom: 28px !important;
+  color: #3D2914 !important;
+}
+.relato-detail-page.reading-mode-on .relato-author-avatar img {
+  filter: none !important;
+  border: 1.5px solid rgba(166, 134, 46, 0.4);
+}
+.relato-detail-page.reading-mode-on .relato-author-name { color: #1F1408 !important; }
+.relato-detail-page.reading-mode-on .relato-author-handle { color: #7B5A38 !important; }
+
+.relato-detail-page.reading-mode-on .relato-figure {
+  margin: 32px -28px !important;
+  border-radius: 0 !important;
+}
+.relato-detail-page.reading-mode-on .relato-figure img {
+  border: none !important;
+  border-radius: 0 !important;
+  filter: sepia(0.18) contrast(1.02) !important;
+}
+.relato-detail-page.reading-mode-on .relato-figcaption {
+  color: #7B5A38 !important;
+  font-style: italic;
+  text-align: center;
+  padding: 12px 28px;
+  font-size: 13px;
+}
+
+/* CUERPO DEL RELATO — la estrella del modo lectura */
+.relato-detail-page.reading-mode-on .relato-content {
+  color: #2D1F0E !important;
+  font-family: var(--font-display) !important;
+  font-size: var(--reading-font-size, 18px) !important;
+  line-height: 1.72 !important;
+  letter-spacing: 0.005em;
+}
+.relato-detail-page.reading-mode-on .relato-content p {
+  margin-bottom: 1.4em !important;
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+/* Primera letra capital ornamental */
+.relato-detail-page.reading-mode-on .relato-content p:first-of-type::first-letter {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 3.2em;
+  font-weight: 500;
+  float: left;
+  line-height: 0.95;
+  margin: 4px 8px 0 0;
+  color: #8B6E1F;
+}
+
+/* Hashtags en modo lectura: sepia con borde */
+.relato-detail-page.reading-mode-on .relato-content .hashtag {
+  color: #8B6E1F !important;
+  background: rgba(166, 134, 46, 0.06);
+  border-color: rgba(166, 134, 46, 0.4) !important;
+  font-family: var(--font-body);
+  font-style: normal;
+  font-size: 0.7em;
+  font-weight: 500;
+}
+
+/* Toggle de salir queda dorado claro sobre pergamino */
+.relato-detail-page.reading-mode-on .reading-mode-toggle {
+  background: rgba(255, 250, 235, 0.85);
+  color: #8B6E1F;
+  border-color: rgba(166, 134, 46, 0.5);
+  position: fixed;
+  top: 18px;
+  right: 18px;
+}
+.relato-detail-page.reading-mode-on .reading-mode-toggle:active {
+  background: rgba(166, 134, 46, 0.15);
+}
+
+/* HUD de tamaño de letra: fijo abajo-centro */
+.reading-hud {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  background: rgba(255, 250, 235, 0.95);
+  border: 1px solid rgba(166, 134, 46, 0.45);
+  border-radius: 999px;
+  box-shadow: 0 8px 22px rgba(94, 66, 30, 0.22);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.reading-hud-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #8B6E1F;
+  font-family: var(--font-elegant);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.reading-hud-btn:hover,
+.reading-hud-btn:active { background: rgba(166, 134, 46, 0.12); }
+.reading-hud-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.reading-hud-size {
+  min-width: 38px;
+  text-align: center;
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: #8B6E1F;
+}
+
+/* Mobile: padding reducido + título más compacto */
+@media (max-width: 900px) {
+  .relato-detail-page.reading-mode-on {
+    padding: 48px 18px 100px;
+  }
+  .relato-detail-page.reading-mode-on .relato-title {
+    font-size: 28px !important;
+  }
+  .relato-detail-page.reading-mode-on .relato-figure {
+    margin: 24px -18px !important;
+  }
+  .relato-detail-page.reading-mode-on .relato-content p:first-of-type::first-letter {
+    font-size: 2.6em;
+  }
+  .reading-mode-toggle {
+    top: 12px;
+    right: 12px;
+    padding: 6px 10px;
+    font-size: 9px;
+  }
+}

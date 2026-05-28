@@ -33,6 +33,7 @@ import './styles/public.css';
 import './styles/pwa.css';
 import './styles/mobile-app.css';
 import './styles/comments-sheet.css';
+import './styles/reading-mode.css';
 import './styles/theme-light.css';
 
 const LoadingScreen = () => (

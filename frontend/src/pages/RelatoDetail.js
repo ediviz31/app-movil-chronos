@@ -9,7 +9,7 @@ import HashtagText from '../components/HashtagText';
 import {
   HourglassIcon, ArrowRightIcon, OrnateStarIcon,
   CoinLaurelIcon, ParchmentIcon, DoveScrollIcon, ChestIcon, TabletDaggerIcon,
-  FeatherIcon, EyeScrollIcon
+  FeatherIcon, EyeScrollIcon, CloseIcon
 } from '../components/HistoricIcons';
 
 const formatFechaCompleta = (fecha) => {
@@ -39,6 +39,35 @@ const RelatoDetail = () => {
   const [posting, setPosting] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const [replyText, setReplyText] = useState('');
+
+  // Modo lectura sin distracciones
+  const [readingMode, setReadingMode] = useState(false);
+  const [fontSize, setFontSize] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chronos_reading_fontsize');
+      return saved ? parseInt(saved, 10) : 18;
+    } catch (_) { return 18; }
+  });
+
+  const toggleReadingMode = () => {
+    setReadingMode(prev => {
+      const next = !prev;
+      if (next) document.body.classList.add('chronos-reading-active');
+      else document.body.classList.remove('chronos-reading-active');
+      return next;
+    });
+  };
+  const changeFontSize = (delta) => {
+    setFontSize(prev => {
+      const next = Math.max(14, Math.min(28, prev + delta));
+      try { localStorage.setItem('chronos_reading_fontsize', String(next)); } catch (_) {}
+      return next;
+    });
+  };
+  useEffect(() => {
+    // Cleanup body class on unmount
+    return () => { document.body.classList.remove('chronos-reading-active'); };
+  }, []);
 
   const currentUserId = user?._id || user?.id;
   // Helper para gating: si no está autenticado, redirige a registro
@@ -177,13 +206,56 @@ const RelatoDetail = () => {
 
   return (
     <Shell activeRail="">
-      <main className="relato-detail-page" data-testid="relato-detail-page">
+      <main
+        className={`relato-detail-page ${readingMode ? 'reading-mode-on' : ''}`}
+        data-testid="relato-detail-page"
+        style={readingMode ? { '--reading-font-size': `${fontSize}px` } : undefined}
+      >
         {/* Volver — solo si está autenticado */}
         {isAuthenticated && (
           <button className="relato-back-link" onClick={() => navigate(-1)} data-testid="relato-back">
             <ArrowRightIcon size={14} style={{ transform: 'rotate(180deg)' }} />
             Volver al archivo
           </button>
+        )}
+
+        {/* Botón "Modo lectura" — siempre visible */}
+        <button
+          className="reading-mode-toggle"
+          onClick={toggleReadingMode}
+          data-testid="reading-mode-toggle"
+          aria-label={readingMode ? 'Salir del modo lectura' : 'Modo lectura sin distracciones'}
+        >
+          {readingMode ? (
+            <>
+              <CloseIcon size={14} /> Salir de lectura
+            </>
+          ) : (
+            <>
+              <EyeScrollIcon size={14} /> Modo lectura
+            </>
+          )}
+        </button>
+
+        {/* HUD flotante: tamaño de letra (sólo en modo lectura) */}
+        {readingMode && (
+          <div className="reading-hud" data-testid="reading-hud">
+            <button
+              className="reading-hud-btn"
+              onClick={() => changeFontSize(-1)}
+              disabled={fontSize <= 14}
+              data-testid="reading-decrease"
+              aria-label="Reducir letra"
+            >A−</button>
+            <span className="reading-hud-size">{fontSize}px</span>
+            <button
+              className="reading-hud-btn"
+              onClick={() => changeFontSize(1)}
+              disabled={fontSize >= 28}
+              data-testid="reading-increase"
+              aria-label="Aumentar letra"
+            >A+</button>
+          </div>
         )}
 
         <article className="relato-article">

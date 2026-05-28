@@ -346,6 +346,25 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - `/app/frontend/src/pages/Feed.js` — saludos plurales correctos
 - `/app/frontend/src/styles/mobile-app.css` — eco burst keyframes, badges pulsantes, layout flex
 
+### Fase 17 — Modo Lectura sin distracciones 📖 (Feb 28, 2026)
+
+**Estilo Medium/Pocket pero con identidad Chronos:**
+- Botón "Modo lectura" arriba derecha del relato (dorado pill)
+- Al activarlo, `body.chronos-reading-active` clase global oculta: topbar, subbar, side rail, FAB, sidebars, comentarios, CTAs
+- Fondo permanente: pergamino `#F4ECD8` con textura sutil de papel envejecido (independiente del tema seleccionado)
+- Tipografía amplia: título italic 38px (28px mobile), cuerpo serif 18px con `line-height: 1.72` y justificación
+- **Capital ornamental** en el primer párrafo: primera letra `font-size: 3.2em` italic dorada, float left tipo libro antiguo
+- Imagen edge-to-edge con sepia 0.18 + caption italic
+- Hashtags como pills sepia integrados al texto
+- HUD flotante fijo abajo-centro: botones `A−` `A+` con tamaño actual (14-28px), pill blanca papel
+- Tamaño persistido en `localStorage` (`chronos_reading_fontsize`)
+- Cleanup automático: si el usuario sale de la página, se quita la clase del body
+- Funciona para usuarios autenticados Y visitantes públicos (`/relato/:id` sin login)
+
+**Archivos clave:**
+- `/app/frontend/src/styles/reading-mode.css` (nuevo, ~250 líneas)
+- `/app/frontend/src/pages/RelatoDetail.js` — toggle, HUD, state, persistencia
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
 - `/explorar` ← Fase 5
