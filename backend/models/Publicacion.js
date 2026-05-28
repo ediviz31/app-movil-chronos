@@ -48,6 +48,18 @@ const publicacionSchema = new mongoose.Schema({
   video_path: {
     type: String,
     default: null
+  },
+  // ─── Indicador de tiempo histórico (opcional, refuerza identidad temporal) ───
+  // Año del evento histórico narrado (ej. 1453). Acepta negativos para a.C.
+  historia_anio: {
+    type: Number,
+    default: null
+  },
+  // Lugar histórico narrado (ej. "Constantinopla", "Tenochtitlán")
+  historia_lugar: {
+    type: String,
+    default: null,
+    trim: true
   }
 }, {
   timestamps: { createdAt: 'creado_en', updatedAt: 'actualizado_en' }

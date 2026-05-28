@@ -1,0 +1,34 @@
+{
+  "summary": "End-to-end testing of Cápsulas del Tiempo (stories históricas) + indicador de tiempo histórico (siglo · lugar) en relatos. Backend: 13/13 pytest tests passing. Frontend: Playwright validated rail, viewer (efeméride+cita), CreateCapsulaModal, CreateChronicleModal (nuevos campos), historic tag en SocialPost, helper yearToCentury, y regresión de margenes mobile.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_capsulas_y_relatos.py",
+    "/app/test_reports/pytest/iter19_capsulas.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.js (~2429 líneas) supera el límite de 700 líneas — recomendable seguir migrando endpoints a routers modulares como ya se hizo con /api/capsulas.",
+    "POST /api/relatos devuelve {mensaje, relato} mientras GET /api/relatos/:id parece devolver el documento plano (a verificar); inconsistencia menor de envoltura — considerar uniformizar.",
+    "CapsulaViewer: el polling de progreso usa setInterval de 50ms; en sesiones largas o múltiples cápsulas considerar requestAnimationFrame para mejor batería en móvil.",
+    "Cleanup en frontend: el handleCreated de CapsulasRail mete la nueva al final del bloque sistema (ok); validar que cuando se borra/expira una cápsula auto-generada, el siguiente GET regenera de nuevo (verificado backend, ok)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_capsulas_y_relatos.py (nuevo)",
+    "/app/test_reports/pytest/iter19_capsulas.xml (nuevo)"
+  ],
+  "success_rate": {"backend": "100% (13/13)", "frontend": "100% (rail, viewer efemeride, viewer cita, create modal, historic tag, chronicle modal new fields, mobile regression)"},
+  "test_credentials": "vizcarrapulidoeddy@gmail.com / chronos2026 (login body usa 'correo'+'password', cookie chronos_token httpOnly)",
+  "seed_data_creation": "Se creó relato 'TEST_iter19 historia tags' (historia_anio=1453, historia_lugar=Constantinopla) y cápsula cronista 'TEST_capsula desde Playwright iter19' (anio=1789, lugar=París). El primero quedó (no se borró desde UI), el segundo se mantuvo desde Playwright. Otro relato y cápsula del test pytest se limpiaron automáticamente.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Auth del backend: NO devuelve token en JSON; usa cookie httpOnly 'chronos_token'. Para tests pytest usar requests.Session() (no Bearer). Endpoints clave verificados en esta iteración:\n - GET /api/capsulas (auto-gen efemeride+cita, idempotente, TTL futuro, marker [efemeride-YYYY-MM-DD] limpiado)\n - POST /api/capsulas (multipart, valida texto 1-320)\n - POST /api/capsulas/:id/visto (auth)\n - DELETE /api/capsulas/:id (solo dueño cronista; 403 al borrar sistema)\n - POST /api/relatos guarda historia_anio (number) + historia_lugar (string)\n - GET /api/relatos/:id y GET /api/relatos retornan historia_anio + historia_lugar\nFrontend testids útiles: capsules-rail, capsule-create-btn, capsule-efemeride-<id>, capsule-cita-<id>, capsule-cronista-<id>, capsule-viewer, capsule-viewer-close, capsule-action-mapa, capsule-input-texto, capsule-input-anio, capsule-input-lugar, capsule-input-epoca, capsule-input-imagen, input-historia-anio, input-historia-lugar, historic-tag-<relatoId>, composer-input-btn.\nMobile metrics OK: .social-post/.feed-greeting/.social-composer/.capsules-rail tienen left=12px y border-radius=14px en viewport 390px (no pegados al borde).\nyearToCentury verificado en runtime: 1453 → 'siglo XV' (visible en historic-tag y viewer cita Shakespeare → 'siglo XVII').",
+  "rca of the issue": "N/A — no se encontraron defectos en esta iteración."
+}

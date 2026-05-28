@@ -15,7 +15,8 @@ const AUTOSAVE_MS = 5000;
 
 const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
-    titulo: '', categoria: 'Antigüedad', contenido: ''
+    titulo: '', categoria: 'Antigüedad', contenido: '',
+    historia_anio: '', historia_lugar: ''
   });
   const [imagen, setImagen] = useState(null);
   const [imagenPreview, setImagenPreview] = useState(null);
@@ -48,7 +49,9 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
       setFormData({
         titulo: draft.titulo || '',
         categoria: draft.categoria || 'Antigüedad',
-        contenido: draft.contenido || ''
+        contenido: draft.contenido || '',
+        historia_anio: draft.historia_anio || '',
+        historia_lugar: draft.historia_lugar || ''
       });
       setDraftStatus('restored');
       setHasRestoredOnce(true);
@@ -79,7 +82,7 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
       setDraftStatus('idle');
       setDraftMeta(null);
       lastSavedSnapshot.current = '';
-      setFormData({ titulo: '', categoria: 'Antigüedad', contenido: '' });
+      setFormData({ titulo: '', categoria: 'Antigüedad', contenido: '', historia_anio: '', historia_lugar: '' });
     }
   }, [isOpen]);
 
@@ -92,7 +95,7 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleDiscardDraft = () => {
     try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
-    setFormData({ titulo: '', categoria: 'Antigüedad', contenido: '' });
+    setFormData({ titulo: '', categoria: 'Antigüedad', contenido: '', historia_anio: '', historia_lugar: '' });
     setDraftStatus('idle');
     setDraftMeta(null);
     lastSavedSnapshot.current = '';
@@ -186,6 +189,34 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
             >
               {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
+          </div>
+
+          {/* Indicador histórico — opcional: año + lugar narrados */}
+          <div className="form-group" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12 }}>
+            <div>
+              <label className="form-label">
+                Año histórico <span style={{ opacity: 0.6, fontWeight: 400 }}>(opcional)</span>
+              </label>
+              <input
+                type="number" name="historia_anio"
+                value={formData.historia_anio} onChange={handleChange}
+                className="form-input"
+                placeholder="Ej. 1453 · -44 a.C."
+                data-testid="input-historia-anio"
+              />
+            </div>
+            <div>
+              <label className="form-label">
+                Lugar histórico <span style={{ opacity: 0.6, fontWeight: 400 }}>(opcional)</span>
+              </label>
+              <input
+                type="text" name="historia_lugar" maxLength={80}
+                value={formData.historia_lugar} onChange={handleChange}
+                className="form-input"
+                placeholder="Ej. Constantinopla, Tenochtitlán..."
+                data-testid="input-historia-lugar"
+              />
+            </div>
           </div>
 
           <div className="form-group">

@@ -39,6 +39,7 @@ import './styles/comments-sheet.css';
 import './styles/reading-mode.css';
 import './styles/presence.css';
 import './styles/mapa.css';
+import './styles/capsulas.css';
 import './styles/theme-light.css';
 
 const LoadingScreen = () => (

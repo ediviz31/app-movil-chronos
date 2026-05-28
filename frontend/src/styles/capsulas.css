@@ -1,0 +1,369 @@
+/* =====================================================
+   CHRONOS — Cápsulas del Tiempo (stories históricas)
+   ===================================================== */
+
+/* ============ RAIL HORIZONTAL ============ */
+.capsules-rail {
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 14px 0 10px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(212, 184, 120, 0.04), rgba(0, 0, 0, 0));
+  border: 1px solid var(--gold-soft);
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+.capsules-rail-inner {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 14px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 4px 14px 6px;
+}
+.capsules-rail-inner::-webkit-scrollbar { display: none; }
+
+.capsule-item {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-default);
+  padding: 0;
+  width: 76px;
+  transition: transform 0.15s ease;
+}
+.capsule-item:hover { transform: translateY(-2px); }
+.capsule-item:active { transform: scale(0.96); }
+
+.capsule-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-deep, #a07d3a));
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, 0.4),
+    0 4px 14px rgba(212, 184, 120, 0.25);
+  transition: filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+.capsule-ring.is-visto {
+  background: linear-gradient(135deg, rgba(212, 184, 120, 0.35), rgba(212, 184, 120, 0.15));
+  filter: saturate(0.7);
+}
+
+/* Efeméride: borde dorado sólido con destello sutil */
+.capsule-ring.capsule-efemeride {
+  background: linear-gradient(135deg, #e8c97e, #b88b3a 55%, #e8c97e);
+  position: relative;
+}
+.capsule-ring.capsule-efemeride::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px dashed var(--gold);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Cita: doble anillo */
+.capsule-ring.capsule-cita {
+  background: linear-gradient(135deg, #d4b878, #7a5d28);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 245, 215, 0.18),
+    0 4px 14px rgba(212, 184, 120, 0.2);
+}
+
+/* Tu cápsula (crear): anillo punteado */
+.capsule-ring-create {
+  background: transparent;
+  border: 2px dashed var(--gold-soft);
+  box-shadow: none;
+}
+.capsule-ring-create .capsule-circle {
+  background: var(--gold-ghost);
+}
+
+.capsule-circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.capsule-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(0.2);
+}
+
+.capsule-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--text-default);
+  max-width: 72px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+/* ============ VIEWER FULLSCREEN ============ */
+.capsule-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: rgba(2, 6, 18, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.capsule-viewer-stage {
+  position: relative;
+  width: min(100%, 420px);
+  height: 100%;
+  max-height: 100vh;
+  background: linear-gradient(160deg, #0a1228 0%, #050912 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.capsule-stage-cita {
+  background: linear-gradient(160deg, #1a1207 0%, #0a0703 100%);
+}
+.capsule-stage-efemeride {
+  background: linear-gradient(160deg, #0c1d3b 0%, #050a18 100%);
+}
+
+/* Barras de progreso */
+.capsule-progress-bars {
+  position: absolute;
+  top: 12px; left: 12px; right: 12px;
+  display: flex;
+  gap: 4px;
+  z-index: 5;
+}
+.capsule-progress-track {
+  flex: 1;
+  height: 2.5px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.capsule-progress-fill {
+  height: 100%;
+  background: var(--gold-bright, #e8c97e);
+  transition: width 0.05s linear;
+}
+
+/* Header */
+.capsule-viewer-header {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 16px 12px;
+  gap: 12px;
+}
+.capsule-viewer-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.capsule-viewer-avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.capsule-viewer-avatar img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.capsule-system-avatar {
+  background: var(--gold-ghost);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.capsule-viewer-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: #f5ecd2;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.capsule-viewer-sub {
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(245, 236, 210, 0.6);
+  margin-top: 2px;
+}
+.capsule-viewer-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(212, 184, 120, 0.3);
+  color: #f5ecd2;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Tap zone */
+.capsule-viewer-tapzone {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.capsule-viewer-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.55;
+  filter: sepia(0.3) saturate(0.85);
+}
+
+.capsule-viewer-body {
+  position: relative;
+  z-index: 3;
+  padding: 24px 28px;
+  max-width: 100%;
+  text-align: left;
+}
+.capsule-viewer-body.has-bg {
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.65) 60%);
+  align-self: flex-end;
+  width: 100%;
+  padding-top: 60px;
+}
+
+.capsule-cita-mark {
+  font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  font-size: 110px;
+  color: var(--gold);
+  line-height: 0.6;
+  margin-bottom: 8px;
+  opacity: 0.7;
+}
+
+.capsule-viewer-text {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.4;
+  color: #f5ecd2;
+  margin: 0 0 14px;
+  font-weight: 400;
+}
+.capsule-viewer-text.is-cita {
+  font-style: italic;
+  font-size: 24px;
+  line-height: 1.45;
+}
+
+.capsule-viewer-tag {
+  display: inline-block;
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--gold-bright, #e8c97e);
+  padding: 5px 12px;
+  border: 1px solid rgba(212, 184, 120, 0.45);
+  border-radius: 14px;
+  background: rgba(212, 184, 120, 0.06);
+  text-transform: uppercase;
+}
+
+.capsule-viewer-actions {
+  position: relative;
+  z-index: 4;
+  padding: 14px 16px 22px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.capsule-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(212, 184, 120, 0.15);
+  border: 1px solid var(--gold);
+  border-radius: 22px;
+  color: #f5ecd2;
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.capsule-action-btn:hover {
+  background: rgba(212, 184, 120, 0.28);
+}
+
+/* ============ TEMA CLARO (pergamino) ============ */
+html[data-theme="light"] .capsules-rail {
+  background: linear-gradient(180deg, rgba(212, 184, 120, 0.06), var(--bg-card));
+  border-color: var(--border-thin);
+}
+html[data-theme="light"] .capsule-circle {
+  background: var(--bg-card);
+}
+html[data-theme="light"] .capsule-ring-create .capsule-circle {
+  background: rgba(212, 184, 120, 0.08);
+}
+html[data-theme="light"] .capsule-label {
+  color: var(--text-default);
+}
+
+/* Viewer en tema light: mantenemos fondo oscuro para inmersión tipo cine */
+
+/* ============ MOBILE ============ */
+@media (max-width: 900px) {
+  .capsules-rail {
+    margin: 0 0 14px;
+    padding: 12px 0 8px;
+    border-radius: 14px;
+  }
+  .capsule-ring { width: 64px; height: 64px; }
+  .capsule-item { width: 70px; }
+  .capsule-label { font-size: 10.5px; max-width: 66px; }
+
+  .capsule-viewer-stage { max-width: 100%; }
+  .capsule-viewer-text { font-size: 20px; }
+  .capsule-viewer-text.is-cita { font-size: 21px; }
+  .capsule-cita-mark { font-size: 90px; }
+}

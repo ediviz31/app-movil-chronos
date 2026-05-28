@@ -10,6 +10,7 @@ import ShareChronicleModal from './ShareChronicleModal';
 import CommentsSheet from './CommentsSheet';
 import PresenceBadge from './PresenceBadge';
 import NarrarBtn from './NarrarBtn';
+import { buildHistoricTag } from '../utils/historicTime';
 
 const formatFechaRelativa = (fecha) => {
   const date = new Date(fecha);
@@ -115,6 +116,14 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
             {usuario?.nombre}
             <span className="epoch-tag">{relato.categoria}</span>
           </div>
+          {(() => {
+            const tag = buildHistoricTag({ anio: relato.historia_anio, lugar: relato.historia_lugar });
+            return tag ? (
+              <div className="social-post-historic-tag" data-testid={`historic-tag-${relato._id}`}>
+                <span aria-hidden="true">◆</span> {tag}
+              </div>
+            ) : null;
+          })()}
           <div className="social-post-info">
             <span>@{usuario?.usuario}</span>
             <span className="dot-sep"></span>

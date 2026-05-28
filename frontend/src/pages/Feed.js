@@ -7,6 +7,7 @@ import PullToRefresh from '../components/PullToRefresh';
 import ArchiveSidebar from '../components/ArchiveSidebar';
 import SocialPost from '../components/SocialPost';
 import CreateChronicleModal from '../components/CreateChronicleModal';
+import CapsulasRail from '../components/CapsulasRail';
 import { HourglassIcon, FeatherIcon, OrnateStarIcon, PlusOrnateIcon, ScrollIcon, MapIcon } from '../components/HistoricIcons';
 import WeeklyHighlight from '../components/WeeklyHighlight';
 import { getAvatarUrl } from '../utils/imageHelpers';
@@ -70,6 +71,9 @@ const Feed = () => {
             <h1>{greeting}, {user?.nombre?.split(' ')[0] || 'Cronista'}</h1>
             <p>Comparte un fragmento del pasado o descubre las historias de hoy</p>
           </div>
+
+          {/* Cápsulas del Tiempo (stories históricas) */}
+          <CapsulasRail />
 
           {/* Boletín del archivo: lo más resonante de la semana */}
           <WeeklyHighlight />

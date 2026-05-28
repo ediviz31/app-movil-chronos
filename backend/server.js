@@ -110,7 +110,7 @@ app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Asegurar que las carpetas de uploads existan al arranque (multer no las crea)
-['relatos', 'avatares', 'portadas', 'familiares', 'videos', 'audio'].forEach(dir => {
+['relatos', 'avatares', 'portadas', 'familiares', 'videos', 'audio', 'capsulas'].forEach(dir => {
   const full = path.join(__dirname, 'uploads', dir);
   if (!fs.existsSync(full)) fs.mkdirSync(full, { recursive: true });
 });
@@ -392,6 +392,13 @@ app.post('/api/relatos', [auth, relatoMediaUpload], [
     const videoPath = videoFile ? `/api/uploads/videos/${videoFile.filename}` : null;
     const tags = Publicacion.extractTags(`${titulo} ${contenido}`);
 
+    // Indicador temporal opcional (siglo + lugar)
+    const historiaAnioRaw = req.body.historia_anio;
+    const historia_anio = historiaAnioRaw !== undefined && historiaAnioRaw !== ''
+      ? Number(historiaAnioRaw)
+      : null;
+    const historia_lugar = (req.body.historia_lugar || '').toString().trim() || null;
+
     const nuevoRelato = new Publicacion({
       usuario_id: req.userId,
       titulo,
@@ -399,7 +406,9 @@ app.post('/api/relatos', [auth, relatoMediaUpload], [
       contenido,
       imagen,
       video_path: videoPath,
-      tags
+      tags,
+      historia_anio: Number.isFinite(historia_anio) ? historia_anio : null,
+      historia_lugar
     });
 
     await nuevoRelato.save();
@@ -2338,6 +2347,12 @@ app.use((err, req, res, next) => {
 });
 
 // Iniciar servidor
+
+// ============================================
+// CÁPSULAS DEL TIEMPO (Stories históricas)
+// ============================================
+const capsulasRouter = require('./routes/capsulas')({ auth, authOptional });
+app.use('/api/capsulas', capsulasRouter);
 
 // ============================================
 // AUDIO NARRACIÓN (TTS) — usa Emergent LLM key
