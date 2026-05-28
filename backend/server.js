@@ -680,6 +680,93 @@ app.get('/api/archivados', auth, async (req, res) => {
 });
 
 // ============================================
+// RUTAS DE PRESENCIA / ACTIVIDAD
+// (icono antorcha encendida + "escribiendo...")
+// ============================================
+
+// Heartbeat: el cliente lo llama cada 60s mientras la app está en foreground.
+// Marca al usuario como "activo ahora" (activo si ultimo_visto < 2min).
+app.post('/api/presencia/heartbeat', auth, async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.userId, { ultimo_visto: new Date() });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error heartbeat' });
+  }
+});
+
+// Consulta: dado un set de userIds, devolver cuáles están activos ahora
+// (ultimo_visto en los últimos 2 minutos).
+app.post('/api/presencia/consultar', auth, async (req, res) => {
+  try {
+    const { ids = [] } = req.body || {};
+    if (!Array.isArray(ids) || ids.length === 0) return res.json({ activos: [] });
+    const threshold = new Date(Date.now() - 2 * 60 * 1000);
+    const activos = await User.find(
+      { _id: { $in: ids.slice(0, 200) }, ultimo_visto: { $gte: threshold } },
+      { _id: 1, ultimo_visto: 1 }
+    ).lean();
+    res.json({ activos: activos.map(u => ({ _id: u._id, ultimo_visto: u.ultimo_visto })) });
+  } catch (err) {
+    res.status(500).json({ error: 'Error consulta presencia' });
+  }
+});
+
+// "Escribiendo..." en comentarios: cache en memoria, TTL 4s.
+// Usuario X notifica que está escribiendo un comentario en relato Y.
+const typingMap = new Map(); // key: relato_id, value: Map<userId, { until, nombre }>
+
+app.post('/api/presencia/escribiendo/:relatoId', auth, async (req, res) => {
+  try {
+    const { relatoId } = req.params;
+    const user = await User.findById(req.userId, { nombre: 1 }).lean();
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    let bucket = typingMap.get(relatoId);
+    if (!bucket) { bucket = new Map(); typingMap.set(relatoId, bucket); }
+    bucket.set(req.userId.toString(), {
+      until: Date.now() + 4000,
+      nombre: user.nombre.split(' ')[0]
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error typing' });
+  }
+});
+
+// Consulta quién está escribiendo (excluyendo al solicitante)
+app.get('/api/presencia/escribiendo/:relatoId', auth, async (req, res) => {
+  try {
+    const { relatoId } = req.params;
+    const bucket = typingMap.get(relatoId);
+    if (!bucket) return res.json({ escribiendo: [] });
+    const now = Date.now();
+    const requesterId = req.userId.toString();
+    const escribiendo = [];
+    for (const [uid, info] of bucket.entries()) {
+      if (info.until < now) { bucket.delete(uid); continue; }
+      if (uid === requesterId) continue;
+      escribiendo.push({ _id: uid, nombre: info.nombre });
+    }
+    res.json({ escribiendo });
+  } catch (err) {
+    res.status(500).json({ error: 'Error consulta typing' });
+  }
+});
+
+// Limpieza periódica del typingMap (cada 30s)
+setInterval(() => {
+  const now = Date.now();
+  for (const [relatoId, bucket] of typingMap.entries()) {
+    for (const [uid, info] of bucket.entries()) {
+      if (info.until < now) bucket.delete(uid);
+    }
+    if (bucket.size === 0) typingMap.delete(relatoId);
+  }
+}, 30000);
+
+
+
+// ============================================
 // RUTAS DE SEGUIMIENTO
 // ============================================
 

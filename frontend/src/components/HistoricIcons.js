@@ -631,3 +631,24 @@ export const AutoThemeIcon = ({ size = 20, ...props }) => (
   </svg>
 );
 
+
+
+/* ─── Antorcha encendida: indicador de presencia "activo ahora" ─── */
+export const TorchActiveIcon = ({ size = 14, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" {...props}>
+    {/* Mango */}
+    <rect x="13" y="18" width="6" height="11" rx="1.2"
+          fill="#8B6E1F" stroke="#5C4416" strokeWidth="0.5" />
+    {/* Anillo dorado del mango */}
+    <rect x="11.5" y="17" width="9" height="2.5" rx="0.8"
+          fill="#D4B878" stroke="#8B6E1F" strokeWidth="0.5" />
+    {/* Llama exterior */}
+    <path d="M16 3 C 12 6, 10 11, 11 14 C 11.5 16, 14 17, 16 17 C 18 17, 20.5 16, 21 14 C 22 11, 20 6, 16 3 Z"
+          fill="#FFA94D" />
+    {/* Llama interior */}
+    <path d="M16 7 C 14 9, 13 12, 14 14 C 14.5 15, 15.5 15.5, 16 15.5 C 16.5 15.5, 17.5 15, 18 14 C 19 12, 18 9, 16 7 Z"
+          fill="#FFD66E" />
+    {/* Núcleo brillante */}
+    <ellipse cx="16" cy="12.5" rx="1.2" ry="2.5" fill="#FFF3C8" />
+  </svg>
+);

@@ -1,0 +1,119 @@
+/* =====================================================
+   CHRONOS — INDICADORES DE PRESENCIA
+   Dot dorado animado en avatares + antorcha encendida
+   ===================================================== */
+
+/* Dot pequeño superpuesto al avatar (esquina inferior derecha) */
+.presence-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #FFD66E 0%, #FFA94D 60%, #C97818 100%);
+  border: 1.5px solid var(--bg-deep);
+  box-shadow: 0 0 0 1px rgba(212, 184, 120, 0.4), 0 0 8px rgba(255, 169, 77, 0.7);
+  animation: presence-glow 2s ease-in-out infinite;
+  z-index: 2;
+  pointer-events: none;
+}
+html[data-theme="light"] .presence-dot {
+  border-color: var(--bg-card);
+  box-shadow: 0 0 0 1px rgba(166, 134, 46, 0.5), 0 0 8px rgba(255, 169, 77, 0.7);
+}
+@keyframes presence-glow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(212, 184, 120, 0.4), 0 0 6px rgba(255, 169, 77, 0.5); }
+  50%      { box-shadow: 0 0 0 1px rgba(212, 184, 120, 0.6), 0 0 14px rgba(255, 169, 77, 0.95); }
+}
+
+/* Para que el dot se posicione bien, los contenedores de avatar deben ser position:relative */
+.social-post-avatar,
+.user-avatar-small,
+.mobile-drawer-avatar,
+.comments-sheet-avatar,
+.composer-avatar,
+.comment-avatar,
+.misivas-thread-avatar,
+.misivas-list-avatar,
+.relato-author-avatar {
+  position: relative;
+}
+
+/* Antorcha (variante completa) */
+.presence-torch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  vertical-align: middle;
+}
+.presence-torch svg {
+  filter: drop-shadow(0 0 4px rgba(255, 169, 77, 0.55));
+  animation: torch-flicker 1.6s ease-in-out infinite;
+}
+@keyframes torch-flicker {
+  0%, 100% { transform: scale(1) rotate(0); opacity: 1; }
+  35%      { transform: scale(1.04) rotate(-1deg); opacity: 0.94; }
+  60%      { transform: scale(0.98) rotate(1.5deg); opacity: 1; }
+}
+.presence-torch-label {
+  font-family: var(--font-elegant);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #FFA94D;
+  font-weight: 500;
+}
+html[data-theme="light"] .presence-torch-label { color: #C97818; }
+
+.presence-mini { display: inline-flex; vertical-align: middle; }
+.presence-mini svg {
+  filter: drop-shadow(0 0 3px rgba(255, 169, 77, 0.55));
+  animation: torch-flicker 1.6s ease-in-out infinite;
+}
+
+/* ===== TYPING INDICATOR (Resonancias) ===== */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 4px 2px 8px;
+  border: 1px dashed var(--gold-soft);
+  border-radius: 14px;
+  background: rgba(212, 184, 120, 0.04);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--text-muted);
+  animation: typing-fade-in 0.32s ease;
+}
+@keyframes typing-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.typing-dots {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+.typing-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: typing-bounce 1.2s ease-in-out infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.18s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
+.typing-name {
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 600;
+  color: var(--gold-bright);
+  margin-right: 2px;
+}

@@ -8,6 +8,7 @@ import { CoinLaurelIcon, ParchmentIcon, DoveScrollIcon, ChestIcon, TabletDaggerI
 import HashtagText from './HashtagText';
 import ShareChronicleModal from './ShareChronicleModal';
 import CommentsSheet from './CommentsSheet';
+import PresenceBadge from './PresenceBadge';
 
 const formatFechaRelativa = (fecha) => {
   const date = new Date(fecha);
@@ -102,6 +103,7 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
           style={{ cursor: usuario?._id ? 'pointer' : 'default' }}
         >
           <img src={avatarSrc} alt={usuario?.nombre} />
+          {usuario?._id && <PresenceBadge userId={usuario._id} variant="dot" />}
         </div>
         <div className="social-post-meta">
           <div

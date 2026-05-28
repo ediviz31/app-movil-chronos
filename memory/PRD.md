@@ -365,6 +365,39 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - `/app/frontend/src/styles/reading-mode.css` (nuevo, ~250 líneas)
 - `/app/frontend/src/pages/RelatoDetail.js` — toggle, HUD, state, persistencia
 
+### Fase 18 — Presencia "Activo ahora" 🔥 + "Escribiendo..." (Feb 28, 2026)
+
+**Backend:**
+- Campo `User.ultimo_visto` con índice (default Date.now)
+- `POST /api/presencia/heartbeat` — marca al usuario activo (auth)
+- `POST /api/presencia/consultar { ids[] }` — devuelve usuarios activos (< 2 min)
+- `POST /api/presencia/escribiendo/:relatoId` — TTL 4s en memoria
+- `GET /api/presencia/escribiendo/:relatoId` — lista quién escribe (excluye al solicitante)
+- Limpieza periódica del typingMap (cada 30s)
+
+**Frontend:**
+- `PresenceHeartbeat` — beat global cada 60s mientras `visibilitychange='visible'`
+- `PresenceContext` — pool de IDs trackeados + polling cada 30s + `isOnline(id)` + `track(ids)`
+- `PresenceBadge` — variantes: `dot` (pulsa dorado en esquina del avatar), `torch` (antorcha encendida con label "ACTIVA AHORA"), `mini`
+- `TorchActiveIcon` — antorcha SVG con llama dorada exterior + amarillo claro interior + núcleo brillante
+- Dots integrados en: `SocialPost.avatar`, `CommentsSheet.avatar`, `MisivasPage.thread-avatar` y header (avatar + torch+label)
+- Typing indicator en `CommentsSheet`: 3 dots dorados bounce + "Keilin está escribiendo…" (o "X y N más están escribiendo…")
+- Throttle del POST escribiendo cada 2.5s mientras el usuario teclea
+
+**Estilos:**
+- `presence.css` con keyframes: `presence-glow` (dot pulsante), `torch-flicker` (llama vibrando), `typing-bounce` (dots animados)
+- `position: relative` añadido a todos los wrappers de avatares
+- Tema claro adaptado para dots y antorcha sobre pergamino
+
+**Archivos clave:**
+- `/app/backend/models/User.js` + `/app/backend/server.js` (4 endpoints nuevos)
+- `/app/frontend/src/context/PresenceContext.js` (nuevo)
+- `/app/frontend/src/components/PresenceBadge.js` + `PresenceHeartbeat.js` (nuevos)
+- `/app/frontend/src/components/HistoricIcons.js` — TorchActiveIcon
+- `/app/frontend/src/styles/presence.css` (nuevo, ~130 líneas)
+- `/app/frontend/src/components/CommentsSheet.js` — typing indicator + handleInputChange throttled
+- `/app/frontend/src/pages/MisivasPage.js` — dot + torch en header
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
 - `/explorar` ← Fase 5

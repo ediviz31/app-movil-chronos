@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { PresenceProvider } from './context/PresenceContext';
+import PresenceHeartbeat from './components/PresenceHeartbeat';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Feed from './pages/Feed';
@@ -34,6 +36,7 @@ import './styles/pwa.css';
 import './styles/mobile-app.css';
 import './styles/comments-sheet.css';
 import './styles/reading-mode.css';
+import './styles/presence.css';
 import './styles/theme-light.css';
 
 const LoadingScreen = () => (
@@ -71,6 +74,8 @@ function App() {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
+        <PresenceProvider>
+        <PresenceHeartbeat />
         <Routes>
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/registro" element={<PublicRoute><Register /></PublicRoute>} />
@@ -92,6 +97,7 @@ function App() {
           <Route path="/perfil/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </PresenceProvider>
       </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import PageShell from '../components/PageShell';
+import PresenceBadge from '../components/PresenceBadge';
 import haptic from '../utils/haptic';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import {
@@ -219,11 +220,14 @@ ${enlace}
                       onClick={() => navigate(`/misivas/${c._id}`)}
                       data-testid={`misivas-thread-${c._id}`}
                     >
-                      <img
-                        className="misivas-thread-avatar"
-                        src={getAvatarUrl(c.otro)}
-                        alt={c.otro?.nombre}
-                      />
+                      <span style={{ position: 'relative', display: 'inline-block', flexShrink: 0 }}>
+                        <img
+                          className="misivas-thread-avatar"
+                          src={getAvatarUrl(c.otro)}
+                          alt={c.otro?.nombre}
+                        />
+                        {c.otro?._id && <PresenceBadge userId={c.otro._id} variant="dot" />}
+                      </span>
                       <div className="misivas-thread-info">
                         <div className="misivas-thread-top">
                           <span className="misivas-thread-name">
@@ -274,16 +278,22 @@ ${enlace}
                   >
                     <ArrowRightIcon size={12} style={{ transform: 'rotate(180deg)' }} />
                   </button>
-                  <img
-                    className="misivas-thread-header-avatar"
-                    src={getAvatarUrl(convActiva.otro)}
-                    alt={convActiva.otro?.nombre}
-                    onClick={() => navigate(`/perfil/${convActiva.otro._id}`)}
-                    style={{ cursor: 'pointer' }}
-                  />
+                  <span style={{ position: 'relative', display: 'inline-block' }}>
+                    <img
+                      className="misivas-thread-header-avatar"
+                      src={getAvatarUrl(convActiva.otro)}
+                      alt={convActiva.otro?.nombre}
+                      onClick={() => navigate(`/perfil/${convActiva.otro._id}`)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    {convActiva.otro?._id && <PresenceBadge userId={convActiva.otro._id} variant="dot" />}
+                  </span>
                   <div>
                     <div className="misivas-thread-header-name" data-testid="misivas-thread-otro-nombre">
                       {convActiva.otro?.nombre}
+                      {convActiva.otro?._id && (
+                        <PresenceBadge userId={convActiva.otro._id} variant="torch" size={12} showLabel />
+                      )}
                     </div>
                     <div className="misivas-thread-header-handle">
                       @{convActiva.otro?.usuario}

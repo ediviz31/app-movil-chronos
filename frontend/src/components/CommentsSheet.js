@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import haptic from '../utils/haptic';
 import { getAvatarUrl } from '../utils/imageHelpers';
+import PresenceBadge from './PresenceBadge';
 import { CloseIcon, FeatherIcon, FleurDivider, ParchmentIcon } from './HistoricIcons';
 
 const formatFechaRelativa = (fecha) => {
@@ -35,9 +36,12 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
   const [newComment, setNewComment] = useState('');
   const [posting, setPosting] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [typing, setTyping] = useState([]); // [{_id, nombre}]
   const listRef = useRef(null);
   const inputRef = useRef(null);
   const sheetRef = useRef(null);
+  const typingTimerRef = useRef(null);
+  const lastTypingPingRef = useRef(0);
 
   const fetchComments = useCallback(async () => {
     setLoading(true);
@@ -48,13 +52,37 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
     finally { setLoading(false); }
   }, [relato._id]);
 
-  // Cargar al abrir + bloquear scroll del body
+  // Cargar al abrir + bloquear scroll del body + polling de typing y comments
   useEffect(() => {
     if (!isOpen) return;
     fetchComments();
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, [isOpen, fetchComments]);
+    // Polling de typing cada 3s + recarga de comentarios cada 8s
+    const pollTyping = async () => {
+      try {
+        const r = await api.get(`/presencia/escribiendo/${relato._id}`);
+        setTyping(r.data?.escribiendo || []);
+      } catch (_) {}
+    };
+    pollTyping();
+    const typingInterval = setInterval(pollTyping, 3000);
+    const commentsInterval = setInterval(fetchComments, 8000);
+    return () => {
+      document.body.style.overflow = '';
+      clearInterval(typingInterval);
+      clearInterval(commentsInterval);
+    };
+  }, [isOpen, fetchComments, relato._id]);
+
+  // Notificar al backend "escribiendo..." (throttled cada 2.5s)
+  const handleInputChange = (e) => {
+    setNewComment(e.target.value);
+    const now = Date.now();
+    if (e.target.value.trim() && now - lastTypingPingRef.current > 2500) {
+      lastTypingPingRef.current = now;
+      api.post(`/presencia/escribiendo/${relato._id}`).catch(() => {});
+    }
+  };
 
   // Swipe-to-close sobre el header
   useEffect(() => {
@@ -171,6 +199,7 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
                   aria-label={u?.nombre}
                 >
                   <img src={getAvatarUrl(u)} alt={u?.nombre} />
+                  {u?._id && u._id !== 'me' && <PresenceBadge userId={u._id} variant="dot" />}
                 </button>
                 <div className="comments-sheet-body">
                   <div className="comments-sheet-meta">
@@ -183,6 +212,23 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
             );
           })}
           <div className="comments-sheet-bottom-spacer" />
+
+          {/* Typing indicator */}
+          {typing.length > 0 && (
+            <div className="typing-indicator" data-testid="typing-indicator">
+              <span className="typing-dots">
+                <span></span><span></span><span></span>
+              </span>
+              <span>
+                <span className="typing-name">
+                  {typing.length === 1
+                    ? typing[0].nombre
+                    : `${typing[0].nombre} y ${typing.length - 1} más`}
+                </span>
+                {typing.length === 1 ? 'está escribiendo…' : 'están escribiendo…'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Form sticky de respuesta */}
@@ -194,7 +240,7 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
             ref={inputRef}
             type="text"
             value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
+            onChange={handleInputChange}
             placeholder="Comparte tu valoración…"
             className="comments-sheet-form-input"
             data-testid="comments-sheet-input"

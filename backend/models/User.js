@@ -73,6 +73,14 @@ const userSchema = new mongoose.Schema({
       type: Boolean,
       default: false  // Privado por defecto
     }
+  },
+
+  // Presencia / actividad (para el icono de antorcha encendida)
+  // Se actualiza con un beacon cada 60s desde el cliente.
+  ultimo_visto: {
+    type: Date,
+    default: Date.now,
+    index: true
   }
 }, {
   timestamps: { createdAt: 'creado_en', updatedAt: 'actualizado_en' }
