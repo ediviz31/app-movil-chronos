@@ -10,7 +10,7 @@
  *  - Llamadas /api/**: pasar directo a la red (sin caché — evita estados rancios)
  */
 
-const SW_VERSION = 'chronos-v2-mobile';
+const SW_VERSION = 'chronos-v3-stable';
 const STATIC_CACHE = `chronos-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `chronos-runtime-${SW_VERSION}`;
 
@@ -61,12 +61,29 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Assets estáticos: cache-first
+  // Bundles de la app React (JS/CSS de /static/): network-first, fallback a cache.
+  // Esto previene servir versiones viejas tras un deploy/hot-reload.
+  if (
+    url.pathname.startsWith('/static/js/') ||
+    url.pathname.startsWith('/static/css/')
+  ) {
+    event.respondWith(
+      fetch(request)
+        .then(res => {
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(RUNTIME_CACHE).then(c => c.put(request, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Assets estáticos puros (íconos, imágenes, fonts): cache-first
   if (
     url.pathname.startsWith('/icons/') ||
-    url.pathname.startsWith('/static/') ||
-    url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.js') ||
     url.pathname.endsWith('.png') ||
     url.pathname.endsWith('.jpg') ||
     url.pathname.endsWith('.svg') ||
