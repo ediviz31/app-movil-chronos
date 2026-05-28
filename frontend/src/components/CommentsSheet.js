@@ -39,6 +39,7 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
   const [posting, setPosting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [typing, setTyping] = useState([]);
+  const [replyingTo, setReplyingTo] = useState(null); // { id, nombre } | null
   const listRef = useRef(null);
   const inputRef = useRef(null);
   const sheetRef = useRef(null);
@@ -91,25 +92,65 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
     const optimistic = {
       _id: tempId,
       contenido: text,
+      parent_id: replyingTo?.id || null,
       creado_en: new Date().toISOString(),
       usuario_id: { nombre: currentUserName, avatar: currentUserAvatar, _id: 'me' }
     };
-    setComments(prev => [...prev, optimistic]);
+    // Optimistic: si es respuesta, lo añadimos como respuesta del parent
+    if (replyingTo?.id) {
+      setComments(prev => prev.map(c =>
+        String(c._id) === String(replyingTo.id)
+          ? { ...c, respuestas: [...(c.respuestas || []), optimistic] }
+          : c
+      ));
+    } else {
+      setComments(prev => [...prev, optimistic]);
+    }
+    const wasReplying = replyingTo;
     setNewComment('');
+    setReplyingTo(null);
     try {
-      await api.post('/comentarios', { publicacion_id: relato._id, contenido: text });
+      const payload = { publicacion_id: relato._id, contenido: text };
+      if (wasReplying?.id) payload.parent_id = wasReplying.id;
+      await api.post('/comentarios', payload);
       haptic.light();
       onCommentAdded && onCommentAdded();
       fetchComments();
-      setTimeout(() => {
-        listRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 100);
+      if (!wasReplying) {
+        setTimeout(() => {
+          listRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+      }
     } catch (err) {
-      setComments(prev => prev.filter(c => c._id !== tempId));
+      // Rollback optimistic
+      if (wasReplying?.id) {
+        setComments(prev => prev.map(c =>
+          String(c._id) === String(wasReplying.id)
+            ? { ...c, respuestas: (c.respuestas || []).filter(r => r._id !== tempId) }
+            : c
+        ));
+      } else {
+        setComments(prev => prev.filter(c => c._id !== tempId));
+      }
       setNewComment(text);
+      setReplyingTo(wasReplying);
     } finally {
       setPosting(false);
     }
+  };
+
+  const startReply = (comment) => {
+    const u = comment.usuario_id;
+    if (!u || u._id === 'me') return;
+    setReplyingTo({ id: comment._id, nombre: u.nombre || 'Cronista' });
+    haptic.light();
+    // Focus input
+    setTimeout(() => inputRef.current?.focus(), 30);
+  };
+
+  const cancelReply = () => {
+    setReplyingTo(null);
+    setNewComment('');
   };
 
   if (!isOpen) return null;
@@ -234,6 +275,7 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
               const u = c.usuario_id;
               const isSelf = u?._id && (u._id === 'me' || (currentUserId && String(u._id) === String(currentUserId)));
               const online = !isSelf && u?._id && isOnline(u._id);
+              const respuestas = Array.isArray(c.respuestas) ? c.respuestas : [];
               return (
                 <article
                   className={`pergamino-entry ${idx === 0 ? 'pergamino-entry-new' : ''}`}
@@ -268,11 +310,98 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
                       </div>
                     </div>
                     <p className="pergamino-entry-text">{c.contenido}</p>
+
+                    {/* Acciones (responder) — solo si no es respuesta y no es mío */}
+                    {!isSelf && !c.parent_id && (
+                      <div className="pergamino-entry-actions">
+                        <button
+                          type="button"
+                          className="pergamino-reply-btn"
+                          onClick={() => startReply(c)}
+                          data-testid={`reply-btn-${c._id}`}
+                        >
+                          <FeatherIcon size={11} /> Responder
+                        </button>
+                        {respuestas.length > 0 && (
+                          <span className="pergamino-reply-count">
+                            {respuestas.length} {respuestas.length === 1 ? 'aporte' : 'aportes'}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Respuestas anidadas — un solo nivel para mantener legibilidad */}
+                    {respuestas.length > 0 && (
+                      <div className="pergamino-replies" data-testid={`replies-${c._id}`}>
+                        {respuestas.map((r) => {
+                          const ru = r.usuario_id;
+                          const rIsSelf = ru?._id && (ru._id === 'me' || (currentUserId && String(ru._id) === String(currentUserId)));
+                          const rOnline = !rIsSelf && ru?._id && isOnline(ru._id);
+                          return (
+                            <article
+                              className="pergamino-reply"
+                              key={r._id}
+                              data-testid={`reply-${r._id}`}
+                            >
+                              <span className="pergamino-reply-thread" aria-hidden="true">↳</span>
+                              <button
+                                className="pergamino-entry-avatar pergamino-reply-avatar"
+                                onClick={() => ru?._id && !rIsSelf && navigate(`/perfil/${ru._id}`)}
+                                aria-label={ru?.nombre}
+                                type="button"
+                              >
+                                <img src={getAvatarUrl(ru)} alt={ru?.nombre} />
+                                {!rIsSelf && ru?._id && <PresenceBadge userId={ru._id} variant="dot" />}
+                              </button>
+                              <div className="pergamino-reply-body">
+                                <div className="pergamino-reply-head">
+                                  <strong className="pergamino-entry-name">
+                                    {ru?.nombre || 'Cronista'}
+                                    {rOnline && (
+                                      <span className="pergamino-online">
+                                        <span className="pergamino-online-dot" />
+                                        <span className="pergamino-online-text">en línea</span>
+                                      </span>
+                                    )}
+                                  </strong>
+                                  <span className="pergamino-entry-time">{formatFechaRelativa(r.creado_en)}</span>
+                                </div>
+                                <p className="pergamino-entry-text">
+                                  {/* Mention al autor del comentario padre, si corresponde */}
+                                  {u?.usuario && !rIsSelf && (
+                                    <span className="pergamino-reply-mention">@{u.usuario} </span>
+                                  )}
+                                  {r.contenido}
+                                </p>
+                              </div>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </article>
               );
             })}
           </div>
+
+          {/* Chip "Respondiendo a @usuario" */}
+          {replyingTo && (
+            <div className="pergamino-replying-chip" data-testid="replying-chip">
+              <span className="pergamino-replying-text">
+                <FeatherIcon size={11} /> Respondiendo a <strong>{replyingTo.nombre}</strong>
+              </span>
+              <button
+                type="button"
+                className="pergamino-replying-cancel"
+                onClick={cancelReply}
+                aria-label="Cancelar respuesta"
+                data-testid="replying-cancel"
+              >
+                ×
+              </button>
+            </div>
+          )}
 
           {/* Form sticky de respuesta */}
           <form className="pergamino-form" onSubmit={handleSubmit}>
@@ -284,7 +413,9 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
               type="text"
               value={newComment}
               onChange={handleInputChange}
-              placeholder="Escribe tu aporte con pluma…"
+              placeholder={replyingTo
+                ? `Responde a ${replyingTo.nombre}…`
+                : 'Escribe tu aporte con pluma…'}
               className="pergamino-form-input"
               data-testid="comments-sheet-input"
               maxLength={500}

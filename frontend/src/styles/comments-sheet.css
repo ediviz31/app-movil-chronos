@@ -322,6 +322,143 @@
   font-style: italic;
 }
 
+/* ─── Acciones del comentario (responder) ─── */
+.pergamino-entry-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+}
+.pergamino-reply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid rgba(120, 80, 30, 0.35);
+  border-radius: 12px;
+  padding: 3px 10px 3px 8px;
+  font-family: var(--font-elegant);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(80, 55, 22, 0.85);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.pergamino-reply-btn:hover {
+  background: rgba(120, 80, 30, 0.1);
+  color: #3d2a0e;
+}
+.pergamino-reply-count {
+  font-family: var(--font-elegant);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: rgba(80, 55, 22, 0.6);
+  font-style: italic;
+}
+
+/* ─── Respuestas anidadas (un nivel) ─── */
+.pergamino-replies {
+  margin-top: 8px;
+  padding-left: 12px;
+  border-left: 1.5px dashed rgba(120, 80, 30, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pergamino-reply {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  animation: pergamino-entry-in 0.4s ease both;
+}
+
+.pergamino-reply-thread {
+  flex-shrink: 0;
+  color: rgba(120, 80, 30, 0.55);
+  font-size: 14px;
+  margin-top: 6px;
+  font-family: 'EB Garamond', Georgia, serif;
+}
+
+.pergamino-reply-avatar {
+  width: 26px;
+  height: 26px;
+  margin-top: 2px;
+}
+
+.pergamino-reply-body { flex: 1; min-width: 0; }
+
+.pergamino-reply-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.pergamino-reply-head .pergamino-entry-name { font-size: 13px; }
+.pergamino-reply-head .pergamino-entry-time { font-size: 10px; }
+
+.pergamino-reply-mention {
+  color: var(--gold-deep, #8a6628);
+  font-weight: 600;
+  font-style: normal;
+  margin-right: 4px;
+}
+
+/* ─── Chip "Respondiendo a @usuario" sobre el form ─── */
+.pergamino-replying-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 4px;
+  padding: 8px 12px;
+  background: rgba(212, 184, 120, 0.22);
+  border: 1px solid rgba(120, 80, 30, 0.35);
+  border-radius: 10px 10px 0 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12.5px;
+  color: rgba(80, 55, 22, 0.95);
+  position: relative;
+  z-index: 4;
+  animation: pergamino-entry-in 0.3s ease both;
+}
+.pergamino-replying-text {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pergamino-replying-text strong {
+  color: #3d2a0e;
+  font-weight: 700;
+  font-style: normal;
+}
+.pergamino-replying-cancel {
+  background: rgba(120, 80, 30, 0.12);
+  border: 1px solid rgba(120, 80, 30, 0.35);
+  color: #5a3d12;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+.pergamino-replying-cancel:hover {
+  background: rgba(120, 80, 30, 0.25);
+}
+
 /* ─── Indicador "en línea" pulsante ─── */
 .pergamino-online {
   display: inline-flex;
