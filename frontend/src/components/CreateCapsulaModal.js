@@ -7,6 +7,7 @@ import ReactDOM from 'react-dom';
 import api from '../services/api';
 import haptic from '../utils/haptic';
 import { CloseIcon, HourglassIcon } from './HistoricIcons';
+import IAImageGenerator from './IAImageGenerator';
 
 const EPOCAS = [
   'Antigüedad', 'Edad Media', 'Edad Moderna', 'Edad Contemporánea',
@@ -176,6 +177,18 @@ const CreateCapsulaModal = ({ isOpen, onClose, onCreated }) => {
                   data-testid="capsule-input-imagen"
                 />
               </label>
+            </div>
+            {/* Generar imagen con IA */}
+            <div style={{ marginTop: 8 }}>
+              <IAImageGenerator
+                contextHint={
+                  [texto?.slice(0, 100), lugar, epoca].filter(Boolean).join(' · ')
+                }
+                onImageGenerated={({ file, dataUrl }) => {
+                  setImagen(file);
+                  setPreview(dataUrl);
+                }}
+              />
             </div>
             {preview && (
               <div className="media-preview">

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import haptic from '../utils/haptic';
 import { CloseIcon, FeatherIcon } from './HistoricIcons';
+import IAImageGenerator from './IAImageGenerator';
 
 const CATEGORIAS = [
   'Antigüedad', 'Edad Media', 'Edad Moderna', 'Edad Contemporánea',
@@ -266,6 +267,19 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
                   data-testid="input-imagen"
                 />
               </label>
+            </div>
+            {/* Generar imagen con IA */}
+            <div style={{ marginTop: 8 }}>
+              <IAImageGenerator
+                contextHint={
+                  [formData.titulo, formData.historia_lugar, formData.contenido?.slice(0, 80)]
+                    .filter(Boolean).join(' · ')
+                }
+                onImageGenerated={({ file, dataUrl }) => {
+                  setImagen(file);
+                  setImagenPreview(dataUrl);
+                }}
+              />
             </div>
             {imagenPreview && (
               <div className="media-preview">

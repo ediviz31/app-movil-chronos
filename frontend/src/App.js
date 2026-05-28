@@ -46,6 +46,7 @@ import './styles/capsulas.css';
 import './styles/visitas.css';
 import './styles/toaster.css';
 import './styles/media-picker.css';
+import './styles/ia-imagen.css';
 import './styles/theme-light.css';
 
 const LoadingScreen = () => (
