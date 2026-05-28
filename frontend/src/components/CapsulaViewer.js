@@ -8,7 +8,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { getAvatarUrl } from '../utils/imageHelpers';
+import { getAvatarUrl, getImageUrl } from '../utils/imageHelpers';
 import { CloseIcon, HourglassIcon, MapIcon, FeatherIcon } from './HistoricIcons';
 import { yearToCentury } from '../utils/historicTime';
 import haptic from '../utils/haptic';
@@ -208,7 +208,7 @@ const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto }) => {
         <div className="capsule-viewer-tapzone" onClick={handleTapZone}>
           {current.imagen && (
             <img
-              src={current.imagen}
+              src={getImageUrl(current.imagen)}
               alt=""
               className="capsule-viewer-bg"
               aria-hidden="true"

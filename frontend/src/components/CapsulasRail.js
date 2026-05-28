@@ -5,7 +5,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { getAvatarUrl } from '../utils/imageHelpers';
+import { getAvatarUrl, getImageUrl } from '../utils/imageHelpers';
 import CapsulaViewer from './CapsulaViewer';
 import CreateCapsulaModal from './CreateCapsulaModal';
 import { HourglassIcon, PlusOrnateIcon, ChronicleIcon } from './HistoricIcons';
@@ -54,7 +54,10 @@ const CapsulasRail = () => {
   const renderCircle = (c, idx) => {
     const isSystem = c.tipo === 'efemeride' || c.tipo === 'cita';
     const author = c.usuario_id;
-    const avatarSrc = isSystem ? null : getAvatarUrl(author);
+    // Si la cápsula del cronista tiene imagen propia, mostrarla en el círculo
+    // (más visual que el avatar). Si no, fallback al avatar del cronista.
+    const capsulaImage = !isSystem && c.imagen ? getImageUrl(c.imagen) : null;
+    const avatarSrc = isSystem ? null : (capsulaImage || getAvatarUrl(author));
 
     const Icon = c.tipo === 'efemeride' ? HourglassIcon : ChronicleIcon;
     const ringClass = `capsule-ring capsule-${c.tipo} ${c.visto ? 'is-visto' : ''}`;

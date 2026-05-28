@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { HourglassIcon, ChronicleIcon } from './HistoricIcons';
 import { yearToCentury } from '../utils/historicTime';
+import { getImageUrl } from '../utils/imageHelpers';
 
 const formatFechaCapsula = (fecha) => {
   try {
@@ -73,7 +74,7 @@ const ArchivoCapsulas = ({ usuarioId, esMiPerfil }) => {
               data-testid={`archivo-capsula-${c._id}`}
             >
               {c.imagen ? (
-                <img src={c.imagen} alt="" className="archivo-capsula-bg" />
+                <img src={getImageUrl(c.imagen)} alt="" className="archivo-capsula-bg" />
               ) : (
                 <div className="archivo-capsula-bg archivo-capsula-bg-empty">
                   <HourglassIcon size={28} style={{ color: 'var(--gold)', opacity: 0.45 }} />
@@ -97,7 +98,7 @@ const ArchivoCapsulas = ({ usuarioId, esMiPerfil }) => {
         >
           <div className="archivo-capsula-modal" onClick={(e) => e.stopPropagation()}>
             {selected.imagen && (
-              <img src={selected.imagen} alt="" className="archivo-capsula-modal-img" />
+              <img src={getImageUrl(selected.imagen)} alt="" className="archivo-capsula-modal-img" />
             )}
             <div className="archivo-capsula-modal-body">
               <div className="archivo-capsula-modal-kicker">
