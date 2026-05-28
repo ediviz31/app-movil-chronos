@@ -1,0 +1,34 @@
+{
+  "summary": "Iter22 — Visitas Virtuales 360° + regresiones iter21. Backend 17/17 PASS. Frontend: /visitas page (30 cards, 7 filtros, window.open AirPano confirmado), CapsulaViewer efeméride muestra ambos botones (Visitar 360° + Ver en mapa), SocialPost muestra icono globo junto a historic-tag, MapaEfemerides carga con 53 markers, ver-visitas-btn presente en /efemerides. ActivosAhora se renderiza en código (ArchiveSidebar.js L76) pero no aparece en UI porque solo 1 cronista activo (test user) — comportamiento correcto.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter22_visitas_virtuales.py",
+    "/app/test_reports/pytest/iter22_visitas.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ActivosAhora: solo se renderiza si total > 0 y el current user está excluido. No se pudo verificar visualmente el bugfix de 'badge en-línea propio' en CommentsSheet sin segundo usuario logueado en paralelo — pero la prop currentUserId está presente en SocialPost→CommentsSheet (verificado por code review).",
+    "Página /archivo redirige a / (home) — confirmado que el componente Feed monta ArchiveSidebar correctamente."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter22_visitas_virtuales.py"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "100%"
+  },
+  "test_credentials": "vizcarrapulidoeddy@gmail.com / chronos2026 (login via POST /api/auth/login {correo, password}, cookie-based session)",
+  "seed_data_creation": "Ninguno. Solo lectura del catálogo curado de 30 visitas.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend usa session cookies (no Bearer token). El catálogo es estático en /app/backend/data/visitas_virtuales.js (30 items). buscarVisita normaliza con NFD+strip-diacritics, prioriza nombre exacto > parcial > geo<60km. URL externa de AirPano se abre en nueva pestaña via window.open con noopener,noreferrer (X-Frame-Options DENY impide iframe). El bugfix ActivosAhora se valida por code review: ArchiveSidebar.js L76 monta <ActivosAhora />, y ActivosAhora retorna null si activos.length===0 — para verificar visualmente, se requiere 2do usuario activo en paralelo. El bugfix badge en-línea propio se valida por code review en SocialPost→CommentsSheet (prop currentUserId).",
+  "rca_of_the_issue": "N/A — no se encontraron bugs en esta iteración. 17/17 backend tests pass: catálogo (4), sugerir/matching (7), ficha+404 (2), regresión capsulas/relatos/presencia (4). Frontend: todos los data-testid del request fueron verificados (visitas-page, visitas-grid, visitas-filtros, filtro-Roma-imperial, visita-card-coliseo-romano, visita-virtual-btn-coliseo-romano, visita-card-map-coliseo-romano, visita-virtual-btn-hagia-sofia, capsule-action-mapa, visita-virtual-icon-hagia-sofia, ver-visitas-btn). El botón visita-virtual-btn-coliseo-romano efectivamente abrió https://www.airpano.com/360photo/italy-rome-colosseum/ en nueva pestaña."
+}

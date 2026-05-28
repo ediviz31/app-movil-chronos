@@ -99,6 +99,19 @@ export const MapIcon = ({ size = 24, ...props }) => (
   </svg>
 );
 
+// Globo terráqueo (visita virtual 360°)
+export const GlobeIcon = ({ size = 24, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" {...baseIcon} {...props}>
+    <circle cx="16" cy="16" r="12" />
+    <ellipse cx="16" cy="16" rx="6" ry="12" />
+    <line x1="4" y1="16" x2="28" y2="16" />
+    <path d="M6 10 Q16 12 26 10" strokeWidth="0.6" opacity="0.7" />
+    <path d="M6 22 Q16 20 26 22" strokeWidth="0.6" opacity="0.7" />
+    <circle cx="16" cy="16" r="1" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+
 // Pluma escribiendo
 export const FeatherIcon = ({ size = 24, ...props }) => (
   <svg width={size} height={size} viewBox="0 0 32 32" {...baseIcon} {...props}>

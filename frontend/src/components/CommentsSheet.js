@@ -318,11 +318,3 @@ const CommentsSheet = ({ relato, isOpen, onClose, onCommentAdded, currentUserAva
 };
 
 export default CommentsSheet;
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
-};
-
-export default CommentsSheet;

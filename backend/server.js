@@ -2374,6 +2374,12 @@ const capsulasRouter = require('./routes/capsulas')({ auth, authOptional });
 app.use('/api/capsulas', capsulasRouter);
 
 // ============================================
+// VISITAS VIRTUALES 360° (catálogo curado)
+// ============================================
+const visitasRouter = require('./routes/visitas')();
+app.use('/api/visitas', visitasRouter);
+
+// ============================================
 // AUDIO NARRACIÓN (TTS) — usa Emergent LLM key
 // ============================================
 const { spawn } = require('child_process');

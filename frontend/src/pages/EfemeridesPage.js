@@ -76,13 +76,25 @@ const EfemeridesPage = () => {
               Un viaje por las fechas que cambiaron el mundo. Navega los meses y
               descubre qué ocurrió cada día de la historia documentada.
             </p>
-            <button
-              className="efemerides-mapa-cta"
-              onClick={() => navigate('/efemerides/mapa')}
-              data-testid="ver-mapa-btn"
-            >
-              <MapIcon size={14} /> Ver mapa histórico
-            </button>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button
+                className="efemerides-mapa-cta"
+                onClick={() => navigate('/efemerides/mapa')}
+                data-testid="ver-mapa-btn"
+              >
+                <MapIcon size={14} /> Ver mapa histórico
+              </button>
+              <button
+                className="efemerides-mapa-cta"
+                onClick={() => navigate('/visitas')}
+                data-testid="ver-visitas-btn"
+                style={{ background: 'linear-gradient(180deg, #d4b878 0%, #a07d3a 100%)', color: '#fff8dc' }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  🌐 Visitas 360°
+                </span>
+              </button>
+            </div>
           </div>
         </header>
 

@@ -17,6 +17,7 @@ import EpocaDetailPage from './pages/EpocaDetailPage';
 import AvisosPage from './pages/AvisosPage';
 import EfemeridesPage from './pages/EfemeridesPage';
 import MapaEfemerides from './pages/MapaEfemerides';
+import Visitas from './pages/Visitas';
 import MiLegado from './pages/MiLegado';
 import ExplorarPage from './pages/ExplorarPage';
 import TagPage from './pages/TagPage';
@@ -40,6 +41,7 @@ import './styles/reading-mode.css';
 import './styles/presence.css';
 import './styles/mapa.css';
 import './styles/capsulas.css';
+import './styles/visitas.css';
 import './styles/theme-light.css';
 
 const LoadingScreen = () => (
@@ -91,6 +93,7 @@ function App() {
           <Route path="/avisos" element={<ProtectedRoute><AvisosPage /></ProtectedRoute>} />
           <Route path="/efemerides" element={<ProtectedRoute><EfemeridesPage /></ProtectedRoute>} />
           <Route path="/efemerides/mapa" element={<ProtectedRoute><MapaEfemerides /></ProtectedRoute>} />
+          <Route path="/visitas" element={<ProtectedRoute><Visitas /></ProtectedRoute>} />
           <Route path="/mi-legado" element={<ProtectedRoute><MiLegado /></ProtectedRoute>} />
           <Route path="/explorar" element={<ProtectedRoute><ExplorarPage /></ProtectedRoute>} />
           <Route path="/tags/:tag" element={<ProtectedRoute><TagPage /></ProtectedRoute>} />

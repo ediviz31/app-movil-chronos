@@ -10,6 +10,28 @@ import {
   HourglassIcon, TempleIcon, MapIcon, ArrowRightIcon, OrnateStarIcon
 } from '../components/HistoricIcons';
 import haptic from '../utils/haptic';
+import VisitaVirtualButton from '../components/VisitaVirtualButton';
+import useVisitaVirtual from '../hooks/useVisitaVirtual';
+
+// Sub-componente: contenido del popup con lookup de visita virtual
+const PopupContent = ({ ev, formatoAnio }) => {
+  const { visita } = useVisitaVirtual({ lugar: ev.lugar, lat: ev.lat, lng: ev.lng });
+  return (
+    <div className="chronos-popup-content">
+      <span className="chronos-popup-anio">{formatoAnio(ev.anio)}</span>
+      <h3>{ev.evento}</h3>
+      <p className="chronos-popup-lugar">
+        <MapIcon size={11} /> {ev.lugar}
+      </p>
+      <span className="chronos-popup-epoca">{ev.epoca}</span>
+      {visita && (
+        <div style={{ marginTop: 10 }}>
+          <VisitaVirtualButton visita={visita} variant="pill" />
+        </div>
+      )}
+    </div>
+  );
+};
 
 // Icono personalizado: punto dorado con halo
 const goldIcon = L.divIcon({
@@ -148,14 +170,7 @@ const MapaEfemerides = () => {
                   }}
                 >
                   <Popup className="chronos-popup">
-                    <div className="chronos-popup-content">
-                      <span className="chronos-popup-anio">{formatoAnio(ev.anio)}</span>
-                      <h3>{ev.evento}</h3>
-                      <p className="chronos-popup-lugar">
-                        <MapIcon size={11} /> {ev.lugar}
-                      </p>
-                      <span className="chronos-popup-epoca">{ev.epoca}</span>
-                    </div>
+                    <PopupContent ev={ev} formatoAnio={formatoAnio} />
                   </Popup>
                 </Marker>
               ))}

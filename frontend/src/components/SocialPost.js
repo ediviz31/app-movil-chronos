@@ -11,6 +11,8 @@ import CommentsSheet from './CommentsSheet';
 import PresenceBadge from './PresenceBadge';
 import NarrarBtn from './NarrarBtn';
 import { buildHistoricTag } from '../utils/historicTime';
+import VisitaVirtualButton from './VisitaVirtualButton';
+import useVisitaVirtual from '../hooks/useVisitaVirtual';
 
 const formatFechaRelativa = (fecha) => {
   const date = new Date(fecha);
@@ -36,6 +38,12 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
   const [totalComentarios, setTotalComentarios] = useState(relato.total_comentarios || 0);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+
+  // Lookup de visita virtual basada en el indicador histórico
+  const { visita: visitaRelato } = useVisitaVirtual({
+    lugar: relato.historia_lugar,
+    lat: null, lng: null
+  });
   const [ecoBurst, setEcoBurst] = useState(false);
 
   const handleEco = async () => {
@@ -121,6 +129,9 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
             return tag ? (
               <div className="social-post-historic-tag" data-testid={`historic-tag-${relato._id}`}>
                 <span aria-hidden="true">◆</span> {tag}
+                {visitaRelato && (
+                  <VisitaVirtualButton visita={visitaRelato} variant="icon" />
+                )}
               </div>
             ) : null;
           })()}

@@ -12,6 +12,8 @@ import { getAvatarUrl } from '../utils/imageHelpers';
 import { CloseIcon, HourglassIcon, MapIcon, FeatherIcon } from './HistoricIcons';
 import { yearToCentury } from '../utils/historicTime';
 import haptic from '../utils/haptic';
+import VisitaVirtualButton from './VisitaVirtualButton';
+import useVisitaVirtual from '../hooks/useVisitaVirtual';
 
 const DURATION_MS = 6000;
 const TICK_MS = 50;
@@ -98,6 +100,16 @@ const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto }) => {
   const isCronista = current.tipo === 'cronista';
   const user = current.usuario_id;
   const century = yearToCentury(current.anio);
+
+  // Consultamos si hay visita virtual disponible para esta cápsula
+  // (solo para efemérides y cápsulas con lugar / coordenadas)
+  /* eslint-disable react-hooks/rules-of-hooks */
+  const { visita } = useVisitaVirtual(
+    isCronista || isEfemeride
+      ? { lugar: current.lugar, lat: current.lat, lng: current.lng }
+      : {}
+  );
+  /* eslint-enable react-hooks/rules-of-hooks */
 
   const handleTapZone = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -218,17 +230,22 @@ const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto }) => {
           </div>
         </div>
 
-        {/* Acciones (ver en mapa para efeméride) */}
-        {isEfemeride && current.lat !== null && current.lat !== undefined && (
+        {/* Acciones: Ver en mapa + Visitar en 360° */}
+        {(isEfemeride || isCronista) && (current.lat !== null && current.lat !== undefined || visita) && (
           <div className="capsule-viewer-actions">
-            <button
-              type="button"
-              className="capsule-action-btn"
-              onClick={goToMap}
-              data-testid="capsule-action-mapa"
-            >
-              <MapIcon size={16} /> Ver en el mapa
-            </button>
+            {visita && (
+              <VisitaVirtualButton visita={visita} variant="pill" />
+            )}
+            {isEfemeride && current.lat !== null && current.lat !== undefined && (
+              <button
+                type="button"
+                className="capsule-action-btn"
+                onClick={goToMap}
+                data-testid="capsule-action-mapa"
+              >
+                <MapIcon size={16} /> Ver en el mapa
+              </button>
+            )}
           </div>
         )}
       </div>
