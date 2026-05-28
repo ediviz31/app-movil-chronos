@@ -45,14 +45,14 @@ const ArchiveSidebar = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleSeguir = async (id) => {
-    setLoadingFollow({ ...loadingFollow, [id]: true });
+    setLoadingFollow(prev => ({ ...prev, [id]: true }));
     try {
       await api.post(`/seguir/${id}`);
-      setUsuariosSugeridos(usuariosSugeridos.filter(u => u._id !== id));
+      setUsuariosSugeridos(prev => prev.filter(u => u._id !== id));
     } catch (error) {
-      console.error(error);
+      console.error('Error seguir:', error);
     } finally {
-      setLoadingFollow({ ...loadingFollow, [id]: false });
+      setLoadingFollow(prev => ({ ...prev, [id]: false }));
     }
   };
 
@@ -195,7 +195,7 @@ const ArchiveSidebar = () => {
                 }}
                 data-testid={`seguir-${usuario._id}`}
               >
-                {loadingFollow[usuario._id] ? '...' : 'Seguir'}
+                {loadingFollow[usuario._id] ? 'Sellando…' : 'Seguir legado'}
               </button>
             </div>
           ))

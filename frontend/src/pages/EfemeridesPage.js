@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import PageShell from '../components/PageShell';
 import {
-  CalendarIcon, HourglassIcon, ArrowRightIcon, OrnateStarIcon, TempleIcon
+  CalendarIcon, HourglassIcon, ArrowRightIcon, OrnateStarIcon, TempleIcon, MapIcon
 } from '../components/HistoricIcons';
 
 const MESES = [
@@ -76,6 +76,13 @@ const EfemeridesPage = () => {
               Un viaje por las fechas que cambiaron el mundo. Navega los meses y
               descubre qué ocurrió cada día de la historia documentada.
             </p>
+            <button
+              className="efemerides-mapa-cta"
+              onClick={() => navigate('/efemerides/mapa')}
+              data-testid="ver-mapa-btn"
+            >
+              <MapIcon size={14} /> Ver mapa histórico
+            </button>
           </div>
         </header>
 

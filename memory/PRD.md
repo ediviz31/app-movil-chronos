@@ -398,6 +398,41 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 - `/app/frontend/src/components/CommentsSheet.js` — typing indicator + handleInputChange throttled
 - `/app/frontend/src/pages/MisivasPage.js` — dot + torch en header
 
+### Fase 19 — Atlas del Cronista (mapa interactivo) + Refinamiento feed (Feb 28, 2026)
+
+**🗺️ Mapa interactivo `/efemerides/mapa`:**
+- **53 efemérides geolocalizadas** (de 55 totales) curadas a mano con `lugar`, `lat`, `lng` en `efemerides.js`
+- **Endpoint:** `GET /api/efemerides/mapa` devuelve eventos ordenados cronológicamente
+- **Frontend:** `react-leaflet@5.0.0` + `leaflet@1.9.4` + tiles **Carto Dark Matter** (sin API key)
+- **Marcadores dorados pulsantes** SVG custom con halo expansivo (`chronos-marker-pulse`)
+- **Marcador activo** crece y cambia a tonos naranja-fuego con sombra dorada
+- **Popup elegante** estilo Chronos: año (a.C./d.C.), título italic, lugar con icono mapa, pill de época
+- **Filtros por época** horizontales (Todas, Antigüedad, Roma Imperial, Edad Media, Moderna, Contemporánea, Egipto antiguo) cada uno con color identificador
+- **Línea de tiempo horizontal abajo**: scroll horizontal con cards "AÑO · LUGAR", click hace fly-to en el mapa
+- **Tema-aware**: tiles cambian a Carto Voyager en tema claro pergamino
+- **Botón CTA en `/efemerides`**: "Ver mapa histórico" pill dorado
+- Bottom nav respetado, FAB oculto (no aplica), MobileSubBar oculta (no necesaria)
+
+**🎨 Refinamiento del feed (a petición del usuario):**
+- **Eliminados bordes encajonados** en cards: ahora edge-to-edge con sólo border-bottom sepia (estilo Twitter/Instagram)
+- **Composer sin caja**: fondo translúcido sutil
+- **Nombre del autor protagonista**: 17px serif italic 600 dorado brillante con letter-spacing
+- **Avatar 46px** (antes 40px) más prominente
+- **Iconos de acción 20px** (antes 18px) con label inferior
+- **Nombres en Resonancias 15px** (antes 14px)
+
+**🐛 Bug-fix botón "Seguir":**
+- Arreglados los 3 lugares (ArchiveSidebar, Rightbar, Profile) que podían atorarse en "..."
+- Funcional updater + finally block garantiza reset incluso en error
+- Labels Chronos: "Sellando…" durante carga, "✓ Siguiendo" / "Seguir legado"
+
+**Archivos clave:**
+- `/app/backend/data/efemerides.js` — enriquecido con lat/lng/lugar
+- `/app/backend/server.js` — endpoint `/api/efemerides/mapa`
+- `/app/frontend/src/pages/MapaEfemerides.js` (nuevo, ~180 líneas)
+- `/app/frontend/src/styles/mapa.css` (nuevo, ~260 líneas)
+- `/app/frontend/package.json` — `leaflet`, `react-leaflet` añadidos
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
 - `/explorar` ← Fase 5

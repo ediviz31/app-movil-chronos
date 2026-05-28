@@ -241,10 +241,11 @@
 @media (max-width: 900px) {
   .feed-greeting {
     background: linear-gradient(180deg, rgba(20, 34, 64, 0.55), rgba(10, 18, 38, 0.65));
-    border: 1px solid var(--gold-soft);
-    border-radius: 8px;
-    padding: 16px 18px 18px !important;
-    margin-bottom: 14px;
+    border: none;
+    border-bottom: 1px solid var(--gold-soft);
+    border-radius: 0;
+    padding: 18px 14px 22px !important;
+    margin: 0 -14px 4px !important;
     position: relative;
     overflow: hidden;
   }
@@ -272,14 +273,29 @@
     color: var(--text-default);
     opacity: 0.85;
   }
-  /* Cards centradas, edge-to-edge controlado */
-  .social-post, .weekly-highlight, .relato-join-cta {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    border-radius: 8px;
-    border: 1px solid var(--border-thin);
-    width: 100%;
+  /* Cards SIN bordes pesados: edge-to-edge con sólo separador inferior */
+  .social-post, .relato-join-cta {
+    margin: 0 -14px !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-bottom: 1px solid var(--border-thin) !important;
+    width: calc(100% + 28px);
     box-sizing: border-box;
+    background: transparent !important;
+    padding: 4px 0 !important;
+  }
+  .social-composer {
+    margin: 0 -14px 4px !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-bottom: 1px solid var(--border-thin) !important;
+    width: calc(100% + 28px);
+    box-sizing: border-box;
+    background: rgba(15, 26, 51, 0.4) !important;
+  }
+  /* WeeklyHighlight conserva su marco ornamental (intencional) */
+  .weekly-highlight {
+    margin: 4px 0 8px !important;
   }
 }
 
@@ -316,22 +332,33 @@
 
 /* ---- Post card refinada (estilo mockup) ---- */
 @media (max-width: 900px) {
-  .social-post-header { padding: 14px 14px 10px !important; gap: 10px !important; }
-  .social-post-avatar { width: 40px !important; height: 40px !important; }
-  .social-post-author { font-size: 15px !important; gap: 6px; }
+  .social-post-header { padding: 16px 14px 10px !important; gap: 12px !important; }
+  .social-post-avatar { width: 46px !important; height: 46px !important; }
+  /* NOMBRE DEL AUTOR — protagonista */
+  .social-post-author {
+    font-size: 17px !important;
+    font-family: var(--font-display) !important;
+    font-weight: 600 !important;
+    color: var(--gold-bright) !important;
+    letter-spacing: 0.01em !important;
+    gap: 8px;
+    line-height: 1.2;
+  }
   .social-post-author .epoch-tag {
     font-size: 9px !important;
     padding: 3px 8px !important;
-    letter-spacing: 0.15em !important;
+    letter-spacing: 0.18em !important;
+    font-weight: 500;
+    flex-shrink: 0;
   }
-  .social-post-info { font-size: 11px !important; margin-top: 2px; }
-  .social-post-body { padding: 0 14px 12px !important; }
+  .social-post-info { font-size: 12px !important; margin-top: 3px; opacity: 0.85; }
+  .social-post-body { padding: 0 14px 14px !important; }
   .social-post-title { font-size: 17px !important; line-height: 1.25 !important; margin-bottom: 6px !important; }
-  .social-post-content { font-size: 13.5px !important; line-height: 1.55 !important; }
+  .social-post-content { font-size: 14px !important; line-height: 1.55 !important; }
   .social-post-stats { padding: 8px 14px !important; gap: 12px; font-size: 11px; }
   .social-post-actions {
     grid-template-columns: 1fr 1fr 1fr 1fr !important;
-    padding: 4px 6px !important;
+    padding: 4px 6px 10px !important;
     gap: 4px !important;
   }
   .social-action-btn {
@@ -343,7 +370,7 @@
     letter-spacing: 0.02em;
   }
   .social-action-btn span { display: inline !important; }
-  .social-action-btn svg { width: 18px !important; height: 18px !important; }
+  .social-action-btn svg { width: 20px !important; height: 20px !important; }
 
   /* === Comentarios: caja con respiración === */
   .comments-section {

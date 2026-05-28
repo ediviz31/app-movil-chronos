@@ -47,14 +47,14 @@ const Rightbar = () => {
   }, [fetchData]);
 
   const handleSeguir = async (usuarioId) => {
-    setLoadingFollow({ ...loadingFollow, [usuarioId]: true });
+    setLoadingFollow(prev => ({ ...prev, [usuarioId]: true }));
     try {
       await api.post(`/seguir/${usuarioId}`);
-      setUsuariosSugeridos(usuariosSugeridos.filter(u => u._id !== usuarioId));
+      setUsuariosSugeridos(prev => prev.filter(u => u._id !== usuarioId));
     } catch (error) {
       console.error('Error al seguir:', error);
     } finally {
-      setLoadingFollow({ ...loadingFollow, [usuarioId]: false });
+      setLoadingFollow(prev => ({ ...prev, [usuarioId]: false }));
     }
   };
 
@@ -101,7 +101,7 @@ const Rightbar = () => {
                 disabled={loadingFollow[usuario._id]}
                 data-testid={`btn-seguir-${usuario._id}`}
               >
-                {loadingFollow[usuario._id] ? '...' : 'Seguir legado'}
+                {loadingFollow[usuario._id] ? 'Sellando…' : 'Seguir legado'}
               </button>
             </div>
           ))

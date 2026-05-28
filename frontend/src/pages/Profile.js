@@ -265,7 +265,7 @@ const Profile = () => {
                         className={`profile-action-btn ${stats.esSeguido ? 'secondary' : 'primary'}`}
                         data-testid="profile-follow-btn"
                       >
-                        {followLoading ? '...' : (stats.esSeguido ? 'Siguiendo' : 'Seguir')}
+                        {followLoading ? 'Sellando…' : (stats.esSeguido ? '✓ Siguiendo' : 'Seguir legado')}
                       </button>
                     </>
                   )}

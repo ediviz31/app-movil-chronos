@@ -1280,6 +1280,38 @@ app.get('/api/efemerides/calendario/:year/:month', auth, async (req, res) => {
   }
 });
 
+// Mapa: todas las efemérides geolocalizadas (lat/lng disponibles)
+app.get('/api/efemerides/mapa', auth, async (req, res) => {
+  try {
+    const { EFEMERIDES } = require('./data/efemerides');
+    const eventos = [];
+    for (const [fecha, lista] of Object.entries(EFEMERIDES)) {
+      const [mm, dd] = fecha.split('-').map(Number);
+      lista.forEach((ev, idx) => {
+        if (typeof ev.lat !== 'number' || typeof ev.lng !== 'number') return;
+        eventos.push({
+          id: `${fecha}-${idx}`,
+          fecha, mes: mm, dia: dd,
+          anio: ev.anio,
+          evento: ev.evento,
+          epoca: ev.epoca,
+          lugar: ev.lugar,
+          lat: ev.lat,
+          lng: ev.lng
+        });
+      });
+    }
+    // Ordenar cronológicamente por año
+    eventos.sort((a, b) => a.anio - b.anio);
+    res.json({ total: eventos.length, eventos });
+  } catch (error) {
+    console.error('Error mapa efemérides:', error);
+    res.status(500).json({ error: 'Error al obtener mapa' });
+  }
+});
+
+
+
 // ============================================
 // RUTAS DE PREFERENCIAS (sonido + árbol público)
 // ============================================

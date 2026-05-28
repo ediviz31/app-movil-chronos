@@ -1,0 +1,276 @@
+/* =====================================================
+   CHRONOS — Atlas del Cronista (mapa interactivo)
+   ===================================================== */
+
+.mapa-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 56px);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.mapa-header {
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid var(--border-thin);
+  background: linear-gradient(180deg, rgba(15, 26, 51, 0.6), rgba(6, 13, 30, 0.4));
+}
+.mapa-back {
+  background: transparent;
+  border: none;
+  color: var(--gold);
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.mapa-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-elegant);
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.mapa-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 26px;
+  color: var(--gold-bright);
+  margin: 6px 0 4px;
+  letter-spacing: 0.01em;
+}
+.mapa-subtitle {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+.mapa-filtros {
+  display: flex;
+  gap: 6px;
+  padding: 10px 14px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid var(--border-thin);
+  background: rgba(6, 13, 30, 0.5);
+  scrollbar-width: none;
+}
+.mapa-filtros::-webkit-scrollbar { display: none; }
+.mapa-filtro {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--border-thin);
+  color: var(--text-muted);
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+}
+.mapa-filtro:active { transform: scale(0.97); }
+.mapa-filtro.active { background: var(--gold-ghost); }
+.mapa-filtro-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.mapa-canvas-wrap {
+  flex: 1;
+  position: relative;
+  background: var(--bg-deep);
+  min-height: 280px;
+}
+.mapa-canvas {
+  /* Quitamos filtros que rompen colores: el tema Dark Matter ya es oscuro */
+}
+html[data-theme="light"] .mapa-canvas {
+  /* En tema claro reseteamos a normal */
+}
+
+/* Marker custom */
+.chronos-map-marker { background: transparent !important; border: none !important; }
+.chronos-marker-dot {
+  position: relative;
+  width: 22px; height: 22px;
+  background: radial-gradient(circle, #FFD66E 0%, #D4B878 60%, #8B6E1F 100%);
+  border: 2px solid #060D1E;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(212, 184, 120, 0.6), 0 2px 6px rgba(0,0,0,0.5);
+  cursor: pointer;
+}
+.chronos-marker-dot-active {
+  width: 28px; height: 28px;
+  background: radial-gradient(circle, #FFF3C8 0%, #FFA94D 50%, #C97818 100%);
+  box-shadow: 0 0 0 2px rgba(255, 169, 77, 0.4), 0 0 18px rgba(255, 169, 77, 0.6);
+}
+.chronos-marker-pulse {
+  position: absolute;
+  inset: -4px;
+  border: 2px solid rgba(212, 184, 120, 0.4);
+  border-radius: 50%;
+  animation: chronos-marker-pulse 2.4s ease-out infinite;
+}
+@keyframes chronos-marker-pulse {
+  0%   { transform: scale(0.8); opacity: 0.9; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+/* Popup styling */
+.leaflet-popup-content-wrapper {
+  background: #0F1A33 !important;
+  color: var(--text-default) !important;
+  border: 1px solid var(--gold-soft) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.5) !important;
+}
+.leaflet-popup-tip { background: #0F1A33 !important; border-top: 1px solid var(--gold-soft); }
+.leaflet-popup-close-button { color: var(--gold) !important; }
+.chronos-popup-content { padding: 4px 6px; min-width: 200px; }
+.chronos-popup-anio {
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.chronos-popup-content h3 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--gold-bright);
+  font-size: 15px;
+  margin: 6px 0 8px;
+  line-height: 1.3;
+}
+.chronos-popup-lugar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 6px;
+}
+.chronos-popup-epoca {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid var(--gold-soft);
+  background: var(--gold-ghost);
+  color: var(--gold);
+  font-family: var(--font-elegant);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+html[data-theme="light"] .leaflet-popup-content-wrapper {
+  background: #FBF5E4 !important;
+  color: var(--text-default) !important;
+}
+html[data-theme="light"] .leaflet-popup-tip { background: #FBF5E4 !important; }
+html[data-theme="light"] .chronos-popup-content h3 { color: #1F1408; }
+
+/* Timeline horizontal */
+.mapa-timeline {
+  background: linear-gradient(180deg, rgba(6, 13, 30, 0.94), rgba(6, 13, 30, 0.98));
+  border-top: 1px solid var(--gold-soft);
+  padding: 8px 0;
+}
+.mapa-timeline-track {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 14px 8px;
+  scrollbar-width: none;
+}
+.mapa-timeline-track::-webkit-scrollbar { display: none; }
+.mapa-timeline-event {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-thin);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-display);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  min-width: 90px;
+}
+.mapa-timeline-event:active { transform: scale(0.97); }
+.mapa-timeline-event.active {
+  background: var(--gold-ghost);
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+.mapa-timeline-anio {
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.mapa-timeline-lugar {
+  font-size: 12px;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+
+/* CTA "Ver mapa histórico" en EfemeridesPage */
+.efemerides-mapa-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  color: var(--bg-deep);
+  border: none;
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(212, 184, 120, 0.3);
+  transition: transform 0.12s ease, box-shadow 0.18s ease;
+}
+.efemerides-mapa-cta:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(212, 184, 120, 0.4);
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  .mapa-page { height: calc(100vh - 56px - env(safe-area-inset-bottom, 0px) - 64px); }
+  .mapa-header { padding: 14px 14px 10px; }
+  .mapa-title { font-size: 22px; }
+  .mapa-subtitle { font-size: 12px; }
+  .mapa-filtros { padding: 8px 12px; }
+}
