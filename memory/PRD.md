@@ -291,6 +291,19 @@ Dataset curado de ~55 efemérides reales, página `/efemerides` con calendario n
 
 **Testing:** `iteration_18.json` — 10/11 PASS (un edge case menor de re-render fixed).
 
+### Fase 15 — Bottom-sheet de Resonancias (comentarios cómodos) (Feb 28, 2026)
+**Reemplaza la sección inline apretada de comentarios por un bottom-sheet estilo TikTok pero con estética Chronos:**
+- `CommentsSheet.js` (nuevo, ~210 líneas): sube desde abajo con drag handle dorado, backdrop translúcido, swipe-to-close en la cabecera
+- Lista scrollable con avatares grandes (40px), padding generoso, divisores sepia, animación fade-in por item
+- Empty state ornamental con `ParchmentIcon` + "Sé el primero en valorar esta crónica"
+- Cabecera grid 3-col: kicker "SALA CHRONOS" · título cursiva "Resonancias" · botón cerrar
+- Input sticky al fondo: avatar pequeño + textarea pill italic + botón pluma circular dorado
+- Optimistic comment append (aparece al instante, se reconcilia con el server)
+- `haptic.light()` al enviar comentario
+- Estilos completos en `/app/frontend/src/styles/comments-sheet.css` (~250 líneas) con override tema claro pergamino
+- `SocialPost.js` ahora abre el sheet en lugar de mostrar comentarios inline. Toggle desde botón "Comentar" del post.
+- `data-testid`s nuevos: `comments-sheet`, `comments-sheet-backdrop`, `comments-sheet-input`, `comments-sheet-send`, `comments-sheet-close`, `comment-{id}`
+
 ## Rutas Frontend (actualizadas)
 - `/` Feed (con `<WeeklyHighlight>` semanal)
 - `/explorar` ← Fase 5

@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import haptic from '../utils/haptic';
+import { useAuth } from '../context/AuthContext';
 import { getImageUrl, getAvatarUrl } from '../utils/imageHelpers';
 import { CoinLaurelIcon, ParchmentIcon, DoveScrollIcon, ChestIcon, TabletDaggerIcon } from './HistoricIcons';
 import HashtagText from './HashtagText';
 import ShareChronicleModal from './ShareChronicleModal';
+import CommentsSheet from './CommentsSheet';
 
 const formatFechaRelativa = (fecha) => {
   const date = new Date(fecha);
@@ -24,14 +26,12 @@ const formatFechaRelativa = (fecha) => {
 
 const SocialPost = ({ relato, currentUserId, onDelete }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [dioEco, setDioEco] = useState(relato.usuario_dio_eco);
   const [totalEcos, setTotalEcos] = useState(relato.total_ecos);
   const [archivado, setArchivado] = useState(relato.usuario_archivado);
   const [totalComentarios, setTotalComentarios] = useState(relato.total_comentarios || 0);
-  const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
-  const [posting, setPosting] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
   const handleEco = async () => {
@@ -60,34 +60,19 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
   };
 
   const fetchComments = useCallback(async () => {
+    // Mantenido por compatibilidad pero ya no se usa inline
     try {
       const response = await api.get(`/comentarios/${relato._id}`);
-      setComments(response.data);
-    } catch (e) { console.error(e); }
+      return response.data;
+    } catch (e) { return []; }
   }, [relato._id]);
 
   const toggleComments = () => {
-    if (!showComments) fetchComments();
-    setShowComments(!showComments);
+    setCommentsOpen(true);
   };
 
-  const handleAddComment = async (e) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
-    setPosting(true);
-    try {
-      await api.post('/comentarios', {
-        publicacion_id: relato._id,
-        contenido: newComment.trim()
-      });
-      setNewComment('');
-      setTotalComentarios(totalComentarios + 1);
-      fetchComments();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setPosting(false);
-    }
+  const handleCommentAdded = () => {
+    setTotalComentarios(prev => prev + 1);
   };
 
   const usuario = relato.usuario_id;
@@ -189,7 +174,7 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
         </button>
         <button
           onClick={toggleComments}
-          className={`social-action-btn ${showComments ? 'active' : ''}`}
+          className={`social-action-btn ${commentsOpen ? 'active' : ''}`}
           data-testid={`btn-valorar-${relato._id}`}
           title="Comentar"
         >
@@ -216,45 +201,15 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
         </button>
       </div>
 
-      {/* Comentarios */}
-      {showComments && (
-        <div className="comments-section" data-testid={`comments-${relato._id}`}>
-          {comments.length > 0 && (
-            <div className="comments-list">
-              {comments.map(c => (
-                <div key={c._id} className="comment-item">
-                  <div className="comment-avatar">
-                    <img src={getAvatarUrl(c.usuario_id)} alt={c.usuario_id?.nombre} />
-                  </div>
-                  <div className="comment-bubble">
-                    <div className="comment-author">{c.usuario_id?.nombre}</div>
-                    <div className="comment-text">{c.contenido}</div>
-                    <div className="comment-date">{formatFechaRelativa(c.creado_en)}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          <form className="comment-form" onSubmit={handleAddComment}>
-            <input
-              type="text"
-              className="comment-form-input"
-              placeholder="Comparte tu valoración..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              data-testid={`comment-input-${relato._id}`}
-            />
-            <button
-              type="submit"
-              className="comment-form-btn"
-              disabled={posting || !newComment.trim()}
-              data-testid={`comment-submit-${relato._id}`}
-            >
-              {posting ? '...' : 'Enviar'}
-            </button>
-          </form>
-        </div>
-      )}
+      {/* Comentarios (bottom-sheet) */}
+      <CommentsSheet
+        relato={relato}
+        isOpen={commentsOpen}
+        onClose={() => setCommentsOpen(false)}
+        onCommentAdded={handleCommentAdded}
+        currentUserAvatar={getAvatarUrl(user)}
+        currentUserName={user?.nombre || 'Cronista'}
+      />
 
       <ShareChronicleModal
         relato={relato}

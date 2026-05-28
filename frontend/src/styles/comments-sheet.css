@@ -1,0 +1,297 @@
+/* =====================================================
+   CHRONOS — Bottom-sheet de Resonancias (comentarios)
+   Estilo: TikTok/Instagram comfort + Chronos paleta
+   ===================================================== */
+
+.comments-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: csheet-fade 0.22s ease;
+}
+@keyframes csheet-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.comments-sheet {
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  background: linear-gradient(180deg, #0F1A33 0%, #060D1E 100%);
+  border-top: 1px solid var(--gold-soft);
+  border-left: 1px solid var(--gold-soft);
+  border-right: 1px solid var(--gold-soft);
+  border-radius: 18px 18px 0 0;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.55);
+  animation: csheet-slide 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+@keyframes csheet-slide {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* ---- Cabecera ---- */
+.comments-sheet-handle-area {
+  padding: 10px 18px 6px;
+  border-bottom: 1px solid var(--border-thin);
+  flex-shrink: 0;
+  cursor: grab;
+}
+.comments-sheet-handle {
+  width: 44px;
+  height: 4px;
+  background: var(--gold-soft);
+  border-radius: 2px;
+  margin: 0 auto 8px;
+}
+.comments-sheet-head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+.comments-sheet-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-elegant);
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.85;
+  justify-self: start;
+}
+.comments-sheet-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 22px;
+  color: var(--gold-bright);
+  text-align: center;
+  margin: 0;
+  letter-spacing: 0.01em;
+  justify-self: center;
+}
+.comments-sheet-close {
+  justify-self: end;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border-thin);
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.comments-sheet-close:active {
+  color: var(--gold);
+  border-color: var(--gold-soft);
+}
+
+/* ---- Lista ---- */
+.comments-sheet-list {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 18px 4px;
+  scroll-behavior: smooth;
+}
+.comments-sheet-list::-webkit-scrollbar { width: 4px; }
+.comments-sheet-list::-webkit-scrollbar-thumb { background: var(--gold-soft); border-radius: 2px; }
+
+.comments-sheet-loading,
+.comments-sheet-empty {
+  text-align: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--text-muted);
+  padding: 36px 16px;
+  font-size: 14px;
+}
+.comments-sheet-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.comments-sheet-empty p { margin: 0; }
+
+/* ---- Item de comentario ---- */
+.comments-sheet-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--border-thin);
+  animation: csheet-item-in 0.32s ease;
+}
+.comments-sheet-item:last-of-type { border-bottom: none; }
+@keyframes csheet-item-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.comments-sheet-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gold-soft);
+  overflow: hidden;
+  background: var(--bg-deep);
+  flex-shrink: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.comments-sheet-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(0.18);
+  display: block;
+}
+
+.comments-sheet-body { flex: 1; min-width: 0; }
+.comments-sheet-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.comments-sheet-meta strong {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-bright);
+  letter-spacing: 0.01em;
+}
+.comments-sheet-time {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.comments-sheet-text {
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--text-default);
+  word-break: break-word;
+}
+
+.comments-sheet-bottom-spacer { height: 16px; }
+
+/* ---- Form sticky de respuesta ---- */
+.comments-sheet-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0));
+  background: linear-gradient(180deg, rgba(6, 13, 30, 0.85) 0%, rgba(6, 13, 30, 0.98) 100%);
+  border-top: 1px solid var(--gold-soft);
+  flex-shrink: 0;
+}
+.comments-sheet-form-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gold);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg-deep);
+}
+.comments-sheet-form-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(0.18);
+  display: block;
+}
+.comments-sheet-form-input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(6, 13, 30, 0.55);
+  border: 1px solid var(--border-thin);
+  border-radius: 22px;
+  padding: 11px 18px;
+  color: var(--text-default);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14.5px;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.comments-sheet-form-input::placeholder { color: var(--text-muted); }
+.comments-sheet-form-input:focus {
+  border-color: var(--gold-soft);
+  background: rgba(6, 13, 30, 0.75);
+}
+.comments-sheet-form-send {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  color: var(--bg-deep);
+  border: none;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+.comments-sheet-form-send:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+}
+.comments-sheet-form-send:not(:disabled):active {
+  transform: scale(0.92);
+  box-shadow: 0 0 0 4px var(--gold-ghost);
+}
+
+/* ---- Mobile <=900px: sheet ocupa altura cómoda ---- */
+@media (max-width: 900px) {
+  .comments-sheet { max-height: 88vh; border-radius: 16px 16px 0 0; }
+  .comments-sheet-title { font-size: 20px; }
+  .comments-sheet-list { padding: 12px 14px 4px; }
+  .comments-sheet-item { gap: 10px; padding: 10px 2px; }
+  .comments-sheet-avatar { width: 36px; height: 36px; }
+  .comments-sheet-text { font-size: 14px; }
+  .comments-sheet-form { padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0)); }
+  .comments-sheet-form-input { font-size: 16px !important; padding: 10px 16px; } /* 16px evita auto-zoom iOS */
+  .comments-sheet-form-send { width: 40px; height: 40px; }
+}
+
+/* ---- Tema claro: pergamino ---- */
+html[data-theme="light"] .comments-sheet {
+  background: linear-gradient(180deg, #FBF5E4 0%, #F4ECD8 100%);
+  border-color: var(--gold-soft);
+}
+html[data-theme="light"] .comments-sheet-backdrop {
+  background: rgba(60, 40, 18, 0.45);
+}
+html[data-theme="light"] .comments-sheet-form {
+  background: linear-gradient(180deg, rgba(251, 245, 228, 0.95) 0%, #F4ECD8 100%);
+}
+html[data-theme="light"] .comments-sheet-form-input {
+  background: rgba(255, 250, 235, 0.92);
+  color: var(--text-default);
+}
+html[data-theme="light"] .comments-sheet-form-send {
+  color: var(--bg-deep);
+  background: linear-gradient(180deg, var(--gold), var(--gold-deep));
+}
+html[data-theme="light"] .comments-sheet-avatar,
+html[data-theme="light"] .comments-sheet-form-avatar { background: var(--gold-ghost); }
+html[data-theme="light"] .comments-sheet-avatar img,
+html[data-theme="light"] .comments-sheet-form-avatar img { filter: none; }
