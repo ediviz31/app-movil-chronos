@@ -37,13 +37,13 @@
   }
 }
 
-/* ---- Tipografía táctil y prevención de zoom iOS ---- */
+/* ---- Tipografía táctil y prevención AGRESIVA de zoom iOS/Android ---- */
 @media (max-width: 900px) {
   html {
     /* Evita el ajuste automático de tipografía al rotar */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    /* Deshabilita el double-tap-to-zoom de iOS/Android */
+    /* Deshabilita el double-tap-to-zoom y pinch-zoom */
     touch-action: manipulation;
   }
   body {
@@ -53,12 +53,16 @@
     -webkit-overflow-scrolling: touch;
     /* Disable pull-to-refresh accidental dentro de la app */
     overscroll-behavior-y: contain;
-    /* Sin zoom por gestos */
-    touch-action: pan-x pan-y;
+    /* SIN pinch-zoom: solo pan vertical (Android Chrome respeta esto incluso si
+       el viewport meta es ignorado tras instalar la PWA) */
+    touch-action: pan-y;
   }
-  /* Imágenes/SVG/medios: bloquear pinch-zoom específicamente */
-  img, video, svg, canvas, .social-post-image, .relato-figure {
-    touch-action: pan-x pan-y;
+  /* Imágenes/SVG/medios: bloquear cualquier gesto incluyendo pinch */
+  img, video, svg, canvas, .social-post-image, .relato-figure,
+  .archivo-capsula-bg, .capsule-circle img {
+    touch-action: pan-y;
+    -webkit-user-drag: none;
+    user-drag: none;
   }
   /* Permitir selección sólo en contenido leíble */
   .relato-content, .relato-title, .social-post-content, .social-post-title,

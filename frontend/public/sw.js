@@ -10,7 +10,7 @@
  *  - Llamadas /api/**: pasar directo a la red (sin caché — evita estados rancios)
  */
 
-const SW_VERSION = 'chronos-v3-stable';
+const SW_VERSION = 'chronos-v4-nozoom';
 const STATIC_CACHE = `chronos-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `chronos-runtime-${SW_VERSION}`;
 
