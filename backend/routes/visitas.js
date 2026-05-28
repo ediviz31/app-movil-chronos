@@ -8,6 +8,17 @@
 
 const express = require('express');
 const { VISITAS_VIRTUALES, buscarVisita } = require('../data/visitas_virtuales');
+const PANORAMAS_360 = require('../data/visitas_360_imagenes');
+
+/**
+ * Enriquece una visita con la URL panorámica 360° si la tenemos en el catálogo interno.
+ * Devuelve { ...visita, panorama_360 } siempre que el slug esté mapeado.
+ */
+function enriquecer(v) {
+  if (!v) return v;
+  const panorama_360 = PANORAMAS_360[v.slug] || null;
+  return { ...v, panorama_360, soporta_360_interno: !!panorama_360 };
+}
 
 module.exports = function createVisitasRouter() {
   const router = express.Router();
@@ -18,7 +29,8 @@ module.exports = function createVisitasRouter() {
     if (epoca) {
       items = items.filter(v => v.epoca === epoca);
     }
-    res.json({ total: items.length, items });
+    const enriched = items.map(enriquecer);
+    res.json({ total: enriched.length, items: enriched });
   });
 
   router.get('/sugerir', (req, res) => {
@@ -29,13 +41,13 @@ module.exports = function createVisitasRouter() {
       lng: lng !== undefined ? Number(lng) : null
     });
     if (!visita) return res.json({ disponible: false });
-    res.json({ disponible: true, visita });
+    res.json({ disponible: true, visita: enriquecer(visita) });
   });
 
   router.get('/:slug', (req, res) => {
     const v = VISITAS_VIRTUALES.find(x => x.slug === req.params.slug);
     if (!v) return res.status(404).json({ error: 'Visita no encontrada' });
-    res.json(v);
+    res.json(enriquecer(v));
   });
 
   return router;

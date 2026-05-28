@@ -127,6 +127,27 @@ const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto }) => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!current || current.tipo !== 'cronista') return;
+    if (!window.confirm('¿Eliminar esta cápsula? Esta acción no se puede deshacer.')) return;
+    setDeleting(true);
+    setPaused(true);
+    try {
+      await api.delete(`/capsulas/${current._id}`);
+      haptic.medium();
+      onDeleted && onDeleted(current._id);
+      onClose && onClose();
+    } catch (err) {
+      console.error('Error eliminando cápsula:', err);
+      setDeleting(false);
+      setPaused(false);
+    }
+  };
+
+  const isMyCapsula = current?.tipo === 'cronista'
+    && current?.usuario_id?._id
+    && String(current.usuario_id._id) === String(userId);
+
   const container = typeof document !== 'undefined' ? document.body : null;
   if (!container) return null;
 
@@ -202,6 +223,19 @@ const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto }) => {
           >
             <CloseIcon size={22} />
           </button>
+          {isMyCapsula && (
+            <button
+              type="button"
+              className="capsule-viewer-delete"
+              onClick={handleDelete}
+              disabled={deleting}
+              data-testid="capsule-viewer-delete"
+              aria-label="Eliminar cápsula"
+              title="Eliminar cápsula"
+            >
+              🗑
+            </button>
+          )}
         </div>
 
         {/* Tap zones para nav */}

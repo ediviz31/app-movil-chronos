@@ -2380,6 +2380,50 @@ const visitasRouter = require('./routes/visitas')();
 app.use('/api/visitas', visitasRouter);
 
 // ============================================
+// GENERACIÓN DE IMAGEN CON IA (Gemini Nano Banana)
+// ============================================
+const relatoUploadDirImg = path.join(__dirname, 'uploads', 'relatos');
+if (!fs.existsSync(relatoUploadDirImg)) fs.mkdirSync(relatoUploadDirImg, { recursive: true });
+
+app.post('/api/ia/imagen', auth, async (req, res) => {
+  try {
+    const { prompt, estilo } = req.body || {};
+    if (!prompt || !String(prompt).trim()) {
+      return res.status(400).json({ error: 'Se requiere una descripción' });
+    }
+    if (String(prompt).length > 500) {
+      return res.status(400).json({ error: 'Descripción demasiado larga (máx 500)' });
+    }
+
+    const fileName = `ia-${Date.now()}-${Math.round(Math.random() * 1e9)}.png`;
+    const outputPath = path.join(relatoUploadDirImg, fileName);
+    const scriptPath = path.join(__dirname, 'scripts', 'generate_image.py');
+    const py = spawn('python3', [scriptPath, outputPath, String(prompt).trim(), estilo || 'pergamino']);
+
+    let stderr = '';
+    py.stderr.on('data', d => { stderr += d.toString(); });
+
+    // Timeout 60s
+    const timeout = setTimeout(() => { try { py.kill('SIGKILL'); } catch (_) {} }, 60000);
+
+    py.on('close', (code) => {
+      clearTimeout(timeout);
+      if (code !== 0) {
+        console.error('[generate_image] stderr:', stderr);
+        return res.status(500).json({ error: 'No se pudo generar la imagen', detail: stderr.slice(0, 200) });
+      }
+      if (!fs.existsSync(outputPath)) {
+        return res.status(500).json({ error: 'Imagen no creada' });
+      }
+      res.json({ image_path: `/api/uploads/relatos/${fileName}` });
+    });
+  } catch (err) {
+    console.error('[ia/imagen] error:', err);
+    res.status(500).json({ error: 'Error generando imagen' });
+  }
+});
+
+// ============================================
 // AUDIO NARRACIÓN (TTS) — usa Emergent LLM key
 // ============================================
 const { spawn } = require('child_process');
