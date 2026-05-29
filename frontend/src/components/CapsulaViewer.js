@@ -253,7 +253,13 @@ const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto, onDelet
               muted
               loop
               playsInline
+              preload="metadata"
               aria-hidden="true"
+              onError={(e) => {
+                // Para cápsulas viejas con video perdido pre-Object Store:
+                // ocultamos el video roto para que el texto siga visible.
+                e.currentTarget.style.display = 'none';
+              }}
               data-testid="capsule-viewer-video"
             />
           ) : current.imagen && (
@@ -262,6 +268,7 @@ const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto, onDelet
               alt=""
               className="capsule-viewer-bg"
               aria-hidden="true"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
           )}
 

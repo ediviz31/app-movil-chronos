@@ -36,6 +36,7 @@ const ChronosVideoPlayer = ({
   const [duration, setDuration] = useState(0);
   const [hovering, setHovering] = useState(false);
   const [seeking, setSeeking] = useState(false);
+  const [error, setError] = useState(false);
   const hideTimerRef = useRef(null);
 
   const showControls = useCallback(() => {
@@ -51,8 +52,28 @@ const ChronosVideoPlayer = ({
   const togglePlay = () => {
     const v = videoRef.current;
     if (!v) return;
+    // Si hay error, no intentamos reproducir (mostramos el aviso)
+    if (error || v.error) {
+      setError(true);
+      return;
+    }
     if (v.paused) {
-      v.play().then(() => { setPlaying(true); onPlay && onPlay(); }).catch(() => {});
+      // Primera reproducción puede fallar por autoplay policy; aseguramos
+      // que el play() sea sincrónico al gesto del usuario.
+      v.muted = muted; // respeta el toggle actual
+      const p = v.play();
+      if (p && typeof p.then === 'function') {
+        p.then(() => { setPlaying(true); onPlay && onPlay(); })
+         .catch((err) => {
+           // Si falla por NotSupportedError o el src es 404, marcamos error
+           if (err?.name === 'NotSupportedError' || err?.name === 'NotAllowedError') {
+             // NotAllowedError = autoplay sin gesto: intenta otra vez muted
+             v.muted = true;
+             setMuted(true);
+             v.play().then(() => { setPlaying(true); onPlay && onPlay(); }).catch(() => {});
+           }
+         });
+      }
     } else {
       v.pause();
       setPlaying(false);
@@ -121,6 +142,8 @@ const ChronosVideoPlayer = ({
         onClick={togglePlay}
         onTimeUpdate={onTimeUpdate}
         onLoadedMetadata={onLoadedMeta}
+        onLoadedData={() => setError(false)}
+        onError={() => setError(true)}
         onEnded={() => { setPlaying(false); onEnded && onEnded(); }}
         onPlay={() => { setPlaying(true); onPlay && onPlay(); }}
         onPause={() => setPlaying(false)}
@@ -133,8 +156,18 @@ const ChronosVideoPlayer = ({
         <span className="cv-corner cv-tr">◆</span>
       </div>
 
-      {/* Botón play central (solo si está pausado) */}
-      {!playing && (
+      {/* Overlay de error si el video no se puede reproducir
+          (típicamente: archivos antiguos perdidos antes de la migración). */}
+      {error && (
+        <div className="chronos-video-error" data-testid={`${testId}-error`}>
+          <div className="chronos-video-error-ico" aria-hidden="true">⌛</div>
+          <p className="chronos-video-error-title">Este video no está disponible</p>
+          <p className="chronos-video-error-sub">Fue subido antes de la migración del archivo. Sube uno nuevo y se conservará para siempre.</p>
+        </div>
+      )}
+
+      {/* Botón play central (solo si está pausado y sin error) */}
+      {!playing && !error && (
         <button
           type="button"
           className="chronos-video-play"

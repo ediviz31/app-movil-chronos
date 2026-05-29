@@ -918,13 +918,28 @@ html[data-theme="light"] .fragmento-chip { background: rgba(255, 245, 220, 0.85)
   text-transform: uppercase;
 }
 
-/* Acomodo en SocialPost: el video custom ChronosVideoPlayer ya viene con
-   bordes, sólo lo dejamos respirar dentro de la card. */
+/* Video dentro de la card del post — respeta el border-radius y queda
+   contenido sin invadir lateralmente. */
+.social-post-video {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #000;
+  box-sizing: border-box;
+}
+.social-post-video .chronos-video {
+  border-radius: 0;
+  box-shadow: none;
+  max-height: 50vh;
+  aspect-ratio: 16 / 9;
+}
 .social-post-chronos-video {
   border-radius: 0;
-  max-height: 460px;
 }
-.social-post-chronos-video .chronos-video,
-.social-post-video .chronos-video {
-  max-height: 460px;
+
+@media (max-width: 700px) {
+  .social-post-video .chronos-video {
+    max-height: 44vh;
+  }
 }

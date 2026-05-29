@@ -10,12 +10,18 @@
   border-radius: 6px;
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.4);
   isolation: isolate;
+  /* Forzamos aspecto 16:9 para que el reproductor no se vuelva
+     un bloque enorme en móvil cuando el navegador todavía no sabe
+     las dimensiones del video. */
+  aspect-ratio: 16 / 9;
+  max-height: 56vh;
 }
 .chronos-video video {
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 70vh;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
   background: #000;
   cursor: pointer;
 }
@@ -227,4 +233,50 @@
   width: auto;
   height: auto;
   object-fit: contain;
+}
+
+
+/* Overlay de error si el video no carga (típicamente archivos viejos
+   subidos antes de la migración a Object Store). */
+.chronos-video-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(212, 184, 120, 0.08), transparent 65%),
+    linear-gradient(180deg, rgba(40, 30, 18, 0.95), rgba(20, 14, 8, 0.98));
+  color: #f5ecd2;
+  z-index: 5;
+}
+.chronos-video-error-ico {
+  font-size: 38px;
+  color: var(--gold-bright, #d4b878);
+  margin-bottom: 10px;
+  text-shadow: 0 0 14px rgba(212, 184, 120, 0.4);
+}
+.chronos-video-error-title {
+  font-family: var(--font-display, 'Cormorant Garamond'), serif;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--gold-bright, #d4b878);
+  margin: 0 0 6px;
+}
+.chronos-video-error-sub {
+  font-family: var(--font-elegant, 'Cormorant Garamond'), serif;
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: 0.04em;
+  color: rgba(245, 236, 210, 0.78);
+  margin: 0;
+  max-width: 340px;
+}
+@media (max-width: 600px) {
+  .chronos-video-error-title { font-size: 14px; }
+  .chronos-video-error-sub { font-size: 11px; }
+  .chronos-video-error-ico { font-size: 32px; }
 }

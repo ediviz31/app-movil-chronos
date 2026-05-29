@@ -129,10 +129,10 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
 
       {/* Stage: video */}
       <div className="fragmento-stage" onClick={togglePlay}>
-        {/* Marca de "metraje recuperado" — sello de archivo cinematográfico
-            sobre el video. Más cerca de un dossier desclasificado que de
-            un badge informativo. */}
-        {(data.lugar || (data.anio !== null && data.anio !== undefined)) && (
+        {/* Marca de "metraje recuperado" — sólo si el video carga bien.
+            Si falla (fragmentos viejos pre-Object Store), se oculta para
+            que el mensaje de error se vea limpio. */}
+        {!videoError && (data.lugar || (data.anio !== null && data.anio !== undefined)) && (
           <div className="fragmento-archive-mark" data-testid={`fragmento-archmark-${data._id}`} aria-hidden="true">
             <div className="fragmento-archive-corner fragmento-archive-corner-tl" />
             <div className="fragmento-archive-corner fragmento-archive-corner-br" />
@@ -163,14 +163,17 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
           loop
           playsInline
           muted={muted}
+          preload="metadata"
+          controls={false}
           onError={() => setVideoError(true)}
+          onLoadedData={() => setVideoError(false)}
           data-testid={`fragmento-video-${data._id}`}
         />
         {videoError && (
           <div className="fragmento-video-error" data-testid={`fragmento-video-error-${data._id}`}>
             <div className="fragmento-video-error-ico" aria-hidden="true">⌛</div>
-            <p>Este video ya no está disponible.</p>
-            <small>El archivo se perdió al reiniciar el servidor.</small>
+            <p>Este fragmento no está disponible</p>
+            <small>Fue subido antes de la migración del archivo. Sube uno nuevo y se conservará.</small>
           </div>
         )}
         {!playing && !videoError && (
