@@ -147,10 +147,11 @@ const Profile = () => {
   if (!perfil) return null;
 
   const stats = perfil.estadisticas || { totalRelatos: 0, totalSeguidores: 0, totalSiguiendo: 0, esSeguido: false };
-  // Solo considerar portada válida si fue subida por el usuario (uploads o http)
+  // Solo considerar portada válida si fue subida por el usuario
   const hasPortada = perfil.portada && (
     perfil.portada.startsWith('/uploads') ||
     perfil.portada.startsWith('/api/uploads') ||
+    perfil.portada.startsWith('/api/files/') ||
     perfil.portada.startsWith('http')
   );
   const portadaUrl = hasPortada ? getImageUrl(perfil.portada) : null;
