@@ -75,7 +75,7 @@ const Fragmentos = () => {
   };
 
   return (
-    <PageShell activeRail="fragmentos" showFab={false}>
+    <PageShell activeRail="fragmentos" showFab={false} showMobileSubBar={false}>
       <main className="fragmentos-page" data-testid="fragmentos-page">
         <header className="fragmentos-header">
           <div className="fragmentos-kicker">◆ Chronos ◆</div>

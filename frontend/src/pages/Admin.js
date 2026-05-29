@@ -105,7 +105,7 @@ const Admin = () => {
 
   if (loading) {
     return (
-      <PageShell activeRail="">
+      <PageShell activeRail="" showMobileSubBar={false}>
         <div className="admin-loading" data-testid="admin-loading">
           <span className="spin" style={{ color: 'var(--gold)' }}><HourglassIcon size={32} /></span>
           <p>Abriendo el archivo secreto…</p>
@@ -116,7 +116,7 @@ const Admin = () => {
 
   if (denied) {
     return (
-      <PageShell activeRail="">
+      <PageShell activeRail="" showMobileSubBar={false}>
         <div className="admin-denied" data-testid="admin-denied">
           <ChestIcon size={48} style={{ color: 'var(--gold)' }} />
           <h2>Bóveda sellada</h2>
@@ -128,7 +128,7 @@ const Admin = () => {
   }
 
   return (
-    <PageShell activeRail="">
+    <PageShell activeRail="" showMobileSubBar={false}>
       <main className="admin-page" data-testid="admin-page">
         <header className="admin-header">
           <div className="admin-header-kicker">
