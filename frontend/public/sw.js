@@ -10,7 +10,7 @@
  *  - Llamadas /api/**: pasar directo a la red (sin caché — evita estados rancios)
  */
 
-const SW_VERSION = 'chronos-v11-pulido';
+const SW_VERSION = 'chronos-v12-autoupdate';
 const STATIC_CACHE = `chronos-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `chronos-runtime-${SW_VERSION}`;
 
@@ -33,12 +33,24 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then(keys =>
+      // Borrar TODAS las cachés viejas (no solo las que no son la actual)
       Promise.all(
         keys
           .filter(k => k !== STATIC_CACHE && k !== RUNTIME_CACHE)
           .map(k => caches.delete(k))
       )
-    ).then(() => self.clients.claim())
+    )
+    .then(() => self.clients.claim())
+    .then(async () => {
+      // Notificar a TODAS las pestañas/PWA abiertas que hay nueva versión
+      // y forzar recarga para evitar bundle rancio.
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      clients.forEach(client => {
+        try {
+          client.postMessage({ type: 'CHRONOS_SW_UPDATED', version: SW_VERSION });
+        } catch (_) { /* ignore */ }
+      });
+    })
   );
 });
 

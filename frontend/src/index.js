@@ -8,6 +8,20 @@ import { registerServiceWorker } from "@/utils/pushClient";
 // (no-op si el navegador no lo soporta)
 registerServiceWorker();
 
+// Escuchar mensajes del SW: si llega CHRONOS_SW_UPDATED, recargamos
+// la ventana para que el nuevo bundle entre en vigor sin que el usuario
+// tenga que cerrar la app o hacer hard refresh.
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event?.data?.type === 'CHRONOS_SW_UPDATED') {
+      // Pequeño delay para que el SW termine de tomar control
+      setTimeout(() => {
+        try { window.location.reload(); } catch (_) {}
+      }, 400);
+    }
+  });
+}
+
 // Bloquea pinch-zoom y double-tap-zoom en iOS/Android (algunos navegadores
 // ignoran el meta viewport user-scalable=no, así que añadimos el respaldo JS).
 // Sólo activo en mobile (<=900px) para no romper accesibilidad en desktop.
