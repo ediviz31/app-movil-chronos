@@ -164,43 +164,43 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
           {muted ? '🔇' : '🔊'}
         </button>
 
-          {/* Acciones laterales */}
-          <div className="fragmento-actions">
-            <button
-              type="button"
-              className={`fragmento-action ${data.usuario_avalo ? 'is-active' : ''}`}
-              onClick={handleAvalar}
-              disabled={pendingAval}
-              data-testid={`fragmento-avalar-${data._id}`}
-              aria-label="Eco"
-            >
-              <span className="fragmento-action-ico" aria-hidden="true">✦</span>
-              <span className="fragmento-action-count">{data.total_avales || 0}</span>
-              <span className="fragmento-action-label">Eco</span>
-            </button>
-            <button
-              type="button"
-              className="fragmento-action"
-              onClick={handleResonancia}
-              data-testid={`fragmento-resonancia-${data._id}`}
-              aria-label="Resonancia"
-            >
-              <span className="fragmento-action-ico" aria-hidden="true">✒</span>
-              <span className="fragmento-action-count">{data.total_resonancias || 0}</span>
-              <span className="fragmento-action-label">Resonancia</span>
-            </button>
-            <button
-              type="button"
-              className="fragmento-action"
-              onClick={handleDifundir}
-              data-testid={`fragmento-difundir-${data._id}`}
-              aria-label="Difundir"
-            >
-              <span className="fragmento-action-ico" aria-hidden="true">⌁</span>
-              <span className="fragmento-action-label">Difundir</span>
-            </button>
-          </div>
+        {/* Acciones laterales */}
+        <div className="fragmento-actions">
+          <button
+            type="button"
+            className={`fragmento-action ${data.usuario_avalo ? 'is-active' : ''}`}
+            onClick={handleAvalar}
+            disabled={pendingAval}
+            data-testid={`fragmento-avalar-${data._id}`}
+            aria-label="Eco"
+          >
+            <span className="fragmento-action-ico" aria-hidden="true">✦</span>
+            <span className="fragmento-action-count">{data.total_avales || 0}</span>
+            <span className="fragmento-action-label">Eco</span>
+          </button>
+          <button
+            type="button"
+            className="fragmento-action"
+            onClick={handleAportar}
+            data-testid={`fragmento-aportar-${data._id}`}
+            aria-label="Aportar"
+          >
+            <span className="fragmento-action-ico" aria-hidden="true">✒</span>
+            <span className="fragmento-action-count">{data.total_resonancias || 0}</span>
+            <span className="fragmento-action-label">Aportar</span>
+          </button>
+          <button
+            type="button"
+            className="fragmento-action"
+            onClick={handleDifundir}
+            data-testid={`fragmento-difundir-${data._id}`}
+            aria-label="Difundir"
+          >
+            <span className="fragmento-action-ico" aria-hidden="true">⌁</span>
+            <span className="fragmento-action-label">Difundir</span>
+          </button>
         </div>
+      </div>
 
       {/* Cuerpo: título, descripción, fuente */}
       <div className="fragmento-body">

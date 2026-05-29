@@ -10,7 +10,7 @@
  *  - Llamadas /api/**: pasar directo a la red (sin caché — evita estados rancios)
  */
 
-const SW_VERSION = 'chronos-v15-clean-logs';
+const SW_VERSION = 'chronos-v17-fix-frag-blanco';
 const STATIC_CACHE = `chronos-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `chronos-runtime-${SW_VERSION}`;
 
@@ -65,10 +65,31 @@ self.addEventListener('fetch', (event) => {
   // Las llamadas /api/** pasan directo (no cache)
   if (url.pathname.startsWith('/api/')) return;
 
-  // Navegaciones: network-first, fallback a cache del index
+  // Videos y archivos multimedia grandes: pasan directo sin cache
+  // (evita problemas con range requests, streaming y memoria)
+  if (
+    url.pathname.includes('/uploads/videos/') ||
+    url.pathname.includes('/uploads/audio/') ||
+    url.pathname.endsWith('.mp4') ||
+    url.pathname.endsWith('.mov') ||
+    url.pathname.endsWith('.webm') ||
+    url.pathname.endsWith('.mp3') ||
+    url.pathname.endsWith('.m4a')
+  ) {
+    return; // dejar pasar sin SW
+  }
+
+  // Navegaciones: network-first con timeout corto, fallback a cache del index
+  // Si la red tarda más de 3s, usa el index cacheado para que la app renderice
+  // y luego React se encarga del resto vía /api.
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).catch(() => caches.match('/'))
+      Promise.race([
+        fetch(request),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+      ]).catch(() =>
+        caches.match('/').then(cached => cached || fetch(request))
+      )
     );
     return;
   }

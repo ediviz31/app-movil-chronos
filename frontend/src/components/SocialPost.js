@@ -184,7 +184,7 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
       {relato.video_path && (
         <div className="social-post-video" data-testid={`video-${relato._id}`}>
           <video
-            src={`${process.env.REACT_APP_BACKEND_URL || ''}${relato.video_path}`}
+            src={getImageUrl(relato.video_path)}
             controls
             preload="metadata"
             playsInline

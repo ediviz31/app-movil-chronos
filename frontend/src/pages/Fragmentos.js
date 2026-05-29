@@ -24,9 +24,11 @@ const Fragmentos = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = filtro !== 'all' ? `?categoria=${filtro}` : '';
       const res = await api.get(`/fragmentos${params}`);
@@ -36,7 +38,9 @@ const Fragmentos = () => {
       }));
       setItems(list);
     } catch (e) {
-      console.error(e);
+      console.error('Error fetch fragmentos:', e);
+      setError('No se pudieron cargar los fragmentos. Toca para reintentar.');
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -106,6 +110,24 @@ const Fragmentos = () => {
         {loading ? (
           <div className="fragmentos-empty">
             <p>Cargando fragmentos…</p>
+          </div>
+        ) : error ? (
+          <div className="fragmentos-empty" data-testid="fragmentos-error">
+            <div className="fragmentos-empty-ico" aria-hidden="true">⚠</div>
+            <h3>{error}</h3>
+            <button
+              type="button"
+              className="fragmentos-create-cta"
+              style={{ marginTop: 16 }}
+              onClick={fetchData}
+              data-testid="fragmentos-retry"
+            >
+              <span className="fragmentos-create-ico" aria-hidden="true">↻</span>
+              <span className="fragmentos-create-text">
+                <strong>Reintentar</strong>
+                <small>cargar fragmentos</small>
+              </span>
+            </button>
           </div>
         ) : items.length === 0 ? (
           <div className="fragmentos-empty" data-testid="fragmentos-empty">
