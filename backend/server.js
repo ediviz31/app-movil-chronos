@@ -2441,9 +2441,9 @@ app.use('/api/visitas', visitasRouter);
 
 // ============================================
 // GENERACIÓN DE IMAGEN CON IA (Gemini Nano Banana)
+// La imagen se guarda en Object Store (persistente entre re-deploys).
 // ============================================
-const relatoUploadDirImg = path.join(__dirname, 'uploads', 'relatos');
-if (!fs.existsSync(relatoUploadDirImg)) fs.mkdirSync(relatoUploadDirImg, { recursive: true });
+const os = require('os');
 
 app.post('/api/ia/imagen', auth, async (req, res) => {
   try {
@@ -2456,7 +2456,8 @@ app.post('/api/ia/imagen', auth, async (req, res) => {
     }
 
     const fileName = `ia-${Date.now()}-${Math.round(Math.random() * 1e9)}.png`;
-    const outputPath = path.join(relatoUploadDirImg, fileName);
+    // Archivo temporal: el Python script escribe aquí, luego subimos al Object Store
+    const outputPath = path.join(os.tmpdir(), fileName);
     const scriptPath = path.join(__dirname, 'scripts', 'generate_image.py');
     const { findPythonAsync } = require('./utils/pythonHelper');
     const { spawn: spawnPy } = require('child_process');
@@ -2475,7 +2476,7 @@ app.post('/api/ia/imagen', auth, async (req, res) => {
     // Timeout 60s
     const timeout = setTimeout(() => { try { py.kill('SIGKILL'); } catch (_) {} }, 60000);
 
-    py.on('close', (code) => {
+    py.on('close', async (code) => {
       clearTimeout(timeout);
       if (code !== 0) {
         console.error('[generate_image] stderr:', stderr);
@@ -2503,7 +2504,18 @@ app.post('/api/ia/imagen', auth, async (req, res) => {
       if (!fs.existsSync(outputPath)) {
         return res.status(500).json({ error: 'Imagen no creada' });
       }
-      res.json({ image_path: `/api/uploads/relatos/${fileName}` });
+      try {
+        // Subir al Object Store y borrar el temp local
+        const buffer = fs.readFileSync(outputPath);
+        const objectPath = makeObjectPath('ia-imagenes', fileName);
+        await objStore.putObject(objectPath, buffer, 'image/png');
+        try { fs.unlinkSync(outputPath); } catch (_) {}
+        return res.json({ image_path: objStore.publicUrl(objectPath) });
+      } catch (uploadErr) {
+        console.error('[ia/imagen] Object Store upload error:', uploadErr.message);
+        try { fs.unlinkSync(outputPath); } catch (_) {}
+        return res.status(500).json({ error: 'No se pudo guardar la imagen' });
+      }
     });
   } catch (err) {
     console.error('[ia/imagen] error:', err);
@@ -2541,7 +2553,8 @@ app.post('/api/relatos/:id/narrar', auth, async (req, res) => {
     if (texto.length < 10) return res.status(400).json({ error: 'Texto demasiado corto' });
 
     const filename = `${relato._id}-${finalVoice}-${Date.now()}.mp3`;
-    const outputPath = path.join(__dirname, 'uploads', 'audio', filename);
+    // Archivo temporal: el Python script escribe aquí, luego subimos al Object Store
+    const outputPath = path.join(os.tmpdir(), filename);
     // Auto-detecta python con los módulos correctos (preview venv o sistema)
     const pyExec = process.env.PYTHON_BIN || await findPythonAsync(20000);
     if (!pyExec) {
@@ -2568,12 +2581,26 @@ app.post('/api/relatos/:id/narrar', auth, async (req, res) => {
       return res.status(500).json({ error: 'Archivo de audio no generado' });
     }
 
-    if (relato.audio_path) {
+    // Subir audio al Object Store
+    let audioUrl;
+    try {
+      const buffer = fs.readFileSync(outputPath);
+      const objectPath = makeObjectPath('audio', filename);
+      await objStore.putObject(objectPath, buffer, 'audio/mpeg');
+      audioUrl = objStore.publicUrl(objectPath);
+      try { fs.unlinkSync(outputPath); } catch (_) {}
+    } catch (uploadErr) {
+      console.error('[narrar] Object Store upload error:', uploadErr.message);
+      try { fs.unlinkSync(outputPath); } catch (_) {}
+      return res.status(500).json({ error: 'No se pudo guardar el audio' });
+    }
+
+    // Limpieza de audio antiguo en disco (compat con archivos legacy de versiones previas)
+    if (relato.audio_path && relato.audio_path.startsWith('/api/uploads/')) {
       const old = path.join(__dirname, relato.audio_path.replace('/api/', ''));
       if (fs.existsSync(old)) { try { fs.unlinkSync(old); } catch (_) {} }
     }
 
-    const audioUrl = `/api/uploads/audio/${filename}`;
     relato.audio_path = audioUrl;
     relato.audio_voz = finalVoice;
     await relato.save();

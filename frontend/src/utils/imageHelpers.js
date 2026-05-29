@@ -20,6 +20,10 @@ export const getImageUrl = (path) => {
   if (path.startsWith('/api/uploads/')) {
     return `${BACKEND_URL}${path}`;
   }
+  // Object Store (Emergent): paths del tipo /api/files/chronos/uploads/...
+  if (path.startsWith('/api/files/')) {
+    return `${BACKEND_URL}${path}`;
+  }
   return path;
 };
 
@@ -27,7 +31,11 @@ export const getImageUrl = (path) => {
  * Obtiene el avatar de un usuario o genera uno con sus iniciales
  */
 export const getAvatarUrl = (usuario) => {
-  if (usuario?.avatar && (usuario.avatar.startsWith('/uploads') || usuario.avatar.startsWith('/api/uploads'))) {
+  if (usuario?.avatar && (
+    usuario.avatar.startsWith('/uploads') ||
+    usuario.avatar.startsWith('/api/uploads') ||
+    usuario.avatar.startsWith('/api/files/')
+  )) {
     return getImageUrl(usuario.avatar);
   }
   if (usuario?.avatar && usuario.avatar.startsWith('http')) {

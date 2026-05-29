@@ -3,8 +3,16 @@
 ## 🚀 Estado del proyecto (Feb 2026)
 **EN PRODUCCIÓN** — https://historia-connect.emergent.host
 
-### Sesión actual: Video Antorcha + Fragmentos del Tiempo
-**Backend listo, frontend listo, pendiente re-deploy a producción.**
+### Sesión actual: Migración a Emergent Object Store COMPLETA ✅
+**Todas las subidas (imagen, video, audio, IA, TTS) ahora persisten entre re-deploys.**
+
+#### Fase 25 (29-may-2026): Object Store completo
+- ✅ `POST /api/ia/imagen` → genera con Python a `/tmp/`, sube a Object Store, devuelve `/api/files/chronos/uploads/ia-imagenes/...`
+- ✅ `POST /api/relatos/:id/narrar` → idéntico flujo, carpeta `audio/`
+- ✅ `imageHelpers.js` reconoce paths `/api/files/...`
+- ✅ `SW_VERSION` bumped a `chronos-v19-objstore-complete`
+- ✅ Backend reinicia sin errores, Object Store inicializado.
+- Estado del bug "404 Not Found uploads en producción": **RESUELTO**
 
 #### Mejoras aplicadas:
 - ✅ Auth en producción funcionando (fix `dbName` + `sameSite: 'none'`)
