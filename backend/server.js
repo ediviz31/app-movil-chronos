@@ -123,7 +123,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 });
 
 // Conexión a MongoDB
-mongoose.connect(process.env.MONGO_URL)
+mongoose.connect(process.env.MONGO_URL, { dbName: process.env.DB_NAME || 'historia-connect-chronos' })
   .then(() => console.log('✅ Conectado a MongoDB - Chronos DB'))
   .catch(err => console.error('❌ Error conectando a MongoDB:', err));
 
