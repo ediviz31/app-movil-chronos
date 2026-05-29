@@ -1,16 +1,14 @@
 const multer = require('multer');
 const path = require('path');
 
-// Crear una factoría para devolver un upload configurado por carpeta
-function makeUpload(folder) {
-  const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, `uploads/${folder}`),
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-  });
+/**
+ * Middleware de uploads usando memoryStorage.
+ * Los archivos viven en memoria (req.file.buffer) y se suben al
+ * Emergent Object Store desde el endpoint correspondiente.
+ */
 
+function makeUpload() {
+  const storage = multer.memoryStorage();
   const fileFilter = (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -18,23 +16,15 @@ function makeUpload(folder) {
     if (mimetype && extname) return cb(null, true);
     cb(new Error('Solo se permiten imágenes (jpg, png, gif, webp)'));
   };
-
   return multer({
     storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    limits: { fileSize: 8 * 1024 * 1024 }, // 8MB
     fileFilter
   });
 }
 
-// Factoría para videos: 50MB, formatos mp4/webm/mov
-function makeVideoUpload(folder) {
-  const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, `uploads/${folder}`),
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-  });
+function makeVideoUpload() {
+  const storage = multer.memoryStorage();
   const fileFilter = (req, file, cb) => {
     const allowedExt = /mp4|webm|mov|m4v|quicktime/;
     const allowedMime = /^video\//;
@@ -45,18 +35,17 @@ function makeVideoUpload(folder) {
   };
   return multer({
     storage,
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
     fileFilter
   });
 }
 
-// Por defecto exporta el de relatos (compat. existente)
-const upload = makeUpload('relatos');
+const upload = makeUpload();
 upload.makeUpload = makeUpload;
 upload.makeVideoUpload = makeVideoUpload;
-upload.avatares = makeUpload('avatares');
-upload.portadas = makeUpload('portadas');
-upload.familiares = makeUpload('familiares');
-upload.videos = makeVideoUpload('videos');
+upload.avatares = makeUpload();
+upload.portadas = makeUpload();
+upload.familiares = makeUpload();
+upload.videos = makeVideoUpload();
 
 module.exports = upload;

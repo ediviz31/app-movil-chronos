@@ -18,29 +18,13 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const Capsula = require('../models/Capsula');
+const objStore = require('../utils/objectStore');
+const crypto = require('crypto');
 const { getEfemerideCercana } = require('../data/efemerides');
 const { getCitaDelDia } = require('../data/citas');
 
-// Carpeta uploads/capsulas
-const CAPSULAS_DIR = path.join(__dirname, '..', 'uploads', 'capsulas');
-if (!fs.existsSync(CAPSULAS_DIR)) fs.mkdirSync(CAPSULAS_DIR, { recursive: true });
-
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      // Videos van a uploads/videos, imágenes a uploads/capsulas
-      if (file.fieldname === 'video') {
-        const VIDEO_DIR = path.join(__dirname, '..', 'uploads', 'videos');
-        if (!fs.existsSync(VIDEO_DIR)) fs.mkdirSync(VIDEO_DIR, { recursive: true });
-        return cb(null, VIDEO_DIR);
-      }
-      cb(null, CAPSULAS_DIR);
-    },
-    filename: (req, file, cb) => {
-      const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      cb(null, unique + path.extname(file.originalname));
-    }
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 60 * 1024 * 1024 }, // 60MB max (videos cortos de stories)
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'imagen') {
@@ -54,6 +38,14 @@ const upload = multer({
     cb(null, false);
   }
 });
+
+async function saveToStore(folder, file) {
+  const ext = (file.originalname.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const id = Date.now().toString(36) + '-' + crypto.randomBytes(8).toString('hex');
+  const objectPath = objStore.buildPath(folder, `${id}.${ext}`);
+  await objStore.putObject(objectPath, file.buffer, file.mimetype);
+  return objStore.publicUrl(objectPath);
+}
 
 /**
  * Asegura que las cápsulas auto-generadas (efeméride y cita) del día existan.
@@ -177,8 +169,8 @@ module.exports = function createCapsulasRouter({ auth, authOptional }) {
       }
       const imagenFile = req.files?.imagen?.[0];
       const videoFile = req.files?.video?.[0];
-      const imagenPath = imagenFile ? `/api/uploads/capsulas/${imagenFile.filename}` : null;
-      const videoPath = videoFile ? `/api/uploads/videos/${videoFile.filename}` : null;
+      const imagenPath = imagenFile ? await saveToStore('capsulas', imagenFile) : null;
+      const videoPath = videoFile ? await saveToStore('videos', videoFile) : null;
 
       // Vida 24h
       const expira = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -231,11 +223,13 @@ module.exports = function createCapsulasRouter({ auth, authOptional }) {
       if (c.tipo !== 'cronista' || String(c.usuario_id) !== String(req.userId)) {
         return res.status(403).json({ error: 'No autorizado' });
       }
-      if (c.imagen) {
+      // Limpieza de disco (compat con archivos antiguos en /app/backend/uploads/)
+      // Los nuevos en Object Store no se borran aquí (futuro: API delete del store)
+      if (c.imagen && c.imagen.startsWith('/api/uploads/')) {
         const local = path.join(__dirname, '..', c.imagen.replace('/api/', ''));
         if (fs.existsSync(local)) { try { fs.unlinkSync(local); } catch (_) {} }
       }
-      if (c.video) {
+      if (c.video && c.video.startsWith('/api/uploads/')) {
         const local = path.join(__dirname, '..', c.video.replace('/api/', ''));
         if (fs.existsSync(local)) { try { fs.unlinkSync(local); } catch (_) {} }
       }

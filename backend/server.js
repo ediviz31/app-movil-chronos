@@ -112,7 +112,50 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// ====================================================
+// Emergent Object Store: almacenamiento persistente para uploads
+// (los archivos en disco se pierden al re-deployar)
+// ====================================================
+const objStore = require('./utils/objectStore');
+const crypto = require('crypto');
+
+/** Genera un path único en el bucket: chronos/uploads/{folder}/{uuid}.{ext} */
+function makeObjectPath(folder, originalName) {
+  const ext = (originalName.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const id = Date.now().toString(36) + '-' + crypto.randomBytes(8).toString('hex');
+  return objStore.buildPath(folder, `${id}.${ext}`);
+}
+
+/** Sube un Buffer al Object Store y retorna la URL pública para clientes. */
+async function uploadBufferToStore(folder, file) {
+  const objectPath = makeObjectPath(folder, file.originalname);
+  await objStore.putObject(objectPath, file.buffer, file.mimetype);
+  return objStore.publicUrl(objectPath); // /api/files/chronos/uploads/...
+}
+
+// ====================================================
+// Endpoint para servir archivos desde Object Store
+// (las URLs /api/files/chronos/... apuntan aquí)
+// ====================================================
+app.get('/api/files/*', async (req, res) => {
+  try {
+    // El path completo después de /api/files/
+    const objectPath = req.params[0];
+    if (!objectPath || objectPath.length < 3) {
+      return res.status(400).send('Path inválido');
+    }
+    await objStore.streamToResponse(objectPath, res);
+  } catch (err) {
+    if (err.response?.status === 404) {
+      return res.status(404).send('Archivo no encontrado');
+    }
+    console.error('Error sirviendo archivo:', err.message);
+    if (!res.headersSent) res.status(500).send('Error sirviendo archivo');
+  }
+});
+
 // Servir uploads desde /api/uploads para que pase por el routing del ingress
+// (Compat: archivos antiguos en disco; los nuevos van a Object Store vía /api/files/)
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -365,18 +408,10 @@ app.get('/api/relatos', auth, async (req, res) => {
   }
 });
 
-// Multer para crear relato: acepta imagen (5MB) + video (50MB)
-const relatoMediaUpload = require('multer')({
-  storage: require('multer').diskStorage({
-    destination: (req, file, cb) => {
-      const folder = file.mimetype.startsWith('video/') ? 'uploads/videos' : 'uploads/relatos';
-      cb(null, folder);
-    },
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, uniqueSuffix + require('path').extname(file.originalname));
-    }
-  }),
+// Multer para crear relato: acepta imagen (5MB) + video (100MB) en memoria
+const multerLib = require('multer');
+const relatoMediaUpload = multerLib({
+  storage: multerLib.memoryStorage(),
   limits: { fileSize: 100 * 1024 * 1024 }, // 100MB max (videos)
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'imagen') {
@@ -406,8 +441,9 @@ app.post('/api/relatos', [auth, relatoMediaUpload], [
     const { titulo, categoria, contenido } = req.body;
     const imagenFile = req.files?.imagen?.[0];
     const videoFile = req.files?.video?.[0];
-    const imagen = imagenFile ? `/api/uploads/relatos/${imagenFile.filename}` : null;
-    const videoPath = videoFile ? `/api/uploads/videos/${videoFile.filename}` : null;
+    // Subir archivos a Emergent Object Store (persistente)
+    const imagen = imagenFile ? await uploadBufferToStore('relatos', imagenFile) : null;
+    const videoPath = videoFile ? await uploadBufferToStore('videos', videoFile) : null;
     const tags = Publicacion.extractTags(`${titulo} ${contenido}`);
 
     // Indicador temporal opcional (siglo + lugar)
@@ -968,7 +1004,7 @@ app.post('/api/usuarios/avatar', auth, upload.avatares.single('imagen'), async (
     if (!req.file) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Falta el archivo' });
     }
-    const avatarUrl = `/api/uploads/avatares/${req.file.filename}`;
+    const avatarUrl = await uploadBufferToStore('avatares', req.file);
     const usuario = await User.findByIdAndUpdate(
       req.userId,
       { avatar: avatarUrl },
@@ -987,7 +1023,7 @@ app.post('/api/usuarios/portada', auth, upload.portadas.single('imagen'), async 
     if (!req.file) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Falta el archivo' });
     }
-    const portadaUrl = `/api/uploads/portadas/${req.file.filename}`;
+    const portadaUrl = await uploadBufferToStore('portadas', req.file);
     const usuario = await User.findByIdAndUpdate(
       req.userId,
       { portada: portadaUrl },
@@ -1560,7 +1596,7 @@ app.post('/api/familiares/:id/foto', auth, upload.familiares.single('imagen'), a
     if (familiar.usuario_id.toString() !== req.userId) {
       return res.status(HTTP_STATUS.FORBIDDEN).json({ error: 'No autorizado' });
     }
-    familiar.foto = `/api/uploads/familiares/${req.file.filename}`;
+    familiar.foto = await uploadBufferToStore('familiares', req.file);
     await familiar.save();
     res.json({ mensaje: 'Foto actualizada', foto: familiar.foto });
   } catch (error) {

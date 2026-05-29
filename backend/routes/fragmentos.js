@@ -14,19 +14,12 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const crypto = require('crypto');
 const Fragmento = require('../models/Fragmento');
-
-const VIDEO_DIR = path.join(__dirname, '..', 'uploads', 'videos');
-if (!fs.existsSync(VIDEO_DIR)) fs.mkdirSync(VIDEO_DIR, { recursive: true });
+const objStore = require('../utils/objectStore');
 
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => cb(null, VIDEO_DIR),
-    filename: (req, file, cb) => {
-      const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      cb(null, 'frag-' + unique + path.extname(file.originalname));
-    }
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'video') {
@@ -36,6 +29,14 @@ const upload = multer({
     cb(null, false);
   }
 });
+
+async function saveVideoToStore(file) {
+  const ext = (file.originalname.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const id = 'frag-' + Date.now().toString(36) + '-' + crypto.randomBytes(8).toString('hex');
+  const objectPath = objStore.buildPath('videos', `${id}.${ext}`);
+  await objStore.putObject(objectPath, file.buffer, file.mimetype);
+  return objStore.publicUrl(objectPath);
+}
 
 module.exports = function createFragmentosRouter({ auth, authOptional }) {
   const router = express.Router();
@@ -112,7 +113,7 @@ module.exports = function createFragmentosRouter({ auth, authOptional }) {
       if (!categoria) return res.status(400).json({ error: 'La categoría es requerida' });
       if (!req.file) return res.status(400).json({ error: 'Se requiere un video' });
 
-      const videoPath = `/api/uploads/videos/${req.file.filename}`;
+      const videoPath = await saveVideoToStore(req.file);
 
       const nuevo = await Fragmento.create({
         usuario_id: req.userId,
@@ -205,7 +206,7 @@ module.exports = function createFragmentosRouter({ auth, authOptional }) {
       if (String(f.usuario_id) !== String(req.userId)) {
         return res.status(403).json({ error: 'No autorizado' });
       }
-      if (f.video) {
+      if (f.video && f.video.startsWith('/api/uploads/')) {
         const local = path.join(__dirname, '..', f.video.replace('/api/', ''));
         if (fs.existsSync(local)) { try { fs.unlinkSync(local); } catch (_) {} }
       }
