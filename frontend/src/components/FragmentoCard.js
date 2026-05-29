@@ -116,28 +116,42 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
 
   return (
     <article className="fragmento-card" data-testid={`fragmento-${data._id}`}>
-      {/* Chips superiores */}
+      {/* Chips superiores: sólo categoría (lugar+año van como badge cinematográfico sobre el video) */}
       <div className="fragmento-chips">
         <span className="fragmento-chip">
           <span className="fragmento-chip-ico" aria-hidden="true">▣</span>
           {catLabel}
         </span>
-        {data.lugar && (
-          <span className="fragmento-chip">
-            <span className="fragmento-chip-ico" aria-hidden="true">◉</span>
-            {data.lugar}
-          </span>
-        )}
-        {data.anio !== null && data.anio !== undefined && (
-          <span className="fragmento-chip">
-            <span className="fragmento-chip-ico" aria-hidden="true">⌛</span>
-            {data.anio}
-          </span>
-        )}
       </div>
 
       {/* Stage: video */}
       <div className="fragmento-stage" onClick={togglePlay}>
+        {/* Marca de "metraje recuperado" — sello de archivo cinematográfico
+            sobre el video. Más cerca de un dossier desclasificado que de
+            un badge informativo. */}
+        {(data.lugar || (data.anio !== null && data.anio !== undefined)) && (
+          <div className="fragmento-archive-mark" data-testid={`fragmento-archmark-${data._id}`} aria-hidden="true">
+            <div className="fragmento-archive-corner fragmento-archive-corner-tl" />
+            <div className="fragmento-archive-corner fragmento-archive-corner-br" />
+            <div className="fragmento-archive-mark-row fragmento-archive-mark-tag">
+              <span className="fragmento-archive-mark-dot" />
+              Fragmento recuperado
+              <span className="fragmento-archive-mark-dot" />
+            </div>
+            {data.anio !== null && data.anio !== undefined && (
+              <div className="fragmento-archive-mark-year">
+                <span className="fragmento-archive-mark-prefix">ANNO</span>
+                {data.anio}
+              </div>
+            )}
+            {data.lugar && (
+              <div className="fragmento-archive-mark-place">{data.lugar}</div>
+            )}
+            <div className="fragmento-archive-mark-ref">
+              ARCH · {(data._id || '').slice(-6).toUpperCase() || '——'}
+            </div>
+          </div>
+        )}
         <video
           ref={videoRef}
           src={getImageUrl(data.video)}

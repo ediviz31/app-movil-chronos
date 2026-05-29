@@ -356,12 +356,21 @@
     gap: 8px;
     line-height: 1.2;
   }
-  .social-post-author .epoch-tag {
+  .social-post-author .epoch-tag,
+  .social-post-chips .epoch-tag {
     font-size: 9px !important;
     padding: 3px 8px !important;
     letter-spacing: 0.18em !important;
     font-weight: 500;
     flex-shrink: 0;
+  }
+  .social-post-chips {
+    gap: 5px 6px !important;
+    margin-top: 6px !important;
+  }
+  .social-post-chips .social-post-historic-tag {
+    font-size: 10px !important;
+    padding: 2px 8px !important;
   }
   .social-post-info { font-size: 12px !important; margin-top: 3px; opacity: 0.85; }
   .social-post-body { padding: 0 14px 14px !important; }

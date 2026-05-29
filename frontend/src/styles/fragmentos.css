@@ -226,6 +226,17 @@
 }
 .fragmento-chip-ico { font-size: 12px; color: var(--gold); }
 
+/* Stage del video (contenedor relativo para overlays, badges, errores) */
+.fragmento-stage {
+  position: relative;
+  width: 100%;
+  background: #000;
+  aspect-ratio: 16 / 9;
+  max-height: 42vh;
+  cursor: pointer;
+  overflow: hidden;
+}
+
 /* Mensaje de error si el video se perdió (disco no persistente) */
 .fragmento-video-error {
   position: absolute;
@@ -261,14 +272,6 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-muted);
-}
-  position: relative;
-  width: 100%;
-  background: #000;
-  aspect-ratio: 16 / 9;
-  max-height: 42vh;
-  cursor: pointer;
-  overflow: hidden;
 }
 .fragmento-video {
   width: 100%;
@@ -558,15 +561,7 @@
   .fragmentos-title { font-size: 22px; }
   .fragmentos-sub { font-size: 12px; }
   .fragmento-card { border-radius: 12px; }
-  .fragmento-stage {
-  position: relative;
-  width: 100%;
-  background: #000;
-  aspect-ratio: 16 / 9;
-  max-height: 42vh;
-  cursor: pointer;
-  overflow: hidden;
-} aspect-ratio: 16 / 9; max-height: 38vh; }
+  .fragmento-stage { aspect-ratio: 16 / 9; max-height: 38vh; }
   .fragmento-actions {
     right: 6px;
     bottom: 8px;
@@ -596,3 +591,333 @@ html[data-theme="light"] .fragmento-card {
 html[data-theme="light"] .fragmento-titulo,
 html[data-theme="light"] .fragmentos-title { color: var(--gold-deep, #8a6628); }
 html[data-theme="light"] .fragmento-chip { background: rgba(255, 245, 220, 0.85); }
+
+
+/* =====================================================
+   "Metraje recuperado" — sello de archivo cinematográfico
+   Lejos de un badge de museo: parece que el fragmento fue
+   rescatado de una bóveda, con esquinas vencidas, tipografía
+   de máquina, ligera inclinación y grano de película.
+   ===================================================== */
+@keyframes fragmento-archive-flicker {
+  0%, 100% { opacity: 0.95; }
+  47% { opacity: 0.92; }
+  48% { opacity: 0.78; }
+  49% { opacity: 0.95; }
+  82% { opacity: 0.95; }
+  83% { opacity: 0.7; }
+  84% { opacity: 0.95; }
+}
+
+.fragmento-archive-mark {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 4;
+  pointer-events: none;
+  padding: 12px 18px 10px;
+  min-width: 150px;
+  max-width: calc(100% - 100px);
+  /* Papel envejecido translúcido, sin look de "card" moderno */
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(60, 42, 22, 0.0) 0%, rgba(20, 12, 6, 0.0) 60%),
+    linear-gradient(135deg, rgba(212, 184, 120, 0.06) 0%, rgba(20, 12, 6, 0.45) 100%);
+  border-top: 1px solid rgba(212, 184, 120, 0.35);
+  border-bottom: 1px solid rgba(212, 184, 120, 0.35);
+  color: #f0d9a8;
+  font-family: 'Courier New', 'Courier Prime', monospace;
+  transform: rotate(-1.4deg);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.55));
+  animation: fragmento-archive-flicker 6s ease-in-out infinite;
+}
+
+/* Esquinas recortadas tipo dossier desclasificado */
+.fragmento-archive-corner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(212, 184, 120, 0.6);
+}
+.fragmento-archive-corner-tl {
+  top: -1px;
+  left: -1px;
+  border-right: none;
+  border-bottom: none;
+}
+.fragmento-archive-corner-br {
+  bottom: -1px;
+  right: -1px;
+  border-left: none;
+  border-top: none;
+}
+
+/* Cabecera: línea con puntos a los lados, como una etiqueta de carrete */
+.fragmento-archive-mark-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 8.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(240, 217, 168, 0.78);
+  margin-bottom: 4px;
+}
+.fragmento-archive-mark-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(240, 217, 168, 0.5);
+  display: inline-block;
+}
+
+/* Año: el número grande, con cifra fuerte de archivo */
+.fragmento-archive-mark-year {
+  font-family: var(--font-display, 'Cormorant Garamond'), 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 1;
+  color: #f7e9c7;
+  text-align: center;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6), 0 0 18px rgba(212, 184, 120, 0.15);
+  position: relative;
+}
+.fragmento-archive-mark-prefix {
+  font-family: 'Courier New', monospace;
+  font-style: normal;
+  font-size: 8.5px;
+  letter-spacing: 0.34em;
+  color: rgba(240, 217, 168, 0.6);
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* Lugar: como rotulado a máquina, ligeramente desgastado */
+.fragmento-archive-mark-place {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-align: center;
+  color: #f0d9a8;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(212, 184, 120, 0.28);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Código de referencia tipo "ARCH · A4F92E" en la base */
+.fragmento-archive-mark-ref {
+  font-family: 'Courier New', monospace;
+  font-size: 8px;
+  letter-spacing: 0.28em;
+  color: rgba(240, 217, 168, 0.5);
+  text-align: center;
+  margin-top: 6px;
+}
+
+/* Grano de película sobre el sello (sutil, sólo se nota en zoom) */
+.fragmento-archive-mark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0) 0, rgba(0,0,0,0) 2px, rgba(0,0,0,0.05) 3px),
+    radial-gradient(circle at 20% 30%, rgba(240, 217, 168, 0.08), transparent 60%);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .fragmento-archive-mark {
+    bottom: 12px;
+    left: 12px;
+    padding: 10px 14px 8px;
+    min-width: 130px;
+    transform: rotate(-1.2deg);
+  }
+  .fragmento-archive-mark-year { font-size: 24px; }
+  .fragmento-archive-mark-place { font-size: 10px; letter-spacing: 0.18em; }
+  .fragmento-archive-mark-row { font-size: 7.5px; letter-spacing: 0.28em; }
+  .fragmento-archive-mark-ref { font-size: 7.5px; }
+}
+
+/* =====================================================
+   Rail de Fragmentos del Tiempo en Feed principal
+   (mini-carrusel horizontal estilo "Reels")
+   ===================================================== */
+.fragmentos-rail-wrap {
+  margin: 18px 0 20px;
+  padding: 0;
+}
+.fragmentos-rail-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 4px 10px;
+  gap: 12px;
+}
+.fragmentos-rail-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--gold-bright);
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+.fragmentos-rail-title small {
+  font-family: var(--font-elegant);
+  font-style: normal;
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  color: var(--gold);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+.fragmentos-rail-more {
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: transparent;
+  border: 1px solid var(--gold-soft);
+  border-radius: 14px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+.fragmentos-rail-more:hover {
+  background: var(--gold-ghost);
+  color: var(--gold-bright);
+}
+
+.fragmentos-rail {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 4px 14px;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+.fragmentos-rail::-webkit-scrollbar { display: none; }
+
+.fragmento-tile {
+  flex-shrink: 0;
+  width: 122px;
+  aspect-ratio: 9 / 14;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  background: linear-gradient(180deg, #1a120a, #0a0807);
+  border: 1px solid rgba(212, 184, 120, 0.22);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  scroll-snap-align: start;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.fragmento-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(212, 184, 120, 0.55);
+}
+.fragmento-tile video,
+.fragmento-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: contrast(1.05) saturate(0.92);
+}
+.fragmento-tile-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.78) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 8px 9px;
+  color: #f7e9c7;
+}
+.fragmento-tile-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  line-height: 1.2;
+  margin: 0 0 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.fragmento-tile-meta {
+  font-family: var(--font-elegant);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  opacity: 0.92;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fragmento-tile-play {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(212, 184, 120, 0.92);
+  color: #1a120a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+.fragmento-tile-create {
+  background: linear-gradient(160deg, rgba(212, 184, 120, 0.18), rgba(20, 14, 8, 0.95));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px;
+  color: var(--gold-bright);
+  gap: 8px;
+}
+.fragmento-tile-create-ico {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--gold-ghost);
+  border: 1px solid var(--gold-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--gold-bright);
+}
+.fragmento-tile-create-label {
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* Acomodo en SocialPost: el video custom ChronosVideoPlayer ya viene con
+   bordes, sólo lo dejamos respirar dentro de la card. */
+.social-post-chronos-video {
+  border-radius: 0;
+  max-height: 460px;
+}
+.social-post-chronos-video .chronos-video,
+.social-post-video .chronos-video {
+  max-height: 460px;
+}

@@ -247,13 +247,10 @@
   font-weight: 600;
   color: var(--text-bright);
   line-height: 1.2;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
-.social-post-author .epoch-tag {
+.social-post-author .epoch-tag,
+.social-post-chips .epoch-tag {
   font-family: var(--font-elegant);
   font-size: 10px;
   letter-spacing: 0.18em;
@@ -264,6 +261,20 @@
   background: var(--gold-ghost);
   border: 1px solid var(--border-thin);
   border-radius: 12px;
+  white-space: nowrap;
+}
+
+/* Fila de chips bajo el autor: categoría + indicador histórico.
+   Mantiene el header limpio sin amontonar todo junto al nombre. */
+.social-post-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-top: 8px;
+}
+.social-post-chips .social-post-historic-tag {
+  margin-top: 0;
 }
 
 .social-post-info {

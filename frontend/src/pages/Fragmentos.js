@@ -3,6 +3,7 @@
  * Filtros por categoría arriba, feed scroll vertical de FragmentoCards.
  */
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import PageShell from '../components/PageShell';
@@ -19,12 +20,29 @@ const FILTROS = [
 
 const Fragmentos = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const myId = user?._id || user?.id;
   const [filtro, setFiltro] = useState('all');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [error, setError] = useState(null);
+
+  // Soporte para ?nuevo=1 (abre el modal de creación al entrar)
+  // y ?focus=<id> (hace scroll al fragmento específico)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('nuevo') === '1') setCreateOpen(true);
+    const focusId = params.get('focus');
+    if (focusId) {
+      // Esperamos al primer render con datos
+      const t = setTimeout(() => {
+        const el = document.querySelector(`[data-testid="fragmento-${focusId}"]`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 800);
+      return () => clearTimeout(t);
+    }
+  }, [location.search]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);

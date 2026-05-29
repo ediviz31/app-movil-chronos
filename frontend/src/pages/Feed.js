@@ -10,6 +10,7 @@ import CreateChronicleModal from '../components/CreateChronicleModal';
 import CapsulasRail from '../components/CapsulasRail';
 import { HourglassIcon, FeatherIcon, OrnateStarIcon, PlusOrnateIcon, ScrollIcon, MapIcon } from '../components/HistoricIcons';
 import WeeklyHighlight from '../components/WeeklyHighlight';
+import FragmentosRail from '../components/FragmentosRail';
 import { getAvatarUrl } from '../utils/imageHelpers';
 import api from '../services/api';
 
@@ -78,6 +79,9 @@ const Feed = () => {
 
           {/* Boletín del archivo: lo más resonante de la semana */}
           <WeeklyHighlight />
+
+          {/* Rail de Fragmentos del Tiempo (bóveda de metraje recuperado) */}
+          <FragmentosRail />
 
           {/* COMPOSER - Crear publicación */}
           <div className="social-composer" data-testid="social-composer">

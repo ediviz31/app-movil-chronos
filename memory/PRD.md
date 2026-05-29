@@ -6,6 +6,14 @@
 ### Sesión actual: Migración a Emergent Object Store COMPLETA ✅
 **Todas las subidas (imagen, video, audio, IA, TTS) ahora persisten entre re-deploys.**
 
+#### Fase 26 (29-may-2026): Feed pulido — Video custom + Header limpio + Bóveda + Metraje recuperado ⭐
+- ✅ **ChronosVideoPlayer integrado en SocialPost** — los videos en el feed ahora usan el reproductor custom dorado (controles propios, play central ornamental, barra dorada, fullscreen).
+- ✅ **Header de los posts rediseñado** — autor en línea propia limpia, abajo una fila de chips (categoría + indicador histórico ◆) sin amontonamiento.
+- ✅ **Bóveda en el feed** — nuevo componente `FragmentosRail` con tiles verticales tipo Reels que aparecen entre el boletín semanal y el composer. Hover en desktop reproduce preview, click → `/fragmentos`.
+- ✅ **"Metraje recuperado"** — sello cinematográfico sobre el video del Fragmento (rediseño completo del badge): tipografía de máquina (Courier), papel envejecido con grano, esquinas tipo dossier desclasificado, leve rotación de -1.4°, animación sutil de parpadeo de proyección, código de referencia "ARCH · A4F92E". Lejos del look de museo, más cerca de "fragmento perdido recuperado de una bóveda".
+- ✅ Soporte de `?nuevo=1` y `?focus=<id>` en `/fragmentos` (deep linking desde el rail del feed).
+- ✅ `SW_VERSION` → `v20-fragmentos-feed`.
+
 #### Fase 25 (29-may-2026): Object Store completo
 - ✅ `POST /api/ia/imagen` → genera con Python a `/tmp/`, sube a Object Store, devuelve `/api/files/chronos/uploads/ia-imagenes/...`
 - ✅ `POST /api/relatos/:id/narrar` → idéntico flujo, carpeta `audio/`
