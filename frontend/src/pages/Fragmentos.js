@@ -58,7 +58,7 @@ const Fragmentos = () => {
         <header className="fragmentos-header">
           <div className="fragmentos-kicker">◆ Chronos ◆</div>
           <h1 className="fragmentos-title">Fragmentos del Tiempo</h1>
-          <p className="fragmentos-sub">Videos breves que preservan memoria</p>
+          <p className="fragmentos-sub">Memorias en movimiento · entra con respeto</p>
         </header>
 
         {/* Filtros */}
@@ -76,7 +76,7 @@ const Fragmentos = () => {
           ))}
         </div>
 
-        {/* Botón Crear (siempre visible) */}
+        {/* Botón Crear */}
         {user && (
           <button
             type="button"
@@ -84,8 +84,21 @@ const Fragmentos = () => {
             onClick={() => setCreateOpen(true)}
             data-testid="fragmentos-create-cta"
           >
-            <span aria-hidden="true" className="fragmentos-create-ico">+</span>
-            <span>Crear Fragmento</span>
+            <span className="fragmentos-create-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path
+                  d="M14.5 3.5 L20.5 9.5 L9 21 L3 21 L3 15 Z"
+                  fill="none" stroke="currentColor" strokeWidth="1.6"
+                  strokeLinejoin="round"
+                />
+                <path d="M13 5 L19 11" stroke="currentColor" strokeWidth="1.4" />
+              </svg>
+            </span>
+            <span className="fragmentos-create-text">
+              <strong>Preservar un fragmento</strong>
+              <small>graba o sube un video histórico</small>
+            </span>
+            <span className="fragmentos-create-arrow" aria-hidden="true">›</span>
           </button>
         )}
 

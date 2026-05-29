@@ -22,7 +22,6 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
   const [playing, setPlaying] = useState(autoplay);
   const [muted, setMuted] = useState(true);
   const [pendingAval, setPendingAval] = useState(false);
-  const [pendingArchive, setPendingArchive] = useState(false);
   const videoRef = useRef(null);
   const viewedRef = useRef(false);
 
@@ -64,7 +63,8 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
     if (videoRef.current) videoRef.current.muted = !videoRef.current.muted;
   };
 
-  const handleAvalar = async () => {
+  const handleAvalar = async (e) => {
+    e?.stopPropagation();
     if (pendingAval) return;
     setPendingAval(true);
     haptic.light();
@@ -76,22 +76,13 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
     finally { setPendingAval(false); }
   };
 
-  const handleArchivar = async () => {
-    if (pendingArchive) return;
-    setPendingArchive(true);
-    haptic.light();
-    try {
-      const res = await api.post(`/fragmentos/${data._id}/archivar`);
-      setData(d => ({ ...d, usuario_archivo: res.data.usuario_archivo }));
-    } catch (e) { /* silent */ }
-    finally { setPendingArchive(false); }
-  };
-
-  const handleResponder = () => {
+  const handleAportar = (e) => {
+    e?.stopPropagation();
     navigate(`/perfil/${data.usuario_id?._id}`);
   };
 
-  const handleDifundir = async () => {
+  const handleDifundir = async (e) => {
+    e?.stopPropagation();
     haptic.light();
     const shareUrl = `${window.location.origin}/fragmentos/${data._id}`;
     try {
@@ -108,7 +99,8 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
     } catch (_) {}
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (e) => {
+    e?.stopPropagation();
     if (!window.confirm('¿Eliminar este Fragmento? Esta acción no se puede deshacer.')) return;
     try {
       await api.delete(`/fragmentos/${data._id}`);
@@ -172,53 +164,43 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
           {muted ? '🔇' : '🔊'}
         </button>
 
-        {/* Acciones laterales */}
-        <div className="fragmento-actions">
-          <button
-            type="button"
-            className={`fragmento-action ${data.usuario_avalo ? 'is-active' : ''}`}
-            onClick={handleAvalar}
-            disabled={pendingAval}
-            data-testid={`fragmento-avalar-${data._id}`}
-            aria-label="Avalar"
-          >
-            <span className="fragmento-action-ico" aria-hidden="true">★</span>
-            <span className="fragmento-action-count">{data.total_avales || 0}</span>
-            <span className="fragmento-action-label">Avalar</span>
-          </button>
-          <button
-            type="button"
-            className="fragmento-action"
-            onClick={handleResponder}
-            data-testid={`fragmento-responder-${data._id}`}
-            aria-label="Responder"
-          >
-            <span className="fragmento-action-ico" aria-hidden="true">✎</span>
-            <span className="fragmento-action-label">Responder</span>
-          </button>
-          <button
-            type="button"
-            className="fragmento-action"
-            onClick={handleDifundir}
-            data-testid={`fragmento-difundir-${data._id}`}
-            aria-label="Difundir"
-          >
-            <span className="fragmento-action-ico" aria-hidden="true">🔥</span>
-            <span className="fragmento-action-label">Difundir</span>
-          </button>
-          <button
-            type="button"
-            className={`fragmento-action ${data.usuario_archivo ? 'is-active' : ''}`}
-            onClick={handleArchivar}
-            disabled={pendingArchive}
-            data-testid={`fragmento-archivar-${data._id}`}
-            aria-label="Archivar"
-          >
-            <span className="fragmento-action-ico" aria-hidden="true">⛯</span>
-            <span className="fragmento-action-label">Archivar</span>
-          </button>
+          {/* Acciones laterales */}
+          <div className="fragmento-actions">
+            <button
+              type="button"
+              className={`fragmento-action ${data.usuario_avalo ? 'is-active' : ''}`}
+              onClick={handleAvalar}
+              disabled={pendingAval}
+              data-testid={`fragmento-avalar-${data._id}`}
+              aria-label="Eco"
+            >
+              <span className="fragmento-action-ico" aria-hidden="true">✦</span>
+              <span className="fragmento-action-count">{data.total_avales || 0}</span>
+              <span className="fragmento-action-label">Eco</span>
+            </button>
+            <button
+              type="button"
+              className="fragmento-action"
+              onClick={handleResonancia}
+              data-testid={`fragmento-resonancia-${data._id}`}
+              aria-label="Resonancia"
+            >
+              <span className="fragmento-action-ico" aria-hidden="true">✒</span>
+              <span className="fragmento-action-count">{data.total_resonancias || 0}</span>
+              <span className="fragmento-action-label">Resonancia</span>
+            </button>
+            <button
+              type="button"
+              className="fragmento-action"
+              onClick={handleDifundir}
+              data-testid={`fragmento-difundir-${data._id}`}
+              aria-label="Difundir"
+            >
+              <span className="fragmento-action-ico" aria-hidden="true">⌁</span>
+              <span className="fragmento-action-label">Difundir</span>
+            </button>
+          </div>
         </div>
-      </div>
 
       {/* Cuerpo: título, descripción, fuente */}
       <div className="fragmento-body">

@@ -52,8 +52,13 @@ const RelatoDetail = () => {
   const toggleReadingMode = () => {
     setReadingMode(prev => {
       const next = !prev;
-      if (next) document.body.classList.add('chronos-reading-active');
-      else document.body.classList.remove('chronos-reading-active');
+      if (next) {
+        document.body.classList.add('chronos-reading-active');
+        document.documentElement.classList.add('chronos-reading-active');
+      } else {
+        document.body.classList.remove('chronos-reading-active');
+        document.documentElement.classList.remove('chronos-reading-active');
+      }
       return next;
     });
   };
@@ -65,8 +70,11 @@ const RelatoDetail = () => {
     });
   };
   useEffect(() => {
-    // Cleanup body class on unmount
-    return () => { document.body.classList.remove('chronos-reading-active'); };
+    // Cleanup body & html class on unmount
+    return () => {
+      document.body.classList.remove('chronos-reading-active');
+      document.documentElement.classList.remove('chronos-reading-active');
+    };
   }, []);
 
   const currentUserId = user?._id || user?.id;

@@ -2411,7 +2411,10 @@ app.post('/api/ia/imagen', auth, async (req, res) => {
     const fileName = `ia-${Date.now()}-${Math.round(Math.random() * 1e9)}.png`;
     const outputPath = path.join(relatoUploadDirImg, fileName);
     const scriptPath = path.join(__dirname, 'scripts', 'generate_image.py');
-    const py = spawn('python3', [scriptPath, outputPath, String(prompt).trim(), estilo || 'pergamino']);
+    const { findPython: findPy } = require('./utils/pythonHelper');
+    const { spawn: spawnPy } = require('child_process');
+    const pyExec = process.env.PYTHON_BIN || findPy();
+    const py = spawnPy(pyExec, [scriptPath, outputPath, String(prompt).trim(), estilo || 'pergamino'], { env: process.env });
 
     let stderr = '';
     py.stderr.on('data', d => { stderr += d.toString(); });
@@ -2423,6 +2426,25 @@ app.post('/api/ia/imagen', auth, async (req, res) => {
       clearTimeout(timeout);
       if (code !== 0) {
         console.error('[generate_image] stderr:', stderr);
+        // Detectar errores específicos para dar mensaje claro al usuario
+        if (stderr.includes('Budget has been exceeded') || stderr.includes('budget_exceeded')) {
+          return res.status(402).json({
+            error: 'Saldo agotado',
+            detail: 'Tu clave de IA se quedó sin saldo. Ve a tu Perfil → Universal Key → Añadir balance para seguir generando imágenes.'
+          });
+        }
+        if (stderr.includes('Invalid API key') || stderr.includes('Unauthorized')) {
+          return res.status(401).json({
+            error: 'Clave de IA inválida',
+            detail: 'La clave EMERGENT_LLM_KEY parece inválida o expiró.'
+          });
+        }
+        if (stderr.includes('Rate limit')) {
+          return res.status(429).json({
+            error: 'Demasiadas peticiones',
+            detail: 'Intenta de nuevo en unos segundos.'
+          });
+        }
         return res.status(500).json({ error: 'No se pudo generar la imagen', detail: stderr.slice(0, 200) });
       }
       if (!fs.existsSync(outputPath)) {
@@ -2440,6 +2462,7 @@ app.post('/api/ia/imagen', auth, async (req, res) => {
 // AUDIO NARRACIÓN (TTS) — usa Emergent LLM key
 // ============================================
 const { spawn } = require('child_process');
+const { findPython } = require('./utils/pythonHelper');
 
 app.post('/api/relatos/:id/narrar', auth, async (req, res) => {
   try {
@@ -2466,8 +2489,8 @@ app.post('/api/relatos/:id/narrar', auth, async (req, res) => {
 
     const filename = `${relato._id}-${finalVoice}-${Date.now()}.mp3`;
     const outputPath = path.join(__dirname, 'uploads', 'audio', filename);
-    // Usar python del venv (con emergentintegrations y dotenv instalados)
-    const pyExec = process.env.PYTHON_BIN || '/root/.venv/bin/python3';
+    // Auto-detecta python con los módulos correctos (preview venv o sistema)
+    const pyExec = process.env.PYTHON_BIN || findPython();
     const script = path.join(__dirname, 'scripts', 'generate_tts.py');
     const child = spawn(pyExec, [script, outputPath, finalVoice], { env: process.env });
 
@@ -2507,4 +2530,8 @@ app.post('/api/relatos/:id/narrar', auth, async (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor Chronos corriendo en puerto ${PORT}`);
   console.log(`📚 Base de datos: ${process.env.MONGO_URL}`);
+  // Calentar python helper en background (no bloquea startup)
+  setTimeout(() => {
+    try { findPython(); } catch (e) { console.warn('[python] warm-up failed:', e.message); }
+  }, 1000);
 });

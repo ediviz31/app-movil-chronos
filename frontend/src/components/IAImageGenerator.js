@@ -52,7 +52,17 @@ const IAImageGenerator = ({ onImageGenerated, contextHint }) => {
       setGenerated({ image_path: path, url: getImageUrl(path) });
       haptic.success();
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al generar la imagen');
+      const errMsg = err.response?.data?.error || '';
+      const errDetail = err.response?.data?.detail || '';
+      if (err.response?.status === 402 || errMsg.toLowerCase().includes('saldo')) {
+        setError('💳 Tu clave de IA se quedó sin saldo. Ve a tu Perfil → Universal Key → Añadir balance para seguir generando imágenes.');
+      } else if (err.response?.status === 429) {
+        setError('⏳ Demasiadas peticiones. Espera unos segundos y vuelve a intentar.');
+      } else if (errDetail) {
+        setError(`${errMsg}. ${errDetail}`);
+      } else {
+        setError(errMsg || 'Error al generar la imagen');
+      }
     } finally {
       setLoading(false);
     }

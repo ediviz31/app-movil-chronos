@@ -34,8 +34,15 @@
   color: var(--gold-bright);
 }
 
-/* Posición relativa para que el toggle se acomode bien dentro de la página */
-.relato-detail-page { position: relative; }
+/* Forzar también html para evitar fondo azul en safe-area-inset-bottom */
+body.chronos-reading-active { background-color: #F4ECD8 !important; }
+html.chronos-reading-active { background-color: #F4ECD8 !important; }
+
+/* Forzar también que el PageShell wrapper no tenga el fondo navy original */
+body.chronos-reading-active .page-shell,
+body.chronos-reading-active .page-shell-content {
+  background: transparent !important;
+}
 
 /* ===== MODO LECTURA ACTIVADO ===== */
 
@@ -65,6 +72,16 @@ body.chronos-reading-active .main-area {
 }
 
 /* Pergamino fijo en modo lectura */
+body.chronos-reading-active,
+html.chronos-reading-active,
+body.chronos-reading-active .app-shell,
+body.chronos-reading-active .archive-layout,
+body.chronos-reading-active .main-area,
+body.chronos-reading-active .archive-feed,
+body.chronos-reading-active #root {
+  background: #F4ECD8 !important;
+  color: #3D2914 !important;
+}
 body.chronos-reading-active {
   background: #F4ECD8 !important;
   color: #3D2914 !important;

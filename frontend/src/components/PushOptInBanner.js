@@ -52,11 +52,29 @@ const PushOptInBanner = () => {
 
   const handleActivar = async () => {
     setSubmitting(true);
+    // Timeout de seguridad: si por cualquier motivo no termina en 25s,
+    // liberamos el botón para evitar que se quede "Activando..." indefinidamente.
+    const safetyTimer = setTimeout(() => {
+      setSubmitting(false);
+    }, 25000);
     try {
       const sub = await subscribeToPush();
-      if (sub) setShow(false);
-    } catch (err) { console.warn(err); }
-    finally { setSubmitting(false); }
+      if (sub) {
+        setShow(false);
+      } else {
+        // El usuario denegó o el navegador no soporta. No preguntemos de nuevo.
+        localStorage.setItem(LS_KEY, String(Date.now()));
+        setShow(false);
+      }
+    } catch (err) {
+      console.warn('Activar avisos error:', err);
+      // Marcamos para no insistir si falla
+      localStorage.setItem(LS_KEY, String(Date.now()));
+      setShow(false);
+    } finally {
+      clearTimeout(safetyTimer);
+      setSubmitting(false);
+    }
   };
 
   const handleAhoraNo = () => {
