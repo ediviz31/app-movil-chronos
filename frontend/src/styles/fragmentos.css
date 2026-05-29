@@ -349,16 +349,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  width: 48px;
-  padding: 6px 3px;
-  background: rgba(8, 12, 28, 0.65);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(212, 184, 120, 0.25);
-  border-radius: 12px;
+  justify-content: center;
+  gap: 3px;
+  width: 56px;
+  min-height: 60px;
+  padding: 8px 4px;
+  background: rgba(8, 12, 28, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 184, 120, 0.28);
+  border-radius: 14px;
   color: #f5ecd2;
   font-family: var(--font-elegant);
-  font-size: 8px;
+  font-size: 8.5px;
+  line-height: 1;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
@@ -583,13 +587,15 @@
     gap: 8px;
   }
   .fragmento-action {
-    width: 42px;
-    padding: 5px 2px;
-    border-radius: 10px;
+    width: 50px;
+    min-height: 56px;
+    padding: 7px 3px;
+    border-radius: 12px;
+    gap: 3px;
   }
-  .fragmento-action-ico { font-size: 13px; }
-  .fragmento-action-count { font-size: 9px; }
-  .fragmento-action-label { font-size: 7px; letter-spacing: 0.08em; }
+  .fragmento-action-ico { font-size: 14px; }
+  .fragmento-action-count { font-size: 10px; font-weight: 700; }
+  .fragmento-action-label { font-size: 8px; letter-spacing: 0.08em; }
   .fragmento-titulo { font-size: 15px; }
   .fragmento-desc { font-size: 12px; }
   .fragmento-body { padding: 10px 12px 12px; }

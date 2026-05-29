@@ -1,0 +1,255 @@
+/* =====================================================
+   Fragmento Fullscreen — Vista reel (TikTok/Reels style)
+   ===================================================== */
+.fr-fs-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fr-fs-fade-in 0.2s ease;
+}
+@keyframes fr-fs-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Cerrar */
+.fr-fs-close {
+  position: absolute;
+  top: env(safe-area-inset-top, 12px);
+  left: 12px;
+  z-index: 11;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(212, 184, 120, 0.4);
+  color: #f5ecd2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.fr-fs-close:hover { background: rgba(0, 0, 0, 0.78); }
+
+/* Stage del video — ocupa toda la pantalla, video centrado con object-fit */
+.fr-fs-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.fr-fs-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+/* Indicador play (cuando está pausado) */
+.fr-fs-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: rgba(212, 184, 120, 0.92);
+  border: 1px solid rgba(255, 245, 215, 0.5);
+  color: #1a1410;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  animation: fr-fs-play-pop 0.18s ease;
+}
+@keyframes fr-fs-play-pop {
+  from { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
+  to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* Acciones laterales (estilo Reels) */
+.fr-fs-actions {
+  position: absolute;
+  right: 14px;
+  bottom: 28%;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+}
+.fr-fs-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--font-elegant);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  transition: transform 0.12s ease;
+}
+.fr-fs-action:hover { transform: scale(1.06); }
+.fr-fs-action:disabled { opacity: 0.6; cursor: wait; }
+
+.fr-fs-action-ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(20, 14, 8, 0.65);
+  border: 1px solid rgba(212, 184, 120, 0.4);
+  font-size: 22px;
+  color: var(--gold-bright, #d4b878);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.fr-fs-action.is-active .fr-fs-action-ico {
+  background: rgba(212, 184, 120, 0.92);
+  color: #1a1410;
+}
+.fr-fs-action-n {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0;
+  color: #fff;
+}
+.fr-fs-action-lab {
+  font-size: 9.5px;
+}
+
+/* Info inferior */
+.fr-fs-info {
+  position: absolute;
+  left: 14px;
+  right: 84px;
+  bottom: env(safe-area-inset-bottom, 18px);
+  bottom: max(18px, env(safe-area-inset-bottom, 18px));
+  padding-bottom: 14px;
+  z-index: 9;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.6) 100%);
+  padding-top: 40px;
+  pointer-events: none; /* el video sigue clicable atrás, sólo enlaces interactivos */
+}
+.fr-fs-info > * { pointer-events: auto; }
+
+.fr-fs-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--gold-bright, #d4b878);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  padding: 0;
+}
+.fr-fs-author img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(212, 184, 120, 0.6);
+}
+
+.fr-fs-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 19px;
+  margin: 4px 0 6px;
+  color: #fff;
+  line-height: 1.25;
+}
+.fr-fs-meta {
+  display: flex;
+  gap: 8px;
+  font-family: var(--font-elegant);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-bright, #d4b878);
+  margin-bottom: 8px;
+}
+.fr-fs-desc {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 520px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Barra de progreso */
+.fr-fs-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  z-index: 12;
+}
+.fr-fs-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold, #c6a75e), var(--gold-bright, #d4b878));
+  transition: width 0.12s linear;
+}
+
+/* Desktop: centrar el video en una columna estilo Reel */
+@media (min-width: 760px) {
+  .fr-fs-stage {
+    width: min(440px, 92vw);
+    height: min(820px, 92vh);
+    left: 50%;
+    top: 50%;
+    inset: auto;
+    transform: translate(-50%, -50%);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .fr-fs-actions { right: calc(50% - 260px); bottom: 100px; }
+  .fr-fs-info { left: calc(50% - 220px); right: calc(50% - 180px); bottom: 60px; }
+  .fr-fs-progress {
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(440px, 92vw);
+    border-radius: 0 0 16px 16px;
+  }
+}
+@media (min-width: 760px) and (max-width: 1100px) {
+  .fr-fs-actions { right: calc(50% - 240px); }
+}
+
+/* Móvil: ajustes finos */
+@media (max-width: 380px) {
+  .fr-fs-actions { right: 10px; gap: 14px; }
+  .fr-fs-action-ico { width: 42px; height: 42px; font-size: 19px; }
+  .fr-fs-info { right: 70px; }
+  .fr-fs-title { font-size: 17px; }
+}

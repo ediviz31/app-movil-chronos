@@ -24,18 +24,23 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
   const [muted, setMuted] = useState(true);
   const [pendingAval, setPendingAval] = useState(false);
   const [videoError, setVideoError] = useState(false);
+  const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const videoRef = useRef(null);
   const viewedRef = useRef(false);
 
   useEffect(() => { setData(fragmento); }, [fragmento]);
 
-  // IntersectionObserver: autoplay cuando entra al viewport
+  // IntersectionObserver: sólo precargar y reproducir el video visible.
+  // Esto mejora muchísimo la velocidad del feed (antes precargaba TODOS
+  // los videos a metadata, ahora sólo el que está en pantalla).
   useEffect(() => {
     if (!videoRef.current) return;
     const el = videoRef.current;
     const obs = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
+          // Al entrar al viewport: preload + play
+          if (el.preload === 'none') el.preload = 'metadata';
           setPlaying(true);
           el.play().catch(() => {});
           // Marcar visualización (una vez)
@@ -55,10 +60,22 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
     return () => obs.disconnect();
   }, [data?._id]);
 
-  const togglePlay = () => {
-    if (!videoRef.current) return;
-    if (playing) { videoRef.current.pause(); setPlaying(false); }
-    else { videoRef.current.play(); setPlaying(true); }
+  // Tap en el stage → abre el reel a pantalla completa (como Reels/TikTok)
+  const openFullscreen = (e) => {
+    e?.stopPropagation();
+    if (videoError) return;
+    haptic.light();
+    // Pausamos el video en miniatura para que el del fullscreen tenga
+    // control exclusivo y no haya dos copias sonando.
+    if (videoRef.current) videoRef.current.pause();
+    setPlaying(false);
+    setFullscreenOpen(true);
+  };
+
+  const togglePlay = (e) => {
+    // En FragmentoCard ahora el tap abre el fullscreen. Sólo cambiamos
+    // play/pause si el usuario tocó muy rápido y queremos un fallback.
+    if (e) openFullscreen(e);
   };
 
   const toggleMute = (e) => {
@@ -163,7 +180,7 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
           loop
           playsInline
           muted={muted}
-          preload="metadata"
+          preload="none"
           controls={false}
           onError={() => setVideoError(true)}
           onLoadedData={() => setVideoError(false)}
@@ -272,7 +289,162 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
           </div>
         </div>
       </div>
+
+      {fullscreenOpen && (
+        <FragmentoFullscreen
+          data={data}
+          author={author}
+          muted={muted}
+          onClose={() => setFullscreenOpen(false)}
+          onAvalar={handleAvalar}
+          onAportar={handleAportar}
+          onDifundir={handleDifundir}
+          pendingAval={pendingAval}
+          onChanged={(d) => setData(prev => ({ ...prev, ...d }))}
+        />
+      )}
     </article>
+  );
+};
+
+/**
+ * Vista a pantalla completa del Fragmento, estilo Reels.
+ * Video centrado vertical, acciones a la derecha, info abajo, cerrar arriba.
+ */
+const FragmentoFullscreen = ({ data, author, muted: initialMuted, onClose, onAvalar, onAportar, onDifundir, pendingAval }) => {
+  const navigate = useNavigate();
+  const videoRef = useRef(null);
+  const [playing, setPlaying] = useState(true);
+  const [muted, setMuted] = useState(initialMuted);
+  const [progress, setProgress] = useState(0);
+
+  // Bloquear scroll del body mientras está abierto
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  // ESC para cerrar
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  // Autoplay al abrir
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+  }, []);
+
+  const togglePlay = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) v.play().then(() => setPlaying(true)).catch(() => {});
+    else { v.pause(); setPlaying(false); }
+  };
+
+  const toggleMute = (e) => {
+    e?.stopPropagation();
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setMuted(v.muted);
+  };
+
+  const onTimeUpdate = () => {
+    const v = videoRef.current;
+    if (v && v.duration) setProgress((v.currentTime / v.duration) * 100);
+  };
+
+  return (
+    <div className="fr-fs-overlay" data-testid={`fr-fs-${data._id}`} role="dialog" aria-modal="true">
+      {/* Botón cerrar */}
+      <button className="fr-fs-close" onClick={onClose} aria-label="Cerrar" data-testid="fr-fs-close">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M6 6 L18 18 M18 6 L6 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" fill="none"/>
+        </svg>
+      </button>
+
+      {/* Video centrado */}
+      <div className="fr-fs-stage" onClick={togglePlay}>
+        <video
+          ref={videoRef}
+          src={getImageUrl(data.video)}
+          poster={data.miniatura ? getImageUrl(data.miniatura) : undefined}
+          className="fr-fs-video"
+          loop
+          playsInline
+          muted={muted}
+          preload="auto"
+          onTimeUpdate={onTimeUpdate}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          data-testid={`fr-fs-video-${data._id}`}
+        />
+        {/* Tap overlay play indicator (sólo cuando está pausado) */}
+        {!playing && (
+          <button type="button" className="fr-fs-play" aria-label="Reproducir">
+            <svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true">
+              <path d="M14 10 L38 24 L14 38 Z" fill="currentColor"/>
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Acciones laterales (Reel-style) */}
+      <aside className="fr-fs-actions" aria-label="Acciones del fragmento">
+        <button
+          className={`fr-fs-action ${data.usuario_avalo ? 'is-active' : ''}`}
+          onClick={onAvalar}
+          disabled={pendingAval}
+          data-testid="fr-fs-eco"
+        >
+          <span className="fr-fs-action-ico" aria-hidden="true">◆</span>
+          <span className="fr-fs-action-n">{data.total_avales || 0}</span>
+          <span className="fr-fs-action-lab">Eco</span>
+        </button>
+        <button className="fr-fs-action" onClick={onAportar} data-testid="fr-fs-aportar">
+          <span className="fr-fs-action-ico" aria-hidden="true">✎</span>
+          <span className="fr-fs-action-n">{data.total_aportes || 0}</span>
+          <span className="fr-fs-action-lab">Aportar</span>
+        </button>
+        <button className="fr-fs-action" onClick={onDifundir} data-testid="fr-fs-difundir">
+          <span className="fr-fs-action-ico" aria-hidden="true">↗</span>
+          <span className="fr-fs-action-lab">Difundir</span>
+        </button>
+        <button className="fr-fs-action fr-fs-action-mute" onClick={toggleMute} data-testid="fr-fs-mute" aria-label={muted ? 'Activar sonido' : 'Silenciar'}>
+          <span className="fr-fs-action-ico" aria-hidden="true">{muted ? '🔇' : '🔊'}</span>
+        </button>
+      </aside>
+
+      {/* Info inferior */}
+      <div className="fr-fs-info">
+        {author && (
+          <button className="fr-fs-author" onClick={() => navigate(`/perfil/${author._id}`)}>
+            <img src={getAvatarUrl(author)} alt={author.nombre} />
+            <span>{author.nombre}</span>
+          </button>
+        )}
+        <h2 className="fr-fs-title">{data.titulo}</h2>
+        {(data.lugar || data.anio) && (
+          <div className="fr-fs-meta">
+            {data.lugar && <span>◉ {data.lugar}</span>}
+            {data.anio && <span>· ⌛ {data.anio}</span>}
+          </div>
+        )}
+        {data.descripcion && (
+          <p className="fr-fs-desc">{data.descripcion}</p>
+        )}
+      </div>
+
+      {/* Barra de progreso */}
+      <div className="fr-fs-progress" aria-hidden="true">
+        <div className="fr-fs-progress-fill" style={{ width: `${progress}%` }} />
+      </div>
+    </div>
   );
 };
 
