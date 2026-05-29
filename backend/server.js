@@ -2411,9 +2411,15 @@ app.post('/api/ia/imagen', auth, async (req, res) => {
     const fileName = `ia-${Date.now()}-${Math.round(Math.random() * 1e9)}.png`;
     const outputPath = path.join(relatoUploadDirImg, fileName);
     const scriptPath = path.join(__dirname, 'scripts', 'generate_image.py');
-    const { findPython: findPy } = require('./utils/pythonHelper');
+    const { findPythonAsync } = require('./utils/pythonHelper');
     const { spawn: spawnPy } = require('child_process');
-    const pyExec = process.env.PYTHON_BIN || findPy();
+    const pyExec = process.env.PYTHON_BIN || await findPythonAsync(20000);
+    if (!pyExec) {
+      return res.status(503).json({
+        error: 'Servicio IA no disponible',
+        detail: 'El entorno Python aún no está listo. Intenta de nuevo en 1 minuto.'
+      });
+    }
     const py = spawnPy(pyExec, [scriptPath, outputPath, String(prompt).trim(), estilo || 'pergamino'], { env: process.env });
 
     let stderr = '';
@@ -2462,7 +2468,7 @@ app.post('/api/ia/imagen', auth, async (req, res) => {
 // AUDIO NARRACIÓN (TTS) — usa Emergent LLM key
 // ============================================
 const { spawn } = require('child_process');
-const { findPython } = require('./utils/pythonHelper');
+const { findPython, findPythonAsync } = require('./utils/pythonHelper');
 
 app.post('/api/relatos/:id/narrar', auth, async (req, res) => {
   try {
@@ -2490,7 +2496,13 @@ app.post('/api/relatos/:id/narrar', auth, async (req, res) => {
     const filename = `${relato._id}-${finalVoice}-${Date.now()}.mp3`;
     const outputPath = path.join(__dirname, 'uploads', 'audio', filename);
     // Auto-detecta python con los módulos correctos (preview venv o sistema)
-    const pyExec = process.env.PYTHON_BIN || findPython();
+    const pyExec = process.env.PYTHON_BIN || await findPythonAsync(20000);
+    if (!pyExec) {
+      return res.status(503).json({
+        error: 'Servicio TTS no disponible',
+        detail: 'El entorno Python aún no está listo. Intenta de nuevo en 1 minuto.'
+      });
+    }
     const script = path.join(__dirname, 'scripts', 'generate_tts.py');
     const child = spawn(pyExec, [script, outputPath, finalVoice], { env: process.env });
 
@@ -2530,8 +2542,9 @@ app.post('/api/relatos/:id/narrar', auth, async (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor Chronos corriendo en puerto ${PORT}`);
   console.log(`📚 Base de datos: ${process.env.MONGO_URL}`);
-  // Calentar python helper en background (no bloquea startup)
+  // Disparar setup de python en background (no bloquea startup)
+  // Si ningún python tiene los módulos, intenta instalar en background.
   setTimeout(() => {
     try { findPython(); } catch (e) { console.warn('[python] warm-up failed:', e.message); }
-  }, 1000);
+  }, 5000);
 });
