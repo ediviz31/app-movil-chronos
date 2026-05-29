@@ -25,6 +25,7 @@ import ExplorarPage from './pages/ExplorarPage';
 import TagPage from './pages/TagPage';
 import MisivasPage from './pages/MisivasPage';
 import Fragmentos from './pages/Fragmentos';
+import Admin from './pages/Admin';
 import { HourglassIcon } from './components/HistoricIcons';
 import './styles/archive.css';
 import './styles/social-refine.css';
@@ -50,6 +51,8 @@ import './styles/media-picker.css';
 import './styles/ia-imagen.css';
 import './styles/torch-progress.css';
 import './styles/fragmentos.css';
+import './styles/narrar-block.css';
+import './styles/admin.css';
 import './styles/theme-light.css';
 
 const LoadingScreen = () => (
@@ -105,6 +108,8 @@ function App() {
           <Route path="/efemerides/mapa" element={<ProtectedRoute><MapaEfemerides /></ProtectedRoute>} />
           <Route path="/visitas" element={<ProtectedRoute><Visitas /></ProtectedRoute>} />
           <Route path="/fragmentos" element={<ProtectedRoute><Fragmentos /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+          <Route path="/admin/moderacion" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
           <Route path="/mi-legado" element={<ProtectedRoute><MiLegado /></ProtectedRoute>} />
           <Route path="/explorar" element={<ProtectedRoute><ExplorarPage /></ProtectedRoute>} />
           <Route path="/tags/:tag" element={<ProtectedRoute><TagPage /></ProtectedRoute>} />

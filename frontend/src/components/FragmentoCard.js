@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { getImageUrl, getAvatarUrl } from '../utils/imageHelpers';
 import haptic from '../utils/haptic';
+import { playProyectorOnce } from '../utils/fragmentoSound';
 
 const CATEGORIA_LABEL = {
   historia_local: 'Historia local',
@@ -41,6 +42,8 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
           if (!viewedRef.current && data?._id) {
             viewedRef.current = true;
             api.post(`/fragmentos/${data._id}/vista`).catch(() => {});
+            // Micro-sonido: cinta proyectándose al abrir la bóveda
+            try { playProyectorOnce(data._id); } catch (_) {}
           }
         } else {
           setPlaying(false);

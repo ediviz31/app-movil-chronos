@@ -14,6 +14,7 @@ import { buildHistoricTag } from '../utils/historicTime';
 import VisitaVirtualButton from './VisitaVirtualButton';
 import useVisitaVirtual from '../hooks/useVisitaVirtual';
 import ChronosVideoPlayer from './ChronosVideoPlayer';
+import ReportModal from './ReportModal';
 
 const formatFechaRelativa = (fecha) => {
   const date = new Date(fecha);
@@ -46,6 +47,7 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
     lat: null, lng: null
   });
   const [ecoBurst, setEcoBurst] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const handleEco = async () => {
     const willActivate = !dioEco;
@@ -150,7 +152,7 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
             );
           })()}
         </div>
-        {esMiRelato && (
+        {esMiRelato ? (
           <button
             className="social-post-menu"
             onClick={handleEliminar}
@@ -159,6 +161,18 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
           >
             <TabletDaggerIcon size={18} />
           </button>
+        ) : (
+          currentUserId && (
+            <button
+              className="social-post-menu social-post-report-btn"
+              onClick={() => setReportOpen(true)}
+              data-testid={`btn-reportar-${relato._id}`}
+              title="Reportar al maestro del archivo"
+              aria-label="Reportar"
+            >
+              <span aria-hidden="true">⚑</span>
+            </button>
+          )
         )}
       </div>
 
@@ -286,6 +300,14 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
         relato={relato}
         isOpen={shareOpen}
         onClose={() => setShareOpen(false)}
+      />
+
+      <ReportModal
+        isOpen={reportOpen}
+        onClose={() => setReportOpen(false)}
+        tipoObjetivo="relato"
+        objetivoId={relato._id}
+        contextLabel={relato.titulo}
       />
     </article>
   );

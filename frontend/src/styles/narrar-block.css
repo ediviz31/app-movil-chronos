@@ -1,0 +1,229 @@
+/* =====================================================
+   NarrarBlock — Bloque de narración TTS en RelatoDetail
+   Estética dorada cinematográfica, NO una caja genérica.
+   ===================================================== */
+.narrar-block {
+  position: relative;
+  margin: 24px 0 28px;
+  padding: 16px 18px;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(212, 184, 120, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(20, 14, 8, 0.55), rgba(8, 12, 28, 0.4));
+  border: 1px solid var(--gold-soft, rgba(212, 184, 120, 0.25));
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 215, 0.06),
+    0 4px 18px rgba(0, 0, 0, 0.25);
+}
+
+.narrar-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.narrar-block-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-elegant);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* Voice picker */
+.narrar-block-voice-picker {
+  position: relative;
+}
+.narrar-block-voice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(212, 184, 120, 0.08);
+  border: 1px solid var(--gold-soft);
+  border-radius: 14px;
+  color: var(--gold-bright);
+  font-family: var(--font-elegant);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.narrar-block-voice-btn:hover {
+  background: rgba(212, 184, 120, 0.16);
+  border-color: var(--gold);
+}
+.narrar-block-voice-caret { font-size: 9px; opacity: 0.7; }
+
+.narrar-block-voice-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 10;
+  min-width: 240px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(18, 13, 8, 0.97), rgba(8, 12, 26, 0.97));
+  border: 1px solid var(--gold-soft);
+  border-radius: 14px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.55);
+  padding: 6px;
+}
+.narrar-block-voice-opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  color: var(--text-bright);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.narrar-block-voice-opt:hover { background: rgba(212, 184, 120, 0.08); }
+.narrar-block-voice-opt.is-active {
+  background: rgba(212, 184, 120, 0.18);
+  outline: 1px solid var(--gold-soft);
+}
+.narrar-block-voice-opt-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gold-bright);
+  margin-bottom: 1px;
+}
+.narrar-block-voice-opt-desc {
+  display: block;
+  font-family: var(--font-elegant);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+/* Player body */
+.narrar-block-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.narrar-block-play {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 184, 120, 0.95), rgba(160, 125, 58, 0.85));
+  border: 1px solid rgba(255, 245, 215, 0.4);
+  color: #1a1410;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(212, 184, 120, 0.25), inset 0 1px 0 rgba(255, 245, 215, 0.5);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.narrar-block-play:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 6px 22px rgba(212, 184, 120, 0.4);
+}
+.narrar-block-play:disabled { opacity: 0.65; cursor: not-allowed; }
+.narrar-block-play.is-playing {
+  background: radial-gradient(circle, rgba(212, 184, 120, 0.4), rgba(80, 60, 30, 0.85));
+  color: var(--gold-bright);
+}
+.narrar-block-pause-icon {
+  display: inline-flex;
+  gap: 4px;
+}
+.narrar-block-pause-icon span {
+  display: block;
+  width: 5px;
+  height: 18px;
+  background: currentColor;
+  border-radius: 2px;
+}
+
+.narrar-block-spin {
+  display: inline-block;
+  animation: narrar-block-spin 1.6s linear infinite;
+}
+@keyframes narrar-block-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.narrar-block-meter {
+  flex: 1;
+  min-width: 0;
+}
+.narrar-block-meter-label {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-bright);
+  margin-bottom: 7px;
+}
+.narrar-block-track {
+  position: relative;
+  height: 4px;
+  background: rgba(212, 184, 120, 0.18);
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.narrar-block-track-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+  border-radius: 2px;
+  transition: width 0.15s linear;
+  box-shadow: 0 0 8px rgba(212, 184, 120, 0.45);
+}
+
+.narrar-block-error {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(180, 60, 60, 0.12);
+  border: 1px solid rgba(220, 100, 100, 0.32);
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: #f0c8c8;
+}
+
+/* Video wrap dentro de RelatoDetail */
+.relato-video-wrap {
+  margin: 18px 0 6px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--gold-soft);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 600px) {
+  .narrar-block { padding: 14px; margin: 18px 0 22px; }
+  .narrar-block-play { width: 46px; height: 46px; }
+  .narrar-block-meter-label { font-size: 13px; }
+  .narrar-block-voice-menu { min-width: 200px; }
+}
+
+/* Tema claro */
+html[data-theme="light"] .narrar-block {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(160, 110, 40, 0.1), transparent 60%),
+    linear-gradient(180deg, rgba(255, 245, 220, 0.65), rgba(245, 232, 200, 0.4));
+  border-color: rgba(160, 110, 40, 0.3);
+}
+html[data-theme="light"] .narrar-block-meter-label { color: #4a3520; }
+html[data-theme="light"] .narrar-block-voice-opt-name { color: #8a6628; }
+html[data-theme="light"] .narrar-block-voice-menu {
+  background: linear-gradient(180deg, rgba(255, 245, 220, 0.98), rgba(245, 232, 200, 0.98));
+  border-color: rgba(160, 110, 40, 0.4);
+}

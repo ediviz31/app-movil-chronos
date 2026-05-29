@@ -3,8 +3,23 @@
 ## 🚀 Estado del proyecto (Feb 2026)
 **EN PRODUCCIÓN** — https://historia-connect.emergent.host
 
-### Sesión actual: Migración a Emergent Object Store COMPLETA ✅
-**Todas las subidas (imagen, video, audio, IA, TTS) ahora persisten entre re-deploys.**
+### Sesión actual: Migración Object Store + Feed pulido + Bóveda Admin + Reportes ✅
+**Todo el bloque pendiente listo para producción.**
+
+#### Fase 27 (29-may-2026): Bóveda Admin + Reportes + Narrador + Cinta proyectándose ⭐
+- ✅ **`/admin` (Bóveda del maestro)** — sólo accesible si `user.rol === 'admin'`. Muestra:
+  - Métricas: total registrados, activos ahora (5min) / 24h / 7d, nuevos hoy/semana/mes
+  - Conteo de contenido: crónicas, fragmentos, cápsulas, comentarios
+  - Mini-gráfico SVG de registros últimos 14 días
+  - Cola de reportes pendientes con 3 acciones (eliminar contenido / advertir autor / desestimar)
+  - Listado de cronistas con búsqueda
+- ✅ **Auto-promoción admin por `ADMIN_EMAILS`** en `.env` — se ejecuta en boot y en cada login. Yelsi ya está como admin (vizcarrapulidoeddy@gmail.com).
+- ✅ **Sistema de reportes comunitario** — botón ⚑ en cada SocialPost (excepto los míos). 8 motivos predefinidos + detalle opcional. Backend `POST /api/reportes`, índice único por (usuario, objetivo) para evitar duplicados.
+- ✅ **NarrarBlock** en RelatoDetail — bloque dorado con play central + selector de 7 voces TTS (onyx, echo, sage, shimmer, nova, fable, alloy), barra de progreso, regeneración al cambiar voz.
+- ✅ **ChronosVideoPlayer en RelatoDetail** — el video aparece bajo la imagen con controles dorados custom.
+- ✅ **Micro-sonido "cinta proyectándose"** — al ver un Fragmento por primera vez en la sesión, suena 1s de Web Audio (click metálico + whoosh de cinta + thump grave). Generado en tiempo real, sin archivos, respeta autoplay policy y se puede silenciar con `localStorage.chronos_fragmento_proyector = 'off'`.
+- ✅ Entrada "Bóveda admin" en SideRail desktop, sólo visible si admin.
+- ✅ `SW_VERSION` → `v21-narrador-bovedaadmin`.
 
 #### Fase 26 (29-may-2026): Feed pulido — Video custom + Header limpio + Bóveda + Metraje recuperado ⭐
 - ✅ **ChronosVideoPlayer integrado en SocialPost** — los videos en el feed ahora usan el reproductor custom dorado (controles propios, play central ornamental, barra dorada, fullscreen).

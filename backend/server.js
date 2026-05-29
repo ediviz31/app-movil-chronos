@@ -319,6 +319,16 @@ app.post('/api/auth/login', [
       return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: 'Credenciales inválidas' });
     }
 
+    // Auto-promover a admin si el correo está en ADMIN_EMAILS (env)
+    try {
+      const adminEmails = (process.env.ADMIN_EMAILS || '')
+        .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+      if (adminEmails.includes(usuario.correo) && usuario.rol !== 'admin') {
+        usuario.rol = 'admin';
+        await usuario.save();
+      }
+    } catch (_) { /* silencioso, no bloquea login */ }
+
     // Generar token y establecer cookie
     const token = jwt.sign({ userId: usuario._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     setAuthCookie(res, token);
@@ -2439,6 +2449,13 @@ app.use('/api/fragmentos', fragmentosRouter);
 const visitasRouter = require('./routes/visitas')();
 app.use('/api/visitas', visitasRouter);
 
+// Reportes comunitarios + Panel admin
+const requireAdmin = require('./middleware/requireAdmin');
+const reportesRouter = require('./routes/reportes')({ auth, requireAdmin });
+app.use('/api/reportes', reportesRouter);
+const adminRouter = require('./routes/admin')({ auth, requireAdmin });
+app.use('/api/admin', adminRouter);
+
 // ============================================
 // GENERACIÓN DE IMAGEN CON IA (Gemini Nano Banana)
 // La imagen se guarda en Object Store (persistente entre re-deploys).
@@ -2620,4 +2637,25 @@ app.listen(PORT, '0.0.0.0', () => {
   setTimeout(() => {
     try { findPython(); } catch (_) {}
   }, 8000);
+  // Auto-promover a admin a las emails configuradas en ADMIN_EMAILS
+  // (separadas por coma). Permite mantener el maestro del archivo aunque
+  // la BD se restaure desde un backup limpio.
+  setTimeout(async () => {
+    try {
+      const raw = process.env.ADMIN_EMAILS || '';
+      const emails = raw.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+      if (!emails.length) return;
+      const result = await User.updateMany(
+        { correo: { $in: emails }, rol: { $ne: 'admin' } },
+        { $set: { rol: 'admin' } }
+      );
+      if (result.modifiedCount > 0) {
+        console.log(`👑 Promovidos a admin: ${emails.join(', ')} (${result.modifiedCount} cambios)`);
+      } else {
+        console.log(`👑 Admins configurados: ${emails.join(', ')} (ya estaban)`);
+      }
+    } catch (e) {
+      console.error('Error promoviendo admins:', e.message);
+    }
+  }, 4000);
 });

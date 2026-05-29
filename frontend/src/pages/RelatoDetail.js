@@ -6,6 +6,8 @@ import { getAvatarUrl, getImageUrl } from '../utils/imageHelpers';
 import PageShell from '../components/PageShell';
 import PublicShell from '../components/PublicShell';
 import HashtagText from '../components/HashtagText';
+import ChronosVideoPlayer from '../components/ChronosVideoPlayer';
+import NarrarBlock from '../components/NarrarBlock';
 import {
   HourglassIcon, ArrowRightIcon, OrnateStarIcon,
   CoinLaurelIcon, ParchmentIcon, DoveScrollIcon, ChestIcon, TabletDaggerIcon,
@@ -333,6 +335,23 @@ const RelatoDetail = () => {
               <figcaption className="relato-figcaption">{relato.titulo}</figcaption>
             </figure>
           )}
+
+          {/* Video (exploración histórica) — reproductor custom Chronos */}
+          {relato.video_path && (
+            <div className="relato-video-wrap" data-testid="relato-video">
+              <ChronosVideoPlayer
+                src={getImageUrl(relato.video_path)}
+                testId={`relato-chronos-video-${relato._id}`}
+              />
+            </div>
+          )}
+
+          {/* Bloque de narración TTS con selector de voz */}
+          <NarrarBlock
+            relatoId={relato._id}
+            initialAudioPath={relato.audio_path}
+            initialVoz={relato.audio_voz || 'onyx'}
+          />
 
           {/* Contenido */}
           <div className="relato-content" data-testid="relato-content">

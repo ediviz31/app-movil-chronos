@@ -5,7 +5,7 @@ import { getAvatarUrl } from '../utils/imageHelpers';
 import {
   OrnateStarIcon, TempleIcon, MapIcon,
   FeatherIcon, ChronicleIcon, LibraryIcon, CommunitiesIcon,
-  LogoutIcon, TelescopeIcon, DoveScrollIcon, HourglassIcon
+  LogoutIcon, TelescopeIcon, DoveScrollIcon, HourglassIcon, ChestIcon
 } from './HistoricIcons';
 
 const SideRail = ({ activeItem = 'inicio', onLogout }) => {
@@ -14,6 +14,7 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
 
   // mobile: 5 ítems visibles en bottom tab bar (orden idéntico al mockup)
   // desktop: todos visibles en side rail
+  const isAdmin = user?.rol === 'admin';
   const items = [
     { id: 'inicio',     label: 'Inicio',     icon: OrnateStarIcon, path: '/',           mobile: true  },
     { id: 'explorar',   label: 'Explorar',   icon: TelescopeIcon,  path: '/explorar',   mobile: true  },
@@ -25,7 +26,10 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
     { id: 'epocas',     label: 'Épocas',     icon: TempleIcon,     path: '/epocas',     mobile: false },
     { id: 'efemerides', label: 'Efemérides', icon: MapIcon,        path: '/efemerides', mobile: false },
     { id: 'legados',    label: 'Legados',    icon: CommunitiesIcon,path: '/legados',    mobile: false },
-    { id: 'misivas',    label: 'Misivas',    icon: DoveScrollIcon, path: '/misivas',    mobile: false }
+    { id: 'misivas',    label: 'Misivas',    icon: DoveScrollIcon, path: '/misivas',    mobile: false },
+    ...(isAdmin
+      ? [{ id: 'admin', label: 'Bóveda admin', icon: ChestIcon, path: '/admin', mobile: false, adminOnly: true }]
+      : [])
   ];
 
   const handleClick = (item) => {
