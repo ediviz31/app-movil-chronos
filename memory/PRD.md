@@ -1,11 +1,28 @@
 # Chronos — Red Social Histórica (PRD)
 
-## ⏸️ Estado del proyecto (Feb 2026)
-**PAUSADO POR USUARIO** — App saludable y funcional. Usuario decidió hacer "cierre limpio" (guardar en GitHub + deployar) para detener consumo de créditos. Backlog pendiente (no crítico):
-- Botón "Generar imagen IA" en composers (script `generate_image.py` ya creado, falta endpoint + UI).
-- Pulido CSS del rail de cápsulas (anillo "Tú" + botón eliminar en viewer).
-- Moderación IA + Sistema de reportes + Panel admin.
-- Newsletter Resend, Stripe Premium, Refactor de `server.js` (>2500 líneas).
+## 🚀 Estado del proyecto (Feb 2026)
+**EN PRODUCCIÓN** — https://historia-connect.emergent.host
+
+### Sesión actual: Video Antorcha + Fragmentos del Tiempo
+**Backend listo, frontend listo, pendiente re-deploy a producción.**
+
+#### Mejoras aplicadas:
+- ✅ Auth en producción funcionando (fix `dbName` + `sameSite: 'none'`)
+- ✅ Cápsulas duplicadas: agrupadas por usuario con badge de cantidad
+- ✅ Layout misivas: más cómodo (padding +60%, cartas más anchas)
+- ✅ Pantalla en blanco al enviar misiva: protegida (Array defensive)
+- ✅ "Buenas noches" a las 4pm: rango de saludos corregido
+- ✅ "Generar imagen con IA": rediseñado (botones más grandes, loader mágico, bottom-sheet móvil)
+- ✅ Crónicas: límite video 50→100MB
+- ✅ Cápsulas/Stories: ahora aceptan video (≤60MB) con visor que autoplaya
+- ✅ Barra "Antorcha" animada con llama crepitante durante subida
+- ✅ Sonidos custom: antorcha encendiéndose + campana al completar
+- ✅ **Fragmentos del Tiempo** (NUEVO): Reels históricos permanentes
+  - Modelo + 6 endpoints (`/api/fragmentos`)
+  - Página `/fragmentos` con filtros (Historia local, Personajes, Lugares, Documentos)
+  - FragmentoCard con video autoplay (IntersectionObserver), avalar, archivar, difundir
+  - CreateFragmentoModal con barra antorcha
+  - Agregado al SideRail mobile bar (5 ítems: Inicio, Explorar, Fragmentos, Biblioteca, Mi legado)
 
 ## Visión
 PWA social/blog con estética histórica donde "cronistas" comparten relatos del pasado y de hoy. Auth con email, feed cronológico, dark + light pergamino, comments en pergamino desplegado ("Resonancias"), presencia en vivo, mapa de efemérides, reading mode, mensajería directa, **Cápsulas del Tiempo (stories históricas)**, **Mi Pasado en Cápsulas**, **Visitas Virtuales 360°**.

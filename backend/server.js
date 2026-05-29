@@ -2381,6 +2381,12 @@ const capsulasRouter = require('./routes/capsulas')({ auth, authOptional });
 app.use('/api/capsulas', capsulasRouter);
 
 // ============================================
+// FRAGMENTOS DEL TIEMPO (Reels históricos)
+// ============================================
+const fragmentosRouter = require('./routes/fragmentos')({ auth, authOptional });
+app.use('/api/fragmentos', fragmentosRouter);
+
+// ============================================
 // VISITAS VIRTUALES 360° (catálogo curado)
 // ============================================
 const visitasRouter = require('./routes/visitas')();

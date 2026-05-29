@@ -5,7 +5,7 @@ import { getAvatarUrl } from '../utils/imageHelpers';
 import {
   OrnateStarIcon, TempleIcon, MapIcon,
   FeatherIcon, ChronicleIcon, LibraryIcon, CommunitiesIcon,
-  LogoutIcon, TelescopeIcon, DoveScrollIcon
+  LogoutIcon, TelescopeIcon, DoveScrollIcon, HourglassIcon
 } from './HistoricIcons';
 
 const SideRail = ({ activeItem = 'inicio', onLogout }) => {
@@ -17,7 +17,8 @@ const SideRail = ({ activeItem = 'inicio', onLogout }) => {
   const items = [
     { id: 'inicio',     label: 'Inicio',     icon: OrnateStarIcon, path: '/',           mobile: true  },
     { id: 'explorar',   label: 'Explorar',   icon: TelescopeIcon,  path: '/explorar',   mobile: true  },
-    { id: 'cronicas',   label: 'Crónicas',   icon: ChronicleIcon,  path: '/cronicas',   mobile: true  },
+    { id: 'fragmentos', label: 'Fragmentos', icon: HourglassIcon,  path: '/fragmentos', mobile: true  },
+    { id: 'cronicas',   label: 'Crónicas',   icon: ChronicleIcon,  path: '/cronicas',   mobile: false },
     { id: 'biblioteca', label: 'Biblioteca', icon: LibraryIcon,    path: '/documentos', mobile: true  },
     { id: 'mi-legado',  label: 'Mi legado',  icon: FeatherIcon,    path: '/mi-legado',  mobile: true  },
     // desktop-only
