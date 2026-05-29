@@ -188,7 +188,13 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
             controls
             preload="metadata"
             playsInline
-            style={{ width: '100%', display: 'block', maxHeight: '420px', objectFit: 'cover' }}
+            style={{ width: '100%', display: 'block', maxHeight: '420px', objectFit: 'cover', background: '#0a0d18' }}
+            onError={(e) => {
+              const div = document.createElement('div');
+              div.style.cssText = 'padding:18px;text-align:center;color:#f5ecd2;background:linear-gradient(180deg,rgba(40,30,18,0.85),rgba(20,14,8,0.95));font-family:Cormorant Garamond,serif;font-style:italic';
+              div.innerHTML = '<div style="font-size:28px;color:#d4b878;margin-bottom:8px">⌛</div><div>Este video ya no está disponible.</div>';
+              e.target.replaceWith(div);
+            }}
           />
         </div>
       )}

@@ -22,6 +22,7 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
   const [playing, setPlaying] = useState(autoplay);
   const [muted, setMuted] = useState(true);
   const [pendingAval, setPendingAval] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const videoRef = useRef(null);
   const viewedRef = useRef(false);
 
@@ -145,9 +146,17 @@ const FragmentoCard = ({ fragmento, onChanged, onDeleted, autoplay = true }) => 
           loop
           playsInline
           muted={muted}
+          onError={() => setVideoError(true)}
           data-testid={`fragmento-video-${data._id}`}
         />
-        {!playing && (
+        {videoError && (
+          <div className="fragmento-video-error" data-testid={`fragmento-video-error-${data._id}`}>
+            <div className="fragmento-video-error-ico" aria-hidden="true">⌛</div>
+            <p>Este video ya no está disponible.</p>
+            <small>El archivo se perdió al reiniciar el servidor.</small>
+          </div>
+        )}
+        {!playing && !videoError && (
           <button type="button" className="fragmento-play-btn" aria-label="Reproducir">
             <svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true">
               <path d="M8 5v14l11-7z" fill="currentColor" />
