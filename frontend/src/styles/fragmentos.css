@@ -233,15 +233,23 @@
 }
 .fragmento-chip-ico { font-size: 12px; color: var(--gold); }
 
-/* Stage del video (contenedor relativo para overlays, badges, errores) */
+/* Stage del video — aspecto vertical estilo Reel para que el video se vea
+   con buena altura (no aplastado) y centrado tanto en móvil como en PC. */
 .fragmento-stage {
   position: relative;
   width: 100%;
   background: #000;
-  aspect-ratio: 16 / 9;
-  max-height: 42vh;
+  aspect-ratio: 4 / 5;
+  max-height: 72vh;
   cursor: pointer;
   overflow: hidden;
+}
+/* En desktop limitamos un poco más para que no quede gigantesco */
+@media (min-width: 760px) {
+  .fragmento-stage {
+    aspect-ratio: 3 / 4;
+    max-height: 78vh;
+  }
 }
 
 /* Mensaje de error si el video se perdió (disco no persistente) */
@@ -568,7 +576,7 @@
   .fragmentos-title { font-size: 22px; }
   .fragmentos-sub { font-size: 12px; }
   .fragmento-card { border-radius: 12px; }
-  .fragmento-stage { aspect-ratio: 16 / 9; max-height: 38vh; }
+  .fragmento-stage { aspect-ratio: 4 / 5; max-height: 70vh; }
   .fragmento-actions {
     right: 6px;
     bottom: 8px;

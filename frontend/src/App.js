@@ -53,6 +53,7 @@ import './styles/torch-progress.css';
 import './styles/fragmentos.css';
 import './styles/narrar-block.css';
 import './styles/admin.css';
+import './styles/biblioteca.css';
 import './styles/theme-light.css';
 
 const LoadingScreen = () => (

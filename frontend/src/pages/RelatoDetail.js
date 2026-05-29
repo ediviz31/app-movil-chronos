@@ -386,7 +386,7 @@ const RelatoDetail = () => {
               data-testid="relato-archive-btn"
             >
               <ChestIcon size={22} />
-              <span className="relato-action-label">Archivar</span>
+              <span className="relato-action-label">{relato.usuario_archivado ? 'Archivado' : 'Archivar'}</span>
               <span className="relato-action-count">{relato.total_archivos}</span>
             </button>
           </div>

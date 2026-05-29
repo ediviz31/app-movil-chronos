@@ -1,28 +1,27 @@
+/**
+ * Biblioteca / Archivo personal — vista tipo galería Pinterest (masonry).
+ * Muestra las crónicas que el cronista archivó, ordenadas en columnas
+ * con alturas variables según el contenido (imagen + título). Al tocar
+ * una tarjeta, abre el detalle de la crónica.
+ */
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import PageShell from '../components/PageShell';
-import SocialPost from '../components/SocialPost';
-import { useAuth } from '../context/AuthContext';
-import { ChestIcon, HourglassIcon, OrnateStarIcon } from '../components/HistoricIcons';
+import { ChestIcon, HourglassIcon } from '../components/HistoricIcons';
+import { getImageUrl, getAvatarUrl } from '../utils/imageHelpers';
+import haptic from '../utils/haptic';
 
 const DocumentosPage = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
   const [relatos, setRelatos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const currentUserId = user?._id || user?.id;
 
   useEffect(() => {
     (async () => {
       try {
         const res = await api.get('/archivados');
-        // Filtrar nulls por si algún relato fue eliminado
-        const list = (res.data || []).filter(Boolean).map(r => ({
-          ...r,
-          usuario_archivado: true,
-          total_ecos: r.total_ecos || 0,
-          total_comentarios: r.total_comentarios || 0,
-          total_archivos: r.total_archivos || 0
-        }));
+        const list = (res.data || []).filter(Boolean);
         setRelatos(list);
       } catch (err) {
         console.error(err);
@@ -32,55 +31,128 @@ const DocumentosPage = () => {
     })();
   }, []);
 
+  const handleQuitar = async (e, id) => {
+    e.stopPropagation();
+    haptic.light();
+    try {
+      await api.post(`/archivados/${id}`); // toggle quita
+      setRelatos(rs => rs.filter(r => r._id !== id));
+    } catch (_) { /* silencioso */ }
+  };
+
   return (
-    <PageShell activeRail="biblioteca">
-      <main className="archive-listing-page" data-testid="documentos-page">
-        <header className="listing-header">
-          <div className="listing-header-text">
-            <div className="listing-kicker">
-              <ChestIcon size={14} /> Mi Archivo Personal
-            </div>
-            <h1 className="listing-title">Documentos preservados</h1>
-            <p className="listing-subtitle">
-              Las crónicas que has guardado en tu cofre. Una colección curada
-              de relatos para volver a consultarlos cuando lo desees.
-            </p>
+    <PageShell activeRail="biblioteca" showMobileSubBar={false}>
+      <main className="biblioteca-page" data-testid="documentos-page">
+        <header className="biblioteca-header">
+          <div className="biblioteca-kicker">
+            <ChestIcon size={12} /> Mi archivo personal
           </div>
-          <span className="listing-stat-pill" data-testid="documentos-count">
-            {relatos.length} preservados
-          </span>
+          <h1 className="biblioteca-title">Biblioteca</h1>
+          <p className="biblioteca-sub">
+            Las crónicas que has guardado para volver a ellas
+            {relatos.length > 0 && <> · <strong>{relatos.length} preservadas</strong></>}
+          </p>
         </header>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 60 }}>
-            <div className="spin" style={{ display: 'inline-block', color: 'var(--gold)' }}>
-              <HourglassIcon size={36} />
-            </div>
-            <p style={{ marginTop: 14, fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--text-muted)' }}>
-              Abriendo el cofre...
-            </p>
+          <div className="biblioteca-loading">
+            <span className="spin" style={{ color: 'var(--gold)' }}><HourglassIcon size={32} /></span>
+            <p>Abriendo el cofre…</p>
           </div>
         ) : relatos.length === 0 ? (
-          <div className="listing-empty">
-            <ChestIcon size={48} style={{ color: 'var(--gold)' }} />
+          <div className="biblioteca-empty">
+            <ChestIcon size={42} style={{ color: 'var(--gold)' }} />
             <h3>Tu cofre está vacío</h3>
-            <p>Cuando archives una crónica desde el feed o el detalle de un relato, aparecerá aquí
-              esperando tu próxima visita.</p>
+            <p>Cuando archives una crónica, aparecerá aquí esperándote.</p>
           </div>
         ) : (
-          <div data-testid="documentos-list">
+          <div className="biblioteca-masonry" data-testid="biblioteca-grid">
             {relatos.map(r => (
-              <SocialPost
+              <BibliotecaTile
                 key={r._id}
                 relato={r}
-                currentUserId={currentUserId}
-                onDelete={(id) => setRelatos(rs => rs.filter(x => x._id !== id))}
+                onOpen={() => { haptic.light(); navigate(`/relato/${r._id}`); }}
+                onQuitar={(e) => handleQuitar(e, r._id)}
               />
             ))}
           </div>
         )}
       </main>
     </PageShell>
+  );
+};
+
+/** Tile masonry: imagen (si tiene) + título + autor. Alturas variables. */
+const BibliotecaTile = ({ relato, onOpen, onQuitar }) => {
+  const tieneImagen = !!relato.imagen;
+  const tieneVideo = !!relato.video_path;
+  const autorNombre = relato.usuario?.nombre || relato.autor_nombre || 'Cronista';
+  const fecha = relato.creado_en
+    ? new Date(relato.creado_en).toLocaleDateString('es-ES', { year:'numeric', month:'short' })
+    : '';
+
+  return (
+    <article
+      className={`biblio-tile ${tieneImagen ? 'has-img' : 'text-only'}`}
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') onOpen(); }}
+      data-testid={`biblio-tile-${relato._id}`}
+    >
+      {tieneImagen && (
+        <div className="biblio-tile-media">
+          <img
+            src={getImageUrl(relato.imagen)}
+            alt={relato.titulo}
+            loading="lazy"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+          {tieneVideo && (
+            <span className="biblio-tile-vidbadge" aria-hidden="true">▶</span>
+          )}
+        </div>
+      )}
+      <div className="biblio-tile-body">
+        {relato.categoria && (
+          <span className="biblio-tile-cat">{relato.categoria}</span>
+        )}
+        <h3 className="biblio-tile-title">{relato.titulo}</h3>
+        {!tieneImagen && relato.contenido && (
+          <p className="biblio-tile-preview">
+            {relato.contenido.slice(0, 140)}{relato.contenido.length > 140 ? '…' : ''}
+          </p>
+        )}
+        <div className="biblio-tile-foot">
+          <div className="biblio-tile-author">
+            {relato.usuario?.avatar ? (
+              <img
+                src={getAvatarUrl(relato.usuario)}
+                alt={autorNombre}
+                className="biblio-tile-avatar"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
+            ) : (
+              <span className="biblio-tile-avatar biblio-tile-avatar-letter">
+                {autorNombre[0]?.toUpperCase() || '·'}
+              </span>
+            )}
+            <span className="biblio-tile-author-name">{autorNombre}</span>
+          </div>
+          {fecha && <span className="biblio-tile-date">{fecha}</span>}
+        </div>
+      </div>
+      <button
+        type="button"
+        className="biblio-tile-quitar"
+        onClick={onQuitar}
+        aria-label="Quitar del archivo"
+        title="Quitar del archivo"
+        data-testid={`biblio-quitar-${relato._id}`}
+      >
+        <ChestIcon size={13} />
+      </button>
+    </article>
   );
 };
 

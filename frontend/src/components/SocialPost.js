@@ -278,10 +278,10 @@ const SocialPost = ({ relato, currentUserId, onDelete }) => {
           onClick={handleArchivar}
           className={`social-action-btn ${archivado ? 'active' : ''}`}
           data-testid={`btn-preservar-${relato._id}`}
-          title="Guardar en mi archivo"
+          title={archivado ? 'Quitar de mi archivo' : 'Guardar en mi archivo'}
         >
           <ChestIcon size={20} />
-          <span>Archivar</span>
+          <span>{archivado ? 'Archivado' : 'Archivar'}</span>
         </button>
       </div>
 
