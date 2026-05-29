@@ -245,7 +245,18 @@ const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto, onDelet
 
         {/* Tap zones para nav */}
         <div className="capsule-viewer-tapzone" onClick={handleTapZone}>
-          {current.imagen && (
+          {current.video ? (
+            <video
+              src={getImageUrl(current.video)}
+              className="capsule-viewer-bg capsule-viewer-video"
+              autoPlay
+              muted
+              loop
+              playsInline
+              aria-hidden="true"
+              data-testid="capsule-viewer-video"
+            />
+          ) : current.imagen && (
             <img
               src={getImageUrl(current.imagen)}
               alt=""
@@ -254,7 +265,7 @@ const CapsulaViewer = ({ capsulas, startIndex = 0, onClose, onMarkVisto, onDelet
             />
           )}
 
-          <div className={`capsule-viewer-body ${current.imagen ? 'has-bg' : ''}`}>
+          <div className={`capsule-viewer-body ${(current.imagen || current.video) ? 'has-bg' : ''}`}>
             {isCita && (
               <div className="capsule-cita-mark" aria-hidden="true">“</div>
             )}

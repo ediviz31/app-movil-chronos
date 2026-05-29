@@ -42,6 +42,7 @@ const capsulaSchema = new mongoose.Schema({
   lng: { type: Number, default: null },
   anio: { type: Number, default: null },   // año histórico (puede ser negativo a.C.)
   imagen: { type: String, default: null }, // /api/uploads/capsulas/xxx.jpg
+  video: { type: String, default: null },  // /api/uploads/videos/xxx.mp4 (cápsulas)
   // autor: persona histórica para 'cita' (ej. "Marco Aurelio")
   autor: { type: String, default: null, trim: true },
   // Quiénes ya vieron la cápsula (para indicador "ya vista")

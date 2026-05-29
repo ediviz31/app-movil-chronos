@@ -27,16 +27,31 @@ if (!fs.existsSync(CAPSULAS_DIR)) fs.mkdirSync(CAPSULAS_DIR, { recursive: true }
 
 const upload = multer({
   storage: multer.diskStorage({
-    destination: (req, file, cb) => cb(null, CAPSULAS_DIR),
+    destination: (req, file, cb) => {
+      // Videos van a uploads/videos, imágenes a uploads/capsulas
+      if (file.fieldname === 'video') {
+        const VIDEO_DIR = path.join(__dirname, '..', 'uploads', 'videos');
+        if (!fs.existsSync(VIDEO_DIR)) fs.mkdirSync(VIDEO_DIR, { recursive: true });
+        return cb(null, VIDEO_DIR);
+      }
+      cb(null, CAPSULAS_DIR);
+    },
     filename: (req, file, cb) => {
       const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
       cb(null, unique + path.extname(file.originalname));
     }
   }),
-  limits: { fileSize: 8 * 1024 * 1024 },
+  limits: { fileSize: 60 * 1024 * 1024 }, // 60MB max (videos cortos de stories)
   fileFilter: (req, file, cb) => {
-    const ok = /^image\/(jpeg|jpg|png|gif|webp)$/.test(file.mimetype);
-    cb(ok ? null : new Error('Imagen inválida'), ok);
+    if (file.fieldname === 'imagen') {
+      const ok = /^image\/(jpeg|jpg|png|gif|webp)$/.test(file.mimetype);
+      return cb(ok ? null : new Error('Imagen inválida'), ok);
+    }
+    if (file.fieldname === 'video') {
+      const ok = /^video\//.test(file.mimetype);
+      return cb(ok ? null : new Error('Video inválido'), ok);
+    }
+    cb(null, false);
   }
 });
 
@@ -148,7 +163,10 @@ module.exports = function createCapsulasRouter({ auth, authOptional }) {
   });
 
   /** POST /api/capsulas — crear cápsula del cronista */
-  router.post('/', [auth, upload.single('imagen')], async (req, res) => {
+  router.post('/', [auth, upload.fields([
+    { name: 'imagen', maxCount: 1 },
+    { name: 'video', maxCount: 1 }
+  ])], async (req, res) => {
     try {
       const { texto, epoca, lugar, anio } = req.body;
       if (!texto || !texto.trim()) {
@@ -157,7 +175,10 @@ module.exports = function createCapsulasRouter({ auth, authOptional }) {
       if (texto.length > 320) {
         return res.status(400).json({ error: 'Máximo 320 caracteres' });
       }
-      const imagenPath = req.file ? `/api/uploads/capsulas/${req.file.filename}` : null;
+      const imagenFile = req.files?.imagen?.[0];
+      const videoFile = req.files?.video?.[0];
+      const imagenPath = imagenFile ? `/api/uploads/capsulas/${imagenFile.filename}` : null;
+      const videoPath = videoFile ? `/api/uploads/videos/${videoFile.filename}` : null;
 
       // Vida 24h
       const expira = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -170,6 +191,7 @@ module.exports = function createCapsulasRouter({ auth, authOptional }) {
         lugar: lugar?.trim() || null,
         anio: anio ? Number(anio) : null,
         imagen: imagenPath,
+        video: videoPath,
         expira_en: expira
       });
 
@@ -211,6 +233,10 @@ module.exports = function createCapsulasRouter({ auth, authOptional }) {
       }
       if (c.imagen) {
         const local = path.join(__dirname, '..', c.imagen.replace('/api/', ''));
+        if (fs.existsSync(local)) { try { fs.unlinkSync(local); } catch (_) {} }
+      }
+      if (c.video) {
+        const local = path.join(__dirname, '..', c.video.replace('/api/', ''));
         if (fs.existsSync(local)) { try { fs.unlinkSync(local); } catch (_) {} }
       }
       await Capsula.findByIdAndDelete(c._id);

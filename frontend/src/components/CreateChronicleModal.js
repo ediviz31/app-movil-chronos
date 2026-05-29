@@ -3,6 +3,8 @@ import api from '../services/api';
 import haptic from '../utils/haptic';
 import { CloseIcon, FeatherIcon } from './HistoricIcons';
 import IAImageGenerator from './IAImageGenerator';
+import TorchProgress from './TorchProgress';
+import { playTorchIgnite, playUploadComplete } from '../utils/chronosSound';
 
 const CATEGORIAS = [
   'Antigüedad', 'Edad Media', 'Edad Moderna', 'Edad Contemporánea',
@@ -25,6 +27,7 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
   const [videoName, setVideoName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0); // 0..100 mientras sube
   // Borradores
   const [draftStatus, setDraftStatus] = useState('idle'); // 'idle' | 'saved' | 'restored'
   const [draftMeta, setDraftMeta] = useState(null);       // {ts, age}
@@ -117,9 +120,11 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    // 50MB máximo (límite multer del backend)
-    if (file.size > 50 * 1024 * 1024) {
-      setError('El video no puede superar los 50 MB');
+    // 100MB máximo (límite multer del backend)
+    const MAX_MB = 100;
+    if (file.size > MAX_MB * 1024 * 1024) {
+      const sizeMb = (file.size / 1024 / 1024).toFixed(1);
+      setError(`Tu video pesa ${sizeMb} MB. El máximo es ${MAX_MB} MB. Intenta grabarlo en menor calidad o comprime el archivo.`);
       return;
     }
     setError('');
@@ -130,6 +135,12 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); setLoading(true);
+    setUploadProgress(0);
+    const hasVideo = !!video;
+    // Si hay video, encendemos la antorcha
+    if (hasVideo) {
+      try { playTorchIgnite(); } catch (_) {}
+    }
     try {
       const data = new FormData();
       Object.keys(formData).forEach(k => data.append(k, formData[k]));
@@ -137,8 +148,17 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
       if (video) data.append('video', video);
 
       const response = await api.post('/relatos', data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (e) => {
+          if (e.total) {
+            const pct = (e.loaded / e.total) * 100;
+            setUploadProgress(pct);
+          }
+        }
       });
+      if (hasVideo) {
+        try { playUploadComplete(); } catch (_) {}
+      }
       haptic.success();
       // Borrador consumido: limpiar
       try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
@@ -146,9 +166,11 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
       setFormData({ titulo: '', categoria: 'Antigüedad', contenido: '', historia_anio: '', historia_lugar: '' });
       setImagen(null); setImagenPreview(null);
       setVideo(null); setVideoName('');
+      setUploadProgress(0);
       onClose();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al crear crónica');
+      setUploadProgress(0);
     } finally {
       setLoading(false);
     }
@@ -297,7 +319,7 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
 
           <div className="form-group">
             <label className="form-label">
-              Video del sitio histórico <span style={{ opacity: 0.6, fontWeight: 400 }}>(opcional · máx 50 MB)</span>
+              Video del sitio histórico <span style={{ opacity: 0.6, fontWeight: 400 }}>(opcional · máx 100 MB)</span>
             </label>
             <div className="media-picker">
               <label className="media-picker-btn" data-testid="btn-video-camara">
@@ -357,11 +379,21 @@ const CreateChronicleModal = ({ isOpen, onClose, onSuccess }) => {
             >
               {draftStatus === 'saved' && '· Borrador guardado'}
             </span>
-            <button type="button" className="btn-secondary" onClick={onClose}>Cancelar</button>
+            <button type="button" className="btn-secondary" onClick={onClose} disabled={loading}>Cancelar</button>
             <button type="submit" className="btn-primary" disabled={loading} data-testid="btn-publicar">
-              {loading ? 'Preservando...' : 'Preservar Crónica'}
+              {loading
+                ? (video ? 'Encendiendo la antorcha…' : 'Preservando…')
+                : 'Preservar Crónica'}
             </button>
           </div>
+
+          {/* Barra de antorcha: aparece cuando se está subiendo con video */}
+          {loading && video && (
+            <TorchProgress
+              progress={uploadProgress}
+              label="Avanzando por el archivo…"
+            />
+          )}
         </form>
       </div>
     </div>

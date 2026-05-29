@@ -366,7 +366,7 @@ const relatoMediaUpload = require('multer')({
       cb(null, uniqueSuffix + require('path').extname(file.originalname));
     }
   }),
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max (videos)
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB max (videos)
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'imagen') {
       const ok = /^image\/(jpeg|jpg|png|gif|webp)$/.test(file.mimetype);

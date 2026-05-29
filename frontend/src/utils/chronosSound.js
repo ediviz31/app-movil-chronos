@@ -187,3 +187,61 @@ export const primeAudio = () => {
     ctx.resume().catch(() => {});
   }
 };
+
+// ─── ANTORCHA ENCENDIÉNDOSE (inicio de upload) ─────────────────
+// Chasquido + crepitar suave, como una antorcha que prende.
+export const playTorchIgnite = async () => {
+  try {
+    const ctx = getCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') await ctx.resume();
+    const now = ctx.currentTime + 0.02;
+    // Chasquido inicial (noise burst)
+    const bufSize = ctx.sampleRate * 0.18;
+    const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = noiseBuf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 1.8);
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuf;
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.value = 1400;
+    noiseFilter.Q.value = 0.8;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.22, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(ctx.destination);
+    noise.start(now); noise.stop(now + 0.2);
+    // Pequeña "respiración" cálida que se eleva
+    const warmth = ctx.createOscillator();
+    warmth.type = 'sine';
+    warmth.frequency.setValueAtTime(180, now);
+    warmth.frequency.exponentialRampToValueAtTime(280, now + 0.35);
+    const wGain = ctx.createGain();
+    wGain.gain.setValueAtTime(0, now);
+    wGain.gain.linearRampToValueAtTime(0.08, now + 0.05);
+    wGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    warmth.connect(wGain); wGain.connect(ctx.destination);
+    warmth.start(now); warmth.stop(now + 0.5);
+  } catch (e) {
+    console.warn('No se pudo reproducir antorcha:', e);
+  }
+};
+
+// ─── CAMPANA DE LOGRO (upload completado) ──────────────────────
+// Tono dorado breve y satisfactorio.
+export const playUploadComplete = async () => {
+  try {
+    const ctx = getCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') await ctx.resume();
+    const now = ctx.currentTime + 0.02;
+    // Dos notas ascendentes (Mi → Sol)
+    playChime(ctx, 659.25, now, 0.4, 0.1);
+    playChime(ctx, 783.99, now + 0.12, 0.65, 0.12);
+  } catch (e) {
+    console.warn('No se pudo reproducir campana:', e);
+  }
+};
