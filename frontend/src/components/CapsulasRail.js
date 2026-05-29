@@ -188,7 +188,12 @@ const CapsulasRail = () => {
           )}
 
           {/* Resto de cápsulas (sistema + otros cronistas, agrupados por usuario) */}
-          {otrasCronistasAgrupadas.map((c) => renderCircle(c, capsulas.indexOf(c)))}
+          {otrasCronistasAgrupadas.map((c) => {
+            // Buscar índice en array original por _id (necesario porque los grupos
+            // son objetos nuevos que no existen en `capsulas` directamente)
+            const realIdx = capsulas.findIndex(x => String(x._id) === String(c._id));
+            return renderCircle(c, realIdx);
+          })}
         </div>
       </div>
 
