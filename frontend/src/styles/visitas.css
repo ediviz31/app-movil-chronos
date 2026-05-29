@@ -25,27 +25,31 @@
   box-shadow: 0 6px 18px rgba(212, 184, 120, 0.45);
 }
 
-/* Ícono inline junto al indicador histórico */
+/* Ícono inline junto al indicador histórico — más pequeño y discreto */
 .visita-virtual-icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  margin-left: 8px;
+  width: 17px;
+  height: 17px;
+  margin-left: 6px;
   padding: 0;
-  background: var(--gold-ghost);
-  border: 1px solid var(--gold);
+  background: transparent;
+  border: 1px solid rgba(212, 184, 120, 0.55);
   border-radius: 50%;
   color: var(--gold);
   cursor: pointer;
   vertical-align: middle;
+  flex-shrink: 0;
   transition: background 0.15s ease, transform 0.15s ease;
 }
+.visita-virtual-icon-btn svg {
+  width: 10px !important;
+  height: 10px !important;
+}
 .visita-virtual-icon-btn:hover {
-  background: var(--gold);
-  color: #fff8dc;
-  transform: scale(1.08);
+  background: var(--gold-ghost);
+  transform: scale(1.1);
 }
 
 /* =====================================================

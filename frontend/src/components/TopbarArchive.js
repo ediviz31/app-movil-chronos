@@ -94,29 +94,32 @@ const TopbarArchive = ({ onCreate }) => {
           </div>
         </div>
 
-        {/* CENTRO (desktop): Navegación */}
-        <div className="topbar-section-center">
-          <nav className="archive-nav">
-            {navItems.map(item => {
-              const Icon = item.Icon;
-              return (
-                <a
-                  key={item.path}
-                  href={item.path}
-                  className={location.pathname === item.path ? 'active' : ''}
-                  data-testid={`nav-${item.label.toLowerCase().replace(' ', '-')}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate(item.path);
-                  }}
-                >
-                  <Icon size={20} />
-                  <span className="nav-label">{item.label}</span>
-                </a>
-              );
-            })}
-          </nav>
-        </div>
+        {/* CENTRO (desktop): Navegación — sólo en páginas del feed.
+            En /fragmentos, /admin, /documentos no aplica (son secciones propias). */}
+        {!['/fragmentos', '/admin', '/admin/moderacion', '/documentos'].some(p => location.pathname.startsWith(p)) && (
+          <div className="topbar-section-center">
+            <nav className="archive-nav">
+              {navItems.map(item => {
+                const Icon = item.Icon;
+                return (
+                  <a
+                    key={item.path}
+                    href={item.path}
+                    className={location.pathname === item.path ? 'active' : ''}
+                    data-testid={`nav-${item.label.toLowerCase().replace(' ', '-')}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate(item.path);
+                    }}
+                  >
+                    <Icon size={20} />
+                    <span className="nav-label">{item.label}</span>
+                  </a>
+                );
+              })}
+            </nav>
+          </div>
+        )}
 
         {/* DERECHA: Acciones (desktop) + avatar (siempre) */}
         <div className="topbar-section-right">

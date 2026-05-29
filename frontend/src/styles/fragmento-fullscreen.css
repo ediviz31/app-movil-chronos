@@ -221,29 +221,44 @@
   transition: width 0.12s linear;
 }
 
-/* Desktop: centrar el video en una columna estilo Reel */
+/* Desktop: video centrado en columna estilo Reel, acciones pegadas al video */
 @media (min-width: 760px) {
   .fr-fs-stage {
-    width: min(440px, 92vw);
-    height: min(820px, 92vh);
-    left: 50%;
-    top: 50%;
+    position: relative;
+    width: min(420px, 88vh * 0.5625);
+    height: min(86vh, 740px);
     inset: auto;
-    transform: translate(-50%, -50%);
     border-radius: 16px;
     overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
   }
-  .fr-fs-actions { right: calc(50% - 260px); bottom: 100px; }
-  .fr-fs-info { left: calc(50% - 220px); right: calc(50% - 180px); bottom: 60px; }
+  .fr-fs-actions {
+    position: absolute;
+    right: auto;
+    left: calc(50% + min(210px, 88vh * 0.28) + 16px);
+    top: 50%;
+    transform: translateY(-30%);
+    bottom: auto;
+    gap: 22px;
+  }
+  .fr-fs-info {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(420px, 88vh * 0.5625);
+    bottom: max(60px, calc(50vh - min(43vh, 370px)));
+    right: auto;
+    padding: 50px 18px 18px;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.55) 50%, rgba(0, 0, 0, 0.85) 100%);
+    border-radius: 0 0 16px 16px;
+  }
   .fr-fs-progress {
     left: 50%;
     transform: translateX(-50%);
-    width: min(440px, 92vw);
-    border-radius: 0 0 16px 16px;
+    width: min(420px, 88vh * 0.5625);
+    bottom: max(60px, calc(50vh - min(43vh, 370px)));
+    border-radius: 0;
   }
-}
-@media (min-width: 760px) and (max-width: 1100px) {
-  .fr-fs-actions { right: calc(50% - 240px); }
 }
 
 /* Móvil: ajustes finos */

@@ -20,7 +20,17 @@
   width: 100%;
   max-width: 920px;
   margin: 0 auto;
+  padding-bottom: 20px;
   color: var(--text-bright);
+}
+
+.relato-article {
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: 6px;
+  padding: 44px 52px 32px;
+  position: relative;
+  margin-bottom: 18px;
 }
 
 .relato-back-link {
@@ -44,15 +54,6 @@
 .relato-back-link:hover {
   background: var(--gold-ghost);
   border-color: var(--gold);
-}
-
-.relato-article {
-  background: var(--bg-card);
-  border: 1px solid var(--border-thin);
-  border-radius: 6px;
-  padding: 44px 52px;
-  position: relative;
-  margin-bottom: 32px;
 }
 
 .relato-article::before {

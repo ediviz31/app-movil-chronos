@@ -50,8 +50,8 @@
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 68px;
-  height: 68px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   background:
     radial-gradient(circle at 30% 30%, rgba(255, 245, 215, 0.95) 0%, rgba(212, 184, 120, 0.9) 40%, rgba(160, 125, 58, 0.95) 100%);
@@ -63,11 +63,12 @@
   cursor: pointer;
   z-index: 3;
   box-shadow:
-    0 10px 32px rgba(0, 0, 0, 0.65),
-    inset 0 0 0 3px rgba(0, 0, 0, 0.12),
-    0 0 28px rgba(212, 184, 120, 0.35);
+    0 6px 20px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.1),
+    0 0 18px rgba(212, 184, 120, 0.3);
   transition: transform 0.18s ease, box-shadow 0.2s ease;
 }
+.chronos-video-play svg { width: 24px; height: 24px; }
 .chronos-video-play::before {
   content: '';
   position: absolute;
@@ -164,7 +165,7 @@
   gap: 12px;
 }
 .chronos-video-ctl {
-  width: 32px; height: 32px;
+  width: 30px; height: 30px;
   border-radius: 50%;
   background: rgba(212, 184, 120, 0.1);
   border: 1px solid rgba(212, 184, 120, 0.3);
@@ -177,6 +178,7 @@
   flex-shrink: 0;
   padding: 0;
 }
+.chronos-video-ctl svg { width: 14px; height: 14px; }
 .chronos-video-ctl:hover {
   background: rgba(212, 184, 120, 0.2);
   border-color: var(--gold);
