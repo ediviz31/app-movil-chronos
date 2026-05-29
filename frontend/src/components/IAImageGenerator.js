@@ -117,7 +117,7 @@ const IAImageGenerator = ({ onImageGenerated, contextHint }) => {
               data-testid="ia-prompt"
             />
 
-            <label className="form-label" style={{ marginTop: 10 }}>Estilo</label>
+            <label className="form-label ia-section-label">Estilo</label>
             <div className="ia-style-row">
               {ESTILOS.map(s => (
                 <button
@@ -132,9 +132,17 @@ const IAImageGenerator = ({ onImageGenerated, contextHint }) => {
               ))}
             </div>
 
-            {error && <div className="error-message" style={{ marginTop: 10 }}>{error}</div>}
+            {error && <div className="error-message" style={{ marginTop: 14 }}>{error}</div>}
 
-            {generated && (
+            {loading && (
+              <div className="ia-loading-magic" data-testid="ia-loading">
+                <div className="ia-magic-spinner" />
+                <div className="ia-loading-magic-text">Imaginando tu escena…</div>
+                <div className="ia-loading-magic-sub">◆ El archivo está dibujando ◆</div>
+              </div>
+            )}
+
+            {generated && !loading && (
               <div className="ia-preview" data-testid="ia-preview">
                 <img src={generated.url} alt="Imagen generada" />
               </div>
