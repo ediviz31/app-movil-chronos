@@ -122,10 +122,21 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
   if (!fs.existsSync(full)) fs.mkdirSync(full, { recursive: true });
 });
 
-// Conexión a MongoDB
-mongoose.connect(process.env.MONGO_URL, { dbName: process.env.DB_NAME || 'historia-connect-chronos' })
+// Conexión a MongoDB con timeouts agresivos: fallar rápido y reintentar
+// (en producción la primera conexión puede tardar; no queremos bloquear todo).
+mongoose.connect(process.env.MONGO_URL, {
+  dbName: process.env.DB_NAME || 'historia-connect-chronos',
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+  connectTimeoutMS: 10000,
+  // Buffer corto: si no conecta en 5s, el query falla rápido en vez de quedarse colgado 10s
+  bufferCommands: false
+})
   .then(() => console.log('✅ Conectado a MongoDB - Chronos DB'))
-  .catch(err => console.error('❌ Error conectando a MongoDB:', err));
+  .catch(err => {
+    console.error('❌ Error inicial conectando a MongoDB:', err?.message || err);
+    console.log('🔄 Mongoose reintentará automáticamente en background…');
+  });
 
 // Helpers para manejo de tokens
 const setAuthCookie = (res, token) => {
@@ -2542,9 +2553,8 @@ app.post('/api/relatos/:id/narrar', auth, async (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor Chronos corriendo en puerto ${PORT}`);
   console.log(`📚 Base de datos: ${process.env.MONGO_URL}`);
-  // Disparar setup de python en background (no bloquea startup)
-  // Si ningún python tiene los módulos, intenta instalar en background.
+  // Buscar python listo SIN intentar instalar nada (rápido, no bloquea)
   setTimeout(() => {
-    try { findPython(); } catch (e) { console.warn('[python] warm-up failed:', e.message); }
-  }, 5000);
+    try { findPython(); } catch (_) {}
+  }, 8000);
 });
