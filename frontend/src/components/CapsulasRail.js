@@ -55,6 +55,31 @@ const CapsulasRail = () => {
   const misCapsulas = capsulas.filter(c => c.tipo === 'cronista' && String(c.usuario_id?._id) === String(userId));
   const otrasCapsulas = capsulas.filter(c => !(c.tipo === 'cronista' && String(c.usuario_id?._id) === String(userId)));
 
+  // Agrupar las cápsulas de OTROS cronistas por usuario_id (una entrada por persona)
+  const otrasCronistasAgrupadas = (() => {
+    const sistema = otrasCapsulas.filter(c => c.tipo === 'efemeride' || c.tipo === 'cita');
+    const cronistas = otrasCapsulas.filter(c => c.tipo === 'cronista');
+    const porUsuario = new Map();
+    cronistas.forEach(c => {
+      const uid = String(c.usuario_id?._id || c.usuario_id || '');
+      if (!uid) return;
+      if (!porUsuario.has(uid)) {
+        porUsuario.set(uid, { primera: c, total: 1, allUnseen: !c.visto });
+      } else {
+        const g = porUsuario.get(uid);
+        g.total += 1;
+        // Si alguna está sin ver, el grupo se considera no visto
+        if (!c.visto) g.allUnseen = true;
+      }
+    });
+    const grupos = Array.from(porUsuario.values()).map(g => ({
+      ...g.primera,
+      _groupTotal: g.total,
+      visto: !g.allUnseen, // si TODAS están vistas, marcar como visto
+    }));
+    return [...sistema, ...grupos];
+  })();
+
   // Render: "Tu cápsula" (crear) primero, luego sistema, luego cronistas
   const renderCircle = (c, idx) => {
     const isSystem = c.tipo === 'efemeride' || c.tipo === 'cita';
@@ -74,6 +99,8 @@ const CapsulasRail = () => {
     else if (isMine) label = 'Tú';
     else label = (author?.nombre?.split(' ')[0] || '—');
 
+    const groupTotal = c._groupTotal && c._groupTotal > 1 ? c._groupTotal : null;
+
     return (
       <button
         key={c._id}
@@ -90,6 +117,11 @@ const CapsulasRail = () => {
               <img src={avatarSrc} alt={author?.nombre} />
             )}
           </span>
+          {groupTotal && (
+            <span className="capsule-mine-count" data-testid={`capsule-group-count-${c._id}`}>
+              {groupTotal}
+            </span>
+          )}
         </span>
         <span className="capsule-label">{label}</span>
       </button>
@@ -155,8 +187,8 @@ const CapsulasRail = () => {
             </button>
           )}
 
-          {/* Resto de cápsulas (sistema + otros cronistas) */}
-          {otrasCapsulas.map((c) => renderCircle(c, capsulas.indexOf(c)))}
+          {/* Resto de cápsulas (sistema + otros cronistas, agrupados por usuario) */}
+          {otrasCronistasAgrupadas.map((c) => renderCircle(c, capsulas.indexOf(c)))}
         </div>
       </div>
 

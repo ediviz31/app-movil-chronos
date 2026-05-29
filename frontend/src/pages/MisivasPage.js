@@ -138,8 +138,10 @@ ${enlace}
         api.get(`/misivas/${routeConvId}/mensajes`).then(res => {
           setConvActiva(prev => {
             if (!prev) return res.data;
+            const prevLen = Array.isArray(prev.mensajes) ? prev.mensajes.length : 0;
+            const newLen = Array.isArray(res.data?.mensajes) ? res.data.mensajes.length : 0;
             // Solo actualizar si hay nuevos mensajes
-            if (res.data.mensajes.length !== prev.mensajes.length) return res.data;
+            if (newLen !== prevLen) return res.data;
             return prev;
           });
         }).catch(() => {});
@@ -165,8 +167,12 @@ ${enlace}
       const res = await api.post(`/misivas/${convActiva._id}/mensajes`, {
         contenido: contenidoLocal
       });
-      // Append optimista
-      setConvActiva(prev => prev ? { ...prev, mensajes: [...prev.mensajes, res.data] } : prev);
+      // Append optimista (defensivo: si por alguna razón mensajes no es array)
+      setConvActiva(prev => {
+        if (!prev) return prev;
+        const prevMensajes = Array.isArray(prev.mensajes) ? prev.mensajes : [];
+        return { ...prev, mensajes: [...prevMensajes, res.data] };
+      });
       haptic.success();   // 💌 vibración al enviar misiva
       fetchLista();
     } catch (err) {
@@ -313,7 +319,7 @@ ${enlace}
                         <HourglassIcon size={28} />
                       </div>
                     </div>
-                  ) : convActiva.mensajes.length === 0 ? (
+                  ) : (convActiva.mensajes || []).length === 0 ? (
                     <div className="misivas-empty-hilo">
                       <p>Aún no hay misivas en este hilo.</p>
                       <p style={{ fontStyle: 'italic', fontSize: 13 }}>
@@ -321,7 +327,7 @@ ${enlace}
                       </p>
                     </div>
                   ) : (
-                    convActiva.mensajes.map(m => {
+                    (convActiva.mensajes || []).map(m => {
                       const esMio = String(m.remitente_id) === String(myId);
                       return (
                         <article
