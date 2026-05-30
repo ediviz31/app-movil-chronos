@@ -4,7 +4,7 @@
    ===================================================== */
 .biblioteca-page {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 26px 18px 90px;
   box-sizing: border-box;
@@ -69,14 +69,16 @@
   margin: 0 auto;
 }
 
-/* Masonry con CSS columns: las tarjetas se acomodan solas, alturas naturales */
+/* Masonry con CSS columns: las tarjetas se acomodan solas, alturas naturales.
+   En desktop usamos MÁS columnas para llenar el ancho disponible. */
 .biblioteca-masonry {
   column-count: 2;
   column-gap: 12px;
 }
-@media (min-width: 600px) { .biblioteca-masonry { column-count: 3; column-gap: 14px; } }
-@media (min-width: 900px) { .biblioteca-masonry { column-count: 4; column-gap: 16px; } }
-@media (min-width: 1200px){ .biblioteca-masonry { column-count: 5; column-gap: 16px; } }
+@media (min-width: 500px) { .biblioteca-masonry { column-count: 3; column-gap: 14px; } }
+@media (min-width: 760px) { .biblioteca-masonry { column-count: 4; column-gap: 14px; } }
+@media (min-width: 1000px){ .biblioteca-masonry { column-count: 5; column-gap: 16px; } }
+@media (min-width: 1280px){ .biblioteca-masonry { column-count: 6; column-gap: 16px; } }
 
 /* Tile individual — al ser hijo directo de un contenedor con `columns`,
    `break-inside: avoid` impide que las tarjetas se corten entre columnas. */

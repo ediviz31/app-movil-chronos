@@ -1,6 +1,6 @@
 import React from 'react';
 // Build version marker — DON'T REMOVE. Used to detect stale deploys.
-const __CHRONOS_BUILD_VERSION__ = 'v30-fragmentofullscreen-killswitch-2026-05-30';
+const __CHRONOS_BUILD_VERSION__ = 'v31-biblioteca-wider-2026-05-30';
 if (typeof window !== 'undefined') window.__CHRONOS_BUILD__ = __CHRONOS_BUILD_VERSION__;
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
