@@ -10,6 +10,20 @@
   align-items: center;
   justify-content: center;
   animation: fr-fs-fade-in 0.2s ease;
+  overflow: hidden;
+}
+/* Fondo blur del video (estilo TikTok) que llena la pantalla cuando el
+   video es vertical y deja barras negras a los lados. */
+.fr-fs-overlay::before {
+  content: '';
+  position: absolute;
+  inset: -40px;
+  background-image: var(--fr-fs-bg, none);
+  background-size: cover;
+  background-position: center;
+  filter: blur(40px) brightness(0.4);
+  z-index: 0;
+  pointer-events: none;
 }
 @keyframes fr-fs-fade-in { from { opacity: 0; } to { opacity: 1; } }
 

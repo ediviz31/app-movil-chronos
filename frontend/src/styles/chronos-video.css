@@ -162,8 +162,9 @@
 .chronos-video-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
+.chronos-video-spacer { flex: 1; }
 .chronos-video-ctl {
   width: 30px; height: 30px;
   border-radius: 50%;

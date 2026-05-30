@@ -10,7 +10,7 @@
  *  - Llamadas /api/**: pasar directo a la red (sin caché — evita estados rancios)
  */
 
-const SW_VERSION = 'chronos-v35-biblio-video-portada';
+const SW_VERSION = 'chronos-v36-controles-tabs-360';
 const STATIC_CACHE = `chronos-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `chronos-runtime-${SW_VERSION}`;
 

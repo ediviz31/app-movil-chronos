@@ -170,52 +170,69 @@ const ChronosVideoPlayer = ({
         </button>
       )}
 
-      {/* Barra de controles inferior */}
+      {/* Barra de controles inferior — layout horizontal estilo YouTube,
+          siempre dentro del ancho del video con padding y fondo gradiente */}
       {!error && (
-        <div className="chronos-video-bar" onClick={(e) => e.stopPropagation()}>
-          <button
-            type="button"
-            className="chronos-video-ctl"
-            onClick={togglePlay}
-            aria-label={playing ? 'Pausar' : 'Reproducir'}
-            data-testid={`${testId}-bar-play`}
-          >
-            {playing ? (
-              <span className="chronos-video-pause-icon" aria-hidden="true">
-                <span /><span />
-              </span>
-            ) : (
-              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                <path d="M7 5 L19 12 L7 19 Z" fill="currentColor" />
-              </svg>
-            )}
-          </button>
-          <span className="chronos-video-time">{fmt(current)} / {fmt(duration)}</span>
+        <div className="chronos-video-bar">
+          {/* Fila 1: track de progreso (ancho completo) */}
           <div
             className="chronos-video-track"
             onClick={handleSeek}
             data-testid={`${testId}-track`}
           >
             <div className="chronos-video-track-fill" style={{ width: `${progressPct}%` }} />
+            <div className="chronos-video-track-thumb" style={{ left: `${progressPct}%` }} />
           </div>
-          <button
-            type="button"
-            className="chronos-video-ctl"
-            onClick={toggleMute}
-            aria-label={muted ? 'Activar sonido' : 'Silenciar'}
-            data-testid={`${testId}-mute`}
-          >
-            {muted ? '🔇' : '🔊'}
-          </button>
-          <button
-            type="button"
-            className="chronos-video-ctl"
-            onClick={handleFullscreen}
-            aria-label="Pantalla completa"
-            data-testid={`${testId}-fs`}
-          >
-            ⛶
-          </button>
+          {/* Fila 2: controles horizontales */}
+          <div className="chronos-video-controls">
+            <button
+              type="button"
+              className="chronos-video-ctl chronos-video-toggle"
+              onClick={togglePlay}
+              aria-label={playing ? 'Pausar' : 'Reproducir'}
+              data-testid={`${testId}-bar-play`}
+            >
+              {playing ? (
+                <span className="chronos-video-pause-icon" aria-hidden="true">
+                  <span /><span />
+                </span>
+              ) : (
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                  <path d="M7 5 L19 12 L7 19 Z" fill="currentColor" />
+                </svg>
+              )}
+            </button>
+            <span className="chronos-video-time">{fmt(current)} / {fmt(duration)}</span>
+            <div className="chronos-video-spacer" />
+            <button
+              type="button"
+              className="chronos-video-ctl"
+              onClick={toggleMute}
+              aria-label={muted ? 'Activar sonido' : 'Silenciar'}
+              data-testid={`${testId}-mute`}
+            >
+              {muted ? (
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="currentColor">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.59 3L20 8.41 18.59 7l-3.59 3.59L11.41 7 10 8.41 13.59 12 10 15.59 11.41 17 15 13.41 18.59 17 20 15.59 16.59 12z"/>
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="currentColor">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm10 .5v5l3.5-2.5L13 9.5z"/>
+                </svg>
+              )}
+            </button>
+            <button
+              type="button"
+              className="chronos-video-ctl"
+              onClick={handleFullscreen}
+              aria-label="Pantalla completa"
+              data-testid={`${testId}-fs`}
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
       )}
     </div>

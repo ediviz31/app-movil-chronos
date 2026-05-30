@@ -360,7 +360,13 @@ const FragmentoFullscreen = ({ data, author, muted: initialMuted, onClose, onAva
   };
 
   return (
-    <div className="fr-fs-overlay" data-testid={`fr-fs-${data._id}`} role="dialog" aria-modal="true">
+    <div
+      className="fr-fs-overlay"
+      data-testid={`fr-fs-${data._id}`}
+      role="dialog"
+      aria-modal="true"
+      style={data.miniatura ? { '--fr-fs-bg': `url(${getImageUrl(data.miniatura)})` } : undefined}
+    >
       {/* Botón cerrar */}
       <button className="fr-fs-close" onClick={onClose} aria-label="Cerrar" data-testid="fr-fs-close">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
