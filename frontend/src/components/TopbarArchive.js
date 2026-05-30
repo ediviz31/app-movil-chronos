@@ -94,9 +94,9 @@ const TopbarArchive = ({ onCreate }) => {
           </div>
         </div>
 
-        {/* CENTRO (desktop): Navegación — sólo en páginas del feed.
-            En /fragmentos, /admin, /documentos no aplica (son secciones propias). */}
-        {!['/fragmentos', '/admin', '/admin/moderacion', '/documentos'].some(p => location.pathname.startsWith(p)) && (
+        {/* CENTRO (desktop): Navegación — siempre visible salvo en Fragmentos
+            (pantalla tipo Reel donde la nav central distrae). */}
+        {!location.pathname.startsWith('/fragmentos') && (
           <div className="topbar-section-center">
             <nav className="archive-nav">
               {navItems.map(item => {
