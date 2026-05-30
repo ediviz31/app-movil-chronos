@@ -25,6 +25,54 @@
         <title>Chronos · Archivo vivo de la historia</title>
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
         <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
+        <!--
+          ☢️ Killswitch de Service Worker — ejecutado al cargar.
+          Si el navegador tiene un SW viejo cacheado (versión incorrecta),
+          lo desregistra y limpia TODAS las caches. Luego recarga.
+          Esto sólo ocurre una vez por versión, después el flujo normal toma control.
+        -->
+        <script>
+        (function(){
+          if (!('serviceWorker' in navigator)) return;
+          var EXPECTED_VERSION = 'chronos-v29-killswitch';
+          var LAST_KEY = 'chronos_sw_version_seen';
+          var lastSeen = null;
+          try { lastSeen = localStorage.getItem(LAST_KEY); } catch (_) {}
+
+          // Comprobar versión real del SW publicado en network (no cache)
+          fetch('/sw.js?v=' + Date.now(), { cache: 'no-store' })
+            .then(function(r){ return r.text(); })
+            .then(function(txt){
+              var m = txt.match(/SW_VERSION\s*=\s*['"]([^'"]+)['"]/);
+              var serverVersion = m ? m[1] : null;
+              if (!serverVersion) return;
+              try { localStorage.setItem(LAST_KEY, serverVersion); } catch (_) {}
+
+              // Si la versión que el cliente vió ANTES no coincide con la del server,
+              // o si el cliente no había guardado ninguna, forzamos un reset completo
+              // del SW + caches, una sola vez.
+              if (lastSeen !== serverVersion) {
+                navigator.serviceWorker.getRegistrations().then(function(regs){
+                  return Promise.all(regs.map(function(r){ return r.unregister(); }));
+                }).then(function(){
+                  if (window.caches) {
+                    return caches.keys().then(function(keys){
+                      return Promise.all(keys.map(function(k){ return caches.delete(k); }));
+                    });
+                  }
+                }).then(function(){
+                  // Sólo recargamos si ya había un SW viejo registrado (lastSeen no null)
+                  // para no entrar en bucle de reload al primer usuario.
+                  if (lastSeen) {
+                    console.log('[Chronos] SW updated to', serverVersion, '- reloading');
+                    window.location.reload();
+                  }
+                });
+              }
+            })
+            .catch(function(){ /* silencio */ });
+        })();
+        </script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
