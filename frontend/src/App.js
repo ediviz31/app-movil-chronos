@@ -1,6 +1,6 @@
 import React from 'react';
 // Build version marker — DON'T REMOVE. Used to detect stale deploys.
-const __CHRONOS_BUILD_VERSION__ = 'v33-topbar-restore-biblio-text-2026-05-30';
+const __CHRONOS_BUILD_VERSION__ = 'v35-biblio-video-portada-2026-05-30';
 if (typeof window !== 'undefined') window.__CHRONOS_BUILD__ = __CHRONOS_BUILD_VERSION__;
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';

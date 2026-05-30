@@ -82,7 +82,7 @@ const DocumentosPage = () => {
   );
 };
 
-/** Tile masonry: imagen (si tiene) + título + autor. Alturas variables. */
+/** Tile masonry: imagen (si tiene) o primer frame del video o poster procedural. */
 const BibliotecaTile = ({ relato, onOpen, onQuitar }) => {
   const tieneImagen = !!relato.imagen;
   const tieneVideo = !!relato.video_path;
@@ -91,9 +91,28 @@ const BibliotecaTile = ({ relato, onOpen, onQuitar }) => {
     ? new Date(relato.creado_en).toLocaleDateString('es-ES', { year:'numeric', month:'short' })
     : '';
 
+  // Determinar qué mostrar como portada visual:
+  //  1) Imagen propia → es lo ideal
+  //  2) Si tiene video pero no imagen → usar el primer frame del video
+  //  3) Si no tiene ni imagen ni video → poster procedural con año/lugar
+  const usarVideoComoPortada = !tieneImagen && tieneVideo;
+  const usarPosterProcedural = !tieneImagen && !tieneVideo;
+
+  // Color de fondo del poster procedural (determinístico)
+  const seed = (relato.categoria || relato.titulo || 'chronos').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const posterPalettes = [
+    ['#3a1f10', '#1a0d05'],
+    ['#1a2438', '#0a1020'],
+    ['#2a1838', '#100820'],
+    ['#1f2e1f', '#0a1410'],
+    ['#3a2a14', '#1a1208'],
+    ['#2a1410', '#180806']
+  ];
+  const [c1, c2] = posterPalettes[seed % posterPalettes.length];
+
   return (
     <article
-      className={`biblio-tile ${tieneImagen ? 'has-img' : 'text-only'}`}
+      className={`biblio-tile ${tieneImagen ? 'has-img' : (usarVideoComoPortada ? 'has-video' : 'has-poster')}`}
       onClick={onOpen}
       role="button"
       tabIndex={0}
@@ -113,14 +132,53 @@ const BibliotecaTile = ({ relato, onOpen, onQuitar }) => {
           )}
         </div>
       )}
+
+      {usarVideoComoPortada && (
+        <div className="biblio-tile-media biblio-tile-media-video">
+          {/* Mostramos el primer frame del video como portada. Lo precargamos
+              sólo a metadata para no cargar todo el video. */}
+          <video
+            src={getImageUrl(relato.video_path)}
+            muted
+            playsInline
+            preload="metadata"
+            disablePictureInPicture
+            tabIndex={-1}
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            aria-hidden="true"
+          />
+          <span className="biblio-tile-vidbadge" aria-hidden="true">▶</span>
+        </div>
+      )}
+
+      {usarPosterProcedural && (
+        <div
+          className="biblio-tile-poster"
+          style={{ background: `linear-gradient(155deg, ${c1} 0%, ${c2} 100%)` }}
+        >
+          <div className="biblio-tile-poster-ornament" aria-hidden="true">◆</div>
+          {relato.historia_anio && (
+            <div className="biblio-tile-poster-year">{relato.historia_anio}</div>
+          )}
+          {relato.historia_lugar && (
+            <div className="biblio-tile-poster-place">{relato.historia_lugar}</div>
+          )}
+          {!relato.historia_anio && !relato.historia_lugar && (
+            <div className="biblio-tile-poster-mono">
+              {(relato.titulo || 'C').charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="biblio-tile-body">
         {relato.categoria && (
           <span className="biblio-tile-cat">{relato.categoria}</span>
         )}
         <h3 className="biblio-tile-title">{relato.titulo}</h3>
-        {!tieneImagen && relato.contenido && (
+        {usarPosterProcedural && relato.contenido && (
           <p className="biblio-tile-preview">
-            {relato.contenido.slice(0, 140)}{relato.contenido.length > 140 ? '…' : ''}
+            {relato.contenido.slice(0, 100)}{relato.contenido.length > 100 ? '…' : ''}
           </p>
         )}
         <div className="biblio-tile-foot">
