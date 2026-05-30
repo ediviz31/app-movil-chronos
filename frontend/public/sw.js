@@ -10,7 +10,7 @@
  *  - Llamadas /api/**: pasar directo a la red (sin caché — evita estados rancios)
  */
 
-const SW_VERSION = 'chronos-v31-biblioteca-wider';
+const SW_VERSION = 'chronos-v32-controles-nativos';
 const STATIC_CACHE = `chronos-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `chronos-runtime-${SW_VERSION}`;
 

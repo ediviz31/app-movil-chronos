@@ -52,22 +52,14 @@ const ChronosVideoPlayer = ({
   const togglePlay = () => {
     const v = videoRef.current;
     if (!v) return;
-    // Si hay error, no intentamos reproducir (mostramos el aviso)
-    if (error || v.error) {
-      setError(true);
-      return;
-    }
+    if (error || v.error) { setError(true); return; }
     if (v.paused) {
-      // Primera reproducción puede fallar por autoplay policy; aseguramos
-      // que el play() sea sincrónico al gesto del usuario.
-      v.muted = muted; // respeta el toggle actual
+      v.muted = muted;
       const p = v.play();
       if (p && typeof p.then === 'function') {
         p.then(() => { setPlaying(true); onPlay && onPlay(); })
          .catch((err) => {
-           // Si falla por NotSupportedError o el src es 404, marcamos error
-           if (err?.name === 'NotSupportedError' || err?.name === 'NotAllowedError') {
-             // NotAllowedError = autoplay sin gesto: intenta otra vez muted
+           if (err?.name === 'NotAllowedError') {
              v.muted = true;
              setMuted(true);
              v.play().then(() => { setPlaying(true); onPlay && onPlay(); }).catch(() => {});
@@ -81,22 +73,20 @@ const ChronosVideoPlayer = ({
     showControls();
   };
 
+  const onTimeUpdate = () => {
+    if (videoRef.current && !seeking) setCurrent(videoRef.current.currentTime);
+  };
+
+  const onLoadedMeta = () => {
+    if (videoRef.current) setDuration(videoRef.current.duration || 0);
+  };
+
   const toggleMute = (e) => {
     e?.stopPropagation();
     const v = videoRef.current;
     if (!v) return;
     v.muted = !v.muted;
     setMuted(v.muted);
-  };
-
-  const onTimeUpdate = () => {
-    if (!videoRef.current || seeking) return;
-    setCurrent(videoRef.current.currentTime || 0);
-  };
-
-  const onLoadedMeta = () => {
-    if (!videoRef.current) return;
-    setDuration(videoRef.current.duration || 0);
   };
 
   const handleSeek = (e) => {
@@ -156,8 +146,7 @@ const ChronosVideoPlayer = ({
         <span className="cv-corner cv-tr">◆</span>
       </div>
 
-      {/* Overlay de error si el video no se puede reproducir
-          (típicamente: archivos antiguos perdidos antes de la migración). */}
+      {/* Overlay de error */}
       {error && (
         <div className="chronos-video-error" data-testid={`${testId}-error`}>
           <div className="chronos-video-error-ico" aria-hidden="true">⌛</div>
@@ -166,7 +155,7 @@ const ChronosVideoPlayer = ({
         </div>
       )}
 
-      {/* Botón play central (solo si está pausado y sin error) */}
+      {/* Botón play central */}
       {!playing && !error && (
         <button
           type="button"
@@ -181,74 +170,54 @@ const ChronosVideoPlayer = ({
         </button>
       )}
 
-      {/* Controles inferiores custom */}
-      <div className="chronos-video-bar" onClick={(e) => e.stopPropagation()}>
-        {/* Barra de progreso "filigrana dorada" */}
-        <div
-          className="chronos-video-track"
-          onClick={handleSeek}
-          onTouchStart={() => setSeeking(true)}
-          onTouchMove={handleSeek}
-          onTouchEnd={() => setSeeking(false)}
-          data-testid={`${testId}-track`}
-        >
-          <div className="chronos-video-track-fill" style={{ width: `${progressPct}%` }} />
-          <div className="chronos-video-track-thumb" style={{ left: `${progressPct}%` }} aria-hidden="true" />
-        </div>
-
-        <div className="chronos-video-controls">
+      {/* Barra de controles inferior */}
+      {!error && (
+        <div className="chronos-video-bar" onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
-            className="chronos-video-ctl chronos-video-toggle"
+            className="chronos-video-ctl"
             onClick={togglePlay}
             aria-label={playing ? 'Pausar' : 'Reproducir'}
+            data-testid={`${testId}-bar-play`}
           >
             {playing ? (
-              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                <path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor" />
-              </svg>
+              <span className="chronos-video-pause-icon" aria-hidden="true">
+                <span /><span />
+              </span>
             ) : (
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                 <path d="M7 5 L19 12 L7 19 Z" fill="currentColor" />
               </svg>
             )}
           </button>
-
-          <span className="chronos-video-time" data-testid={`${testId}-time`}>
-            {fmt(current)} <span className="chronos-video-time-sep">·</span> {fmt(duration)}
-          </span>
-
-          <div className="chronos-video-spacer" />
-
+          <span className="chronos-video-time">{fmt(current)} / {fmt(duration)}</span>
+          <div
+            className="chronos-video-track"
+            onClick={handleSeek}
+            data-testid={`${testId}-track`}
+          >
+            <div className="chronos-video-track-fill" style={{ width: `${progressPct}%` }} />
+          </div>
           <button
             type="button"
             className="chronos-video-ctl"
             onClick={toggleMute}
             aria-label={muted ? 'Activar sonido' : 'Silenciar'}
+            data-testid={`${testId}-mute`}
           >
-            {muted ? (
-              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                <path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3L20 8.5 18.5 7 15 10.5 11.5 7 10 8.5 13.5 12 10 15.5 11.5 17 15 13.5 18.5 17 20 15.5z" fill="currentColor" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                <path d="M3 9v6h4l5 4V5L7 9H3zM16 12c0-1.7-1-3.1-2.5-3.7v7.4C15 15.1 16 13.7 16 12z" fill="currentColor" />
-              </svg>
-            )}
+            {muted ? '🔇' : '🔊'}
           </button>
-
           <button
             type="button"
             className="chronos-video-ctl"
             onClick={handleFullscreen}
             aria-label="Pantalla completa"
+            data-testid={`${testId}-fs`}
           >
-            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-              <path d="M5 5h5v2H7v3H5V5zm9 0h5v5h-2V7h-3V5zm5 9v5h-5v-2h3v-3h2zM10 19H5v-5h2v3h3v2z" fill="currentColor" />
-            </svg>
+            ⛶
           </button>
         </div>
-      </div>
+      )}
     </div>
   );
 };
