@@ -86,38 +86,129 @@ async function putObject(path, data, contentType) {
 
 /**
  * Descarga un archivo y lo envía como stream al response de Express.
- * Útil para servir videos sin cargarlos completamente en memoria.
+ *
+ * SOPORTE DE HTTP RANGE (esencial para videos): si el cliente envía un
+ * header "Range: bytes=N-M", devolvemos sólo ese tramo con status 206
+ * y headers Content-Range / Content-Length correctos. Esto permite al
+ * navegador hacer streaming progresivo y seek (saltar a cualquier punto)
+ * sin descargar el archivo completo.
+ *
+ * Estrategia:
+ *   1. Pasamos el Range al Object Store por si lo soporta nativamente.
+ *   2. Si el Object Store NO devuelve 206 (lo ignora), buffereamos la
+ *      respuesta y servimos nosotros el slice. No es ideal para archivos
+ *      enormes (>100MB) pero garantiza compatibilidad.
+ *
+ * @param {string} path
+ * @param {object} res - Express response
+ * @param {object} req - Express request (para leer header Range)
  */
-async function streamToResponse(path, res) {
+async function streamToResponse(path, res, req) {
   const key = await initStorage();
-  let response;
-  try {
-    response = await axios.get(`${STORAGE_URL}/objects/${path}`, {
-      headers: { 'X-Storage-Key': key },
-      responseType: 'stream',
-      timeout: 60000
-    });
-  } catch (err) {
-    if (err.response?.status === 403) {
-      storageKey = null;
-      initPromise = null;
-      const newKey = await initStorage();
-      response = await axios.get(`${STORAGE_URL}/objects/${path}`, {
-        headers: { 'X-Storage-Key': newKey },
-        responseType: 'stream',
-        timeout: 60000
-      });
-    } else {
+  const rangeHeader = req?.headers?.range || null;
+
+  const buildAxiosConfig = (storageKey, opts = {}) => {
+    const headers = { 'X-Storage-Key': storageKey };
+    if (rangeHeader) headers['Range'] = rangeHeader;
+    return {
+      headers,
+      responseType: opts.buffer ? 'arraybuffer' : 'stream',
+      timeout: 60000,
+      maxContentLength: 200 * 1024 * 1024,
+      validateStatus: (s) => s === 200 || s === 206
+    };
+  };
+
+  const fetchOnce = async (cfg) => {
+    try {
+      return await axios.get(`${STORAGE_URL}/objects/${path}`, cfg);
+    } catch (err) {
+      if (err.response?.status === 403) {
+        storageKey = null;
+        initPromise = null;
+        const newKey = await initStorage();
+        return axios.get(`${STORAGE_URL}/objects/${path}`, {
+          ...cfg,
+          headers: { ...cfg.headers, 'X-Storage-Key': newKey }
+        });
+      }
       throw err;
     }
+  };
+
+  // Si el cliente NO pidió Range, usamos stream directo (rápido, eficiente)
+  if (!rangeHeader) {
+    const response = await fetchOnce(buildAxiosConfig(key));
+    const ct = response.headers['content-type'] || 'application/octet-stream';
+    const cl = response.headers['content-length'];
+    res.setHeader('Content-Type', ct);
+    res.setHeader('Accept-Ranges', 'bytes');
+    if (cl) res.setHeader('Content-Length', cl);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    response.data.pipe(res);
+    res.on('close', () => { try { response.data.destroy(); } catch (_) {} });
+    return;
   }
-  const ct = response.headers['content-type'] || 'application/octet-stream';
-  const cl = response.headers['content-length'];
+
+  // CON Range — primero intentamos pasar el header al Object Store.
+  // Si responde 206, lo propagamos tal cual.
+  const streamResp = await fetchOnce(buildAxiosConfig(key));
+  if (streamResp.status === 206 && streamResp.headers['content-range']) {
+    const ct = streamResp.headers['content-type'] || 'application/octet-stream';
+    const cl = streamResp.headers['content-length'];
+    const cr = streamResp.headers['content-range'];
+    res.status(206);
+    res.setHeader('Content-Type', ct);
+    res.setHeader('Accept-Ranges', 'bytes');
+    if (cl) res.setHeader('Content-Length', cl);
+    res.setHeader('Content-Range', cr);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    streamResp.data.pipe(res);
+    res.on('close', () => { try { streamResp.data.destroy(); } catch (_) {} });
+    return;
+  }
+
+  // Fallback: el Object Store ignoró el Range y devolvió el archivo completo.
+  // Descartamos el stream actual y hacemos otra petición buffereada para
+  // poder slicear nosotros el tramo solicitado.
+  try { streamResp.data.destroy(); } catch (_) {}
+
+  const fullResp = await fetchOnce(buildAxiosConfig(key, { buffer: true }));
+  const fullBuffer = Buffer.from(fullResp.data);
+  const totalSize = fullBuffer.length;
+  const ct = fullResp.headers['content-type'] || 'application/octet-stream';
+
+  // Parsear "bytes=start-end" — admite también "bytes=start-" (hasta el final)
+  // y "bytes=-N" (últimos N bytes).
+  const m = /bytes=(\d*)-(\d*)/.exec(rangeHeader);
+  let start = 0;
+  let end = totalSize - 1;
+  if (m) {
+    if (m[1] === '' && m[2] !== '') {
+      // suffix range: "bytes=-500" → últimos 500
+      start = Math.max(0, totalSize - parseInt(m[2], 10));
+      end = totalSize - 1;
+    } else {
+      start = parseInt(m[1], 10) || 0;
+      end = m[2] !== '' ? parseInt(m[2], 10) : totalSize - 1;
+    }
+  }
+  // Validar rango
+  if (start >= totalSize || start < 0 || end < start) {
+    res.status(416);
+    res.setHeader('Content-Range', `bytes */${totalSize}`);
+    return res.end();
+  }
+  if (end >= totalSize) end = totalSize - 1;
+
+  const chunk = fullBuffer.slice(start, end + 1);
+  res.status(206);
   res.setHeader('Content-Type', ct);
-  if (cl) res.setHeader('Content-Length', cl);
-  // Caché agresiva para uploads (los paths llevan UUID, son inmutables)
+  res.setHeader('Accept-Ranges', 'bytes');
+  res.setHeader('Content-Length', chunk.length);
+  res.setHeader('Content-Range', `bytes ${start}-${end}/${totalSize}`);
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-  response.data.pipe(res);
+  res.end(chunk);
 }
 
 /**

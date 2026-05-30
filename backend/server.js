@@ -144,7 +144,7 @@ app.get('/api/files/*', async (req, res) => {
     if (!objectPath || objectPath.length < 3) {
       return res.status(400).send('Path inválido');
     }
-    await objStore.streamToResponse(objectPath, res);
+    await objStore.streamToResponse(objectPath, res, req);
   } catch (err) {
     if (err.response?.status === 404) {
       return res.status(404).send('Archivo no encontrado');
