@@ -14,7 +14,25 @@ function urlBase64ToUint8Array(base64String) {
 export async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return null;
   try {
-    return await navigator.serviceWorker.register('/sw.js');
+    // updateViaCache: 'none' obliga al navegador a NUNCA usar caché HTTP para
+    // sw.js — siempre lo pide fresh. Esencial para que un re-deploy llegue
+    // a los usuarios al primer reload.
+    const reg = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+
+    // Pedir update inmediato y cada vez que la pestaña recobra foco / vuelve online.
+    // Esto asegura que después de un re-deploy, basta con tocar la app o volver
+    // a la pestaña para detectar el nuevo SW.
+    try { reg.update(); } catch (_) {}
+    const checkUpdate = () => { try { reg.update(); } catch (_) {} };
+    window.addEventListener('focus', checkUpdate);
+    window.addEventListener('online', checkUpdate);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') checkUpdate();
+    });
+    // Poll cada 60s por si el usuario deja la app abierta
+    setInterval(checkUpdate, 60000);
+
+    return reg;
   } catch (err) {
     console.warn('SW registration failed:', err);
     return null;
