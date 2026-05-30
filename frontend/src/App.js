@@ -1,6 +1,6 @@
 import React from 'react';
 // Build version marker — DON'T REMOVE. Used to detect stale deploys.
-const __CHRONOS_BUILD_VERSION__ = 'v37-http-range-videos-2026-05-30';
+const __CHRONOS_BUILD_VERSION__ = 'v38-css-minimizer-fix-2026-05-30';
 if (typeof window !== 'undefined') window.__CHRONOS_BUILD__ = __CHRONOS_BUILD_VERSION__;
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';

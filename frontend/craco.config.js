@@ -55,6 +55,23 @@ let webpackConfig = {
       if (config.enableHealthCheck && healthPluginInstance) {
         webpackConfig.plugins.push(healthPluginInstance);
       }
+
+      // 🔧 FIX 2026-05-30: Eliminar el CSS Minimizer Plugin porque su
+      // cssnano interno falla con "Unexpected '/'" haciendo que producción
+      // se quede con un CSS antiguo y los cambios de UI no propagaran.
+      // El CSS sin minificar es ~30% más pesado pero PROPAGA correctamente.
+      // Mejor app que funciona que app optimizada que no sube.
+      if (process.env.NODE_ENV === 'production' && webpackConfig.optimization?.minimizer) {
+        webpackConfig.optimization.minimizer = webpackConfig.optimization.minimizer.filter(plugin => {
+          const name = plugin.constructor?.name || '';
+          if (name === 'CssMinimizerPlugin') {
+            console.log('[craco] CSS Minimizer DESHABILITADO (workaround bug propagación CSS)');
+            return false;
+          }
+          return true;
+        });
+      }
+
       return webpackConfig;
     },
   },
